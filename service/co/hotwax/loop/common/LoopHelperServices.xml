@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+Licensed to the Apache Software Foundation (ASF) under one
+or more contributor license agreements.  See the NOTICE file
+distributed with this work for additional information
+regarding copyright ownership.  The ASF licenses this file
+to you under the Apache License, Version 2.0 (the
+"License"); you may not use this file except in compliance
+with the License.  You may obtain a copy of the License at
+http://www.apache.org/licenses/LICENSE-2.0
+Unless required by applicable law or agreed to in writing,
+software distributed under the License is distributed on an
+"AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+KIND, either express or implied.  See the License for the
+specific language governing permissions and limitations
+under the License.
+-->
+
+<services xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://moqui.org/xsd/service-definition-3.xsd">
+    <service verb="send" noun="LoopRequest" authenticate="anonymous-all">
+        <description>
+            This is a generic service which will be used to make all types of Loop REST API calls.
+        </description>
+        <in-parameters>
+            <parameter name="systemMessageRemoteId" required="true"/>
+            <parameter name="requestType" required="true"/>
+            <parameter name="contentType" required="true"/>
+            <parameter name="requestBody" type="Map"/>
+            <parameter name="limit"/>
+        </in-parameters>
+        <out-parameters>
+            <parameter name="statusCode" type="Integer" required="true"/>
+            <parameter name="response" type="Map"/>
+        </out-parameters>
+        <actions>
+            <entity-find-one entity-name="moqui.service.message.SystemMessageRemote" value-field="systemMessageRemote"/>
+            <if condition="systemMessageRemote == null"><return error="true" message="Could not find SystemMessageRemote with ID ${systemMessageRemote.systemMessageRemoteId}"/></if>
+            <if condition="systemMessageRemote.sendUrl == null"><return error="true" message="Could not find SystemMessageRemote.sendUrl in SystemMessageRemote with ID ${systemMessageRemote.systemMessageRemoteId}"/></if>
+            <if condition="systemMessageRemote.privateKey == null"><return error="true" message="Credentials are missing in SystemMessageRemote data with ID ${systemMessageRemoteId}"/></if>
+
+            <set field="token" from="systemMessageRemote.privateKey"/>
+            <set field="loopUrl" from="systemMessageRemote.sendUrl"/>
+
+            <script><![CDATA[
+                import org.moqui.util.RestClient
+
+                // Prepare RestClient and call Loop API
+                RestClient restClient = ec.service.rest()
+                restClient.timeoutRetry(true);
+                restClient.retry(2, 4);
+                restClient.method(requestType)
+                restClient.uri(loopUrl)
+
+                restClient.addHeader("X-Authorization", token)
+                restClient.contentType(contentType)
+
+                if (requestBody != null) {
+                    restClient.jsonObject(requestBody)
+                }
+                try {
+                    RestClient.RestResponse restResponse = restClient.call()
+                    response = restResponse.jsonObject()
+                    ec.logger.info("response" + response);
+
+                    statusCode = restResponse.getStatusCode()
+                    ec.logger.info("statusCode" + statusCode);
+
+                    if (restResponse.statusCode < 200 || restResponse.statusCode >= 300) {
+                        ec.logger.warn("Unsuccessful with status code: ${statusCode} and response: ${response}")
+                        return
+                    }
+                } catch (Exception e) {
+                    ec.logger.error("Error in API call Error: ${e.getMessage()}")
+                }
+            ]]></script>
+        </actions>
+    </service>
+</services>
