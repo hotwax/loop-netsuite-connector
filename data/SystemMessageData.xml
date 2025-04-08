@@ -44,7 +44,7 @@
          parentTypeId="LocalFeedFile"
          receivePath="${contentRoot}/Netsuite/LoopReturns/create/loopCreateReturnFeed-${dateTime}.json"
          sendPath="/home/${sftpUsername}/netsuite/moqui-loop-return/create/LoopCreateReturn-${systemMessageId}-${dateTime}.json"
-         sendServiceName="co.hotwax.ofbiz.SystemMessageServices.send#SystemMessageFileSftp"/>
+         sendServiceName="co.hotwax.loop.common.SystemMessageServices.send#SystemMessageFileSftp"/>
 
  <moqui.service.message.SystemMessageRemote systemMessageRemoteId="LOOP_REMOTE_SFTP"
          systemMessageTypeId="LoopSFTP"
