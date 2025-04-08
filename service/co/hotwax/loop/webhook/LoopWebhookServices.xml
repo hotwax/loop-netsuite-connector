@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+Licensed to the Apache Software Foundation (ASF) under one
+or more contributor license agreements.  See the NOTICE file
+distributed with this work for additional information
+regarding copyright ownership.  The ASF licenses this file
+to you under the Apache License, Version 2.0 (the
+"License"); you may not use this file except in compliance
+with the License.  You may obtain a copy of the License at
+http://www.apache.org/licenses/LICENSE-2.0
+Unless required by applicable law or agreed to in writing,
+software distributed under the License is distributed on an
+"AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+KIND, either express or implied.  See the License for the
+specific language governing permissions and limitations
+under the License.
+-->
+
+<services xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://moqui.org/xsd/service-definition-3.xsd">
+    <service verb="queue" noun="WebhookSubscriptionSystemMessage" authenticate="anonymous-all">
+        <description>
+            Service to initiate webhook subscription of a specific type by creating a system message.
+        </description>
+        <in-parameters>
+            <parameter name="systemMessageTypeId" required="true"/>
+            <parameter name="systemMessageRemoteId" required="true"/>
+        </in-parameters>
+        <actions>
+            <entity-find-one entity-name="moqui.service.message.SystemMessageType" value-field="systemMessageType"/>
+            <set field="messageParams" from="[:]"/>
+            <entity-find entity-name="moqui.service.message.SystemMessageTypeParameter" list="systemMessageParams">
+                <econdition field-name="systemMessageTypeId" operator="equals" from="systemMessageTypeId"/>
+            </entity-find>
+            <if condition="systemMessageParams">
+                <iterate list="systemMessageParams" entry="paramMap">
+                    <script>messageParams.put(paramMap.parameterName, paramMap.parameterValue)</script>
+                </iterate>
+            </if>
+            <set field="messageText" from="org.moqui.impl.context.ContextJavaUtil.jacksonMapper.writeValueAsString(messageParams)"/>
+            <service-call name="org.moqui.impl.SystemMessageServices.queue#SystemMessage" in-map="[systemMessageTypeId:systemMessageTypeId, systemMessageRemoteId:systemMessageRemoteId, messageText:messageText, sendNow:true]"
+                          out-map="context"/>
+        </actions>
+    </service>
+
+    <service verb="send" noun="WebhookSubscriptionSystemMessage" authenticate="anonymous-all">
+        <description>
+            Send service to invoke Create Webhook Subscription API for the System Message.
+        </description>
+        <implements service="org.moqui.impl.SystemMessageServices.send#SystemMessage"/>
+        <actions>
+            <entity-find-one entity-name="moqui.service.message.SystemMessageAndType" value-field="systemMessage">
+                <field-map field-name="systemMessageId"/>
+            </entity-find-one>
+
+            <set field="serviceCtx" from="org.moqui.impl.context.ContextJavaUtil.jacksonMapper.readValue(systemMessage.messageText, Map.class)"/>
+            <set field="serviceCtx.systemMessageRemoteId" from="systemMessage.systemMessageRemoteId"/>
+            <service-call name="co.hotwax.loop.webhook.LoopWebhookServices.create#WebhookSubscription" in-map="serviceCtx" out-map="context"/>
+
+            <set field="remoteMessageId" from="webhookSubscriptionId"/>
+        </actions>
+    </service>
+
+    <service verb="create" noun="WebhookSubscription" authenticate="anonymous-all">
+        <description>Subscribe to loop webhook topic with a callbackUrl (end point).</description>
+        <in-parameters>
+            <parameter name="systemMessageRemoteId" required="true"/>
+            <parameter name="topic" required="true"/>
+            <parameter name="trigger" required="true"/>
+            <parameter name="status" required="true"/>
+            <parameter name="endPoint"/>
+        </in-parameters>
+        <out-parameters>
+            <parameter name="webhookSubscriptionId"/>
+        </out-parameters>
+        <actions>
+            <entity-find entity-name="moqui.service.message.PartySystemMessageRemote" list="partySystemMessageRemoteList">
+                <econdition field-name="systemMessageRemoteId" operator="equals" from="systemMessageRemoteId"/>
+            </entity-find>
+            <if condition="partySystemMessageRemoteList">
+                <set field="partyId" from="partySystemMessageRemoteList[0].partyId" type="String"/>
+            </if>
+            <script>
+                if (!endPoint) endPoint = System.getProperty('loop_webhook_end_point')
+                endPoint = ec.web.getWebappRootUrl(true, false) + endPoint
+                endPoint = endPoint  + partyId
+            </script>
+
+            <set field="requestBody" from="[:]"/>
+
+            <set field="requestBody.topic" from="topic"/>
+            <set field="requestBody.trigger" from="trigger"/>
+            <set field="requestBody.status" from="status"/>
+            <set field="requestBody.url" from="endPoint"/>
+
+            <service-call name="co.hotwax.loop.common.LoopHelperServices.send#LoopRequest" in-map="[systemMessageRemoteId:systemMessageRemoteId,
+                        requestType:'POST', contentType:'application/json', requestBody:requestBody]" out-map="webhookSubscriptionCreateResponse"/>
+
+            <set field="webhookSubscriptionId" from="webhookSubscriptionCreateResponse.response.id"/>
+        </actions>
+    </service>
+
+    <service verb="verify" noun="Hmac" authenticate="anonymous-all">
+        <description>Verify hmac for the received webhook payload.</description>
+        <in-parameters>
+            <parameter name="message" required="true"/>
+            <parameter name="hmac" required="true"/>
+            <parameter name="sharedSecret" required="true"/>
+            <parameter name="digest" default-value="Base64"/>
+        </in-parameters>
+        <out-parameters>
+            <parameter name="isValidWebhook" type="Boolean"/>
+        </out-parameters>
+        <actions>
+            //Verifying hmac
+            //Calculate hmac using request body message and shared secret, and compare with the incoming hmac header
+            <script><![CDATA[
+                import javax.crypto.Mac
+                import javax.crypto.spec.SecretKeySpec
+
+                Mac hmacSha256 = Mac.getInstance("HmacSHA256")
+                hmacSha256.init(new SecretKeySpec(sharedSecret.getBytes("UTF-8"), "HmacSHA256"))
+                byte[] bytes = hmacSha256.doFinal(message.getBytes("UTF-8"));
+                String calculatedHmac = "";
+                if ("Base64".equals(digest)) {
+                    calculatedHmac = Base64.encoder.encodeToString(bytes)
+                } else if ("Hex".equals(digest)) {
+                    calculatedHmac = org.apache.commons.codec.binary.Hex.encodeHexString(bytes)
+                }
+            ]]></script>
+            <set field="isValidWebhook" from="calculatedHmac.equals(hmac)"/>
+        </actions>
+    </service>
+
+    <service verb="receive" noun="WebhookPayload" authenticate="anonymous-all">
+        <description>Receive webhook payload in an incoming SystemMessage of the webhook topics SystemMessageType.</description>
+        <in-parameters>
+            <parameter name="payload" type="Map" required="true"/>
+            <parameter name="webhookTrigger" required="true"/>
+            <parameter name="webhookPartyId" required="true"/>
+        </in-parameters>
+        <actions>
+            <entity-find entity-name="moqui.basic.Enumeration" list="enums" cache="true">
+                <econdition field-name="enumCode" operator="equals" from="webhookTrigger"/>
+            </entity-find>
+            <if condition="!enums">
+                <return message="Invalid webhook payload for topic [${webhookTrigger}], webhook configuration missing or incomplete."/>
+            </if>
+
+            <entity-find entity-name="moqui.service.message.PartySystemMessageRemote" list="partySystemMessageRemoteList">
+                <econdition field-name="partyId" operator="equals" from="webhookPartyId"/>
+                <econdition field-name="systemMessageTypeId" operator="equals" from="'LoopSFTP'"/>
+            </entity-find>
+            <if condition="partySystemMessageRemoteList">
+                <set field="systemMessageRemoteId" from="partySystemMessageRemoteList[0].systemMessageRemoteId" type="String"/>
+            </if>
+
+            <entity-find-one entity-name="moqui.service.message.SystemMessageType" value-field="systemMessageType">
+                <field-map field-name="systemMessageTypeId" from="webhookTrigger"/>
+            </entity-find-one>
+            <if condition="systemMessageType == null"><return error="true" message="Could not find SystemMessageType with ID ${webhookTrigger}"/></if>
+
+            <set field="nowDate" from="ec.user.nowTimestamp"/>
+            <set field="jsonFilePathRef" from="ec.resource.expand(systemMessageType.receivePath, null,
+                        [contentRoot: ec.user.getPreference('mantle.content.root') ?: 'dbresource://datamanager', date:ec.l10n.format(nowDate, 'yyyy-MM-dd'), dateTime:ec.l10n.format(nowDate, 'yyyy-MM-dd-HH-mm-ss-SSS')], false)"/>
+            <set field="jsonFilePath" from="ec.resource.getLocationReference(jsonFilePathRef).getUri().getPath()"/>
+
+            <script><![CDATA[
+                import java.nio.file.Files
+                import java.nio.file.Paths
+                import java.nio.charset.StandardCharsets
+                import groovy.json.JsonOutput
+
+                // Create directories if they do not exist
+                def file = new File(jsonFilePath)
+                if (!file.parentFile.exists()) file.parentFile.mkdirs()
+
+                // Convert JSON object to a JSON string
+                String jsonString = JsonOutput.prettyPrint(JsonOutput.toJson(payload))
+
+                // Write JSON string to a file
+                Files.write(Paths.get(jsonFilePath), jsonString.getBytes("UTF-8"))
+
+                logger.info("File successfully written to: ${jsonFilePath}")
+            ]]></script>
+
+            <service-call name="org.moqui.impl.SystemMessageServices.queue#SystemMessage"
+                          in-map="[systemMessageTypeId:systemMessageType.systemMessageTypeId, systemMessageRemoteId:systemMessageRemoteId,
+                    messageText:jsonFilePathRef]" async="true"/>
+        </actions>
+    </service>
+</services>
