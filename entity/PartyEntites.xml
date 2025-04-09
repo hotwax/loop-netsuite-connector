@@ -246,11 +246,11 @@ along with this software (see the LICENSE.md file). If not, see
     <relationship type="one" title="ContactMechType" related="moqui.basic.Enumeration">
       <key-map field-name="contactMechTypeEnumId"/></relationship>
     <seed-data>
-      <ContactMechPurpose contactMechPurposeId="PostalPrimary" contactMechTypeEnumId="CmtPostalAddress"
+      <ContactMechPurpose contactMechPurposeId="PostalPrimary" contactMechTypeEnumId="PostalAddress"
                           description="Postal - Primary"/>
-      <ContactMechPurpose contactMechPurposeId="PhonePrimary" contactMechTypeEnumId="CmtTelecomNumber"
+      <ContactMechPurpose contactMechPurposeId="PhonePrimary" contactMechTypeEnumId="TelecomNumber"
                           description="Phone - Primary"/>
-      <ContactMechPurpose contactMechPurposeId="EmailPrimary" contactMechTypeEnumId="CmtEmailAddress"
+      <ContactMechPurpose contactMechPurposeId="EmailPrimary" contactMechTypeEnumId="EmailAddress"
                           description="Email - Primary Address"/>
     </seed-data>
   </entity>
