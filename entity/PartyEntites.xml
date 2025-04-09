@@ -19,6 +19,7 @@ along with this software (see the LICENSE.md file). If not, see
   <!--  - co.hotwax.netsuite.party.contact -->
   <!-- ========================================================= -->
 
+
   <!-- ========================================================= -->
   <!-- co.hotwax.netsuite.party -->
   <!-- ========================================================= -->
@@ -55,15 +56,10 @@ along with this software (see the LICENSE.md file). If not, see
       <key-map field-name="partyId"/></relationship>
     <index name="PARTY_ID_EXT"><index-field name="externalId"/></index>
     <seed-data>
-
       <!-- Party Type -->
       <moqui.basic.EnumerationType description="Party Type" enumTypeId="PartyType"/>
       <moqui.basic.Enumeration description="Person" enumId="Person" enumTypeId="PartyType"/>
       <moqui.basic.Enumeration description="Organization" enumId="Organization" enumTypeId="PartyType"/>
-
-      <!--      &lt;!&ndash; _NA_ Party &ndash;&gt;-->
-      <!--      <Party partyId="_NA_" partyTypeEnumId="Person"/>-->
-      <!--      <Person partyId="_NA_" firstName="Not" lastName="Applicable"/>-->
     </seed-data>
 
     <master name="default">
@@ -168,7 +164,7 @@ along with this software (see the LICENSE.md file). If not, see
     <seed-data>
 
       <!-- NOTE: The partyRelationshipTypeEnumId describes the FROM Party of Organization, ie Joe is a contact of ACME, so ACE
-          is the fromPartyId (fromRoleTypeId= Organization) and Joe is the toPartyId (toRoleTypeId= Contact); for
+          is the fromPartyId (fromRoleTypeId= Organization) and Joe is the toPartyId (toRoleTypeId= Contact);
           -->
       <moqui.basic.EnumerationType description="Party Relationship Type" enumTypeId="PartyRelationshipType"/>
       <moqui.basic.Enumeration description="Contact" enumId="Contact" enumTypeId="PartyRelationshipType"/>
@@ -221,7 +217,7 @@ along with this software (see the LICENSE.md file). If not, see
       <key-map field-name="contactMechId"/></relationship>
     <seed-data>
       <moqui.basic.EnumerationType description="Contact Mechanism Type" enumTypeId="ContactMechType"/>
-      <moqui.basic.Enumeration enumId="EmailAddress" description="Email Address" parentEnumId="ElectronicAddress" enumTypeId="ContactMechType"/>
+      <moqui.basic.Enumeration enumId="EmailAddress" description="Email Address" enumTypeId="ContactMechType"/>
       <moqui.basic.Enumeration enumId="TelecomNumber" description="Phone Number" enumTypeId="ContactMechType"/>
     </seed-data>
 
