@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+User Username          => userAccount.username
+User Fullname          => userAccount.userFullName
+User Organization Name => userAccount.organizationName
+User Email             => userAccount.emailAddress
+User Contact Number    => userAccount.contactNumber
+User Password          => userAccount.newPassword
+User Password Verify   => userAccount.newPasswordVerify
+User Password Change   => userAccount.requirePasswordChange
+-->
+
+<!-- Screen definition for creating a user account -->
+<screen
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-1.4.xsd"
+default-menu-title="Create User Account"
+default-menu-index="1"
+require-authentication="anonymous-all">
+  <!-- Transition to user account details screen -->
+<transition name="userAccountDetail">
+  <default-response url="../UserAccountDetail"/>
+</transition>
+  <!-- Transition to create a new user account -->
+<transition name="createUserAccount">
+  <service-call name="CreateUserAccount.create#UserWithOrganization" in-map="context"/>
+  <default-response url="."/>
+</transition>
+  <!-- Dialog container for creating a user account -->
+<widgets>
+  <container-dialog id="CreateUserAccountDialog" button-text="Create User Account">
+    <form-single name="CreateUserAccount" transition="createUserAccount">
+
+      <!-- form fields -->
+      <field name="username">
+        <default-field title="User Name">
+          <text-line size="20"/>
+        </default-field>
+      </field>
+      <field name="userFullName">
+        <default-field title="User FullName">
+          <text-line size="20"/>
+        </default-field>
+      </field>
+      <field name="organizationName">
+        <default-field title="Organization Name">
+          <text-line size="40"/>
+        </default-field>
+      </field>
+      <field name="emailAddress">
+        <default-field title="Email">
+          <text-line size="60"/>
+        </default-field>
+      </field>
+      <field name="contactNumber">
+        <default-field title="Contact Number">
+          <text-line size="30"/>
+        </default-field>
+      </field>
+      <field name="newPassword">
+        <default-field title="Password">
+          <password size="15"/>
+        </default-field>
+      </field>
+      <field name="newPasswordVerify">
+        <default-field title="Password Verify">
+          <password size="15"/>
+        </default-field>
+      </field>
+      <field name="requirePasswordChange">
+        <default-field>
+          <drop-down>
+            <option key="N"/>
+            <option key="Y"/>
+          </drop-down>
+        </default-field>
+      </field>
+      <!-- Submit Button -->
+      <field name="submitButton">
+        <default-field title="Create">
+          <submit/>
+        </default-field>
+      </field>
+    </form-single>
+  </container-dialog>
+</widgets>
+</screen>
