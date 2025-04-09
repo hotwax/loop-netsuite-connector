@@ -221,7 +221,7 @@ along with this software (see the LICENSE.md file). If not, see
       <key-map field-name="contactMechId"/></relationship>
     <seed-data>
       <moqui.basic.EnumerationType description="Contact Mechanism Type" enumTypeId="ContactMechType"/>
-      <moqui.basic.Enumeration enumId="EmailAddress" description="Email Address" parentEnumId="CmtElectronicAddress" enumTypeId="ContactMechType"/>
+      <moqui.basic.Enumeration enumId="EmailAddress" description="Email Address" parentEnumId="ElectronicAddress" enumTypeId="ContactMechType"/>
       <moqui.basic.Enumeration enumId="TelecomNumber" description="Phone Number" enumTypeId="ContactMechType"/>
     </seed-data>
 
