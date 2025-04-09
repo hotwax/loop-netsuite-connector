@@ -103,7 +103,7 @@ class LoopWebhookFilter implements Filter {
 
         EntityValue systemMessageRemote = null;
         EntityValue systemMessageRemoteWebhook = ec.entityFacade.find("co.hotwax.netsuite.party.PartySystemMessageRemote")
-                .condition("partyId", webhookPartyId, "systemMessageTypeId", "LoopWebhook").useCache(true).disableAuthz().one();
+                .condition("partyId", webhookPartyId).condition("systemMessageTypeId", "LoopWebhook").useCache(true).disableAuthz().one();
         if (systemMessageRemoteWebhook) {
             systemMessageRemote = ec.entityFacade.find("moqui.service.message.SystemMessageRemote")
                     .condition("systemMessageRemoteId", systemMessageRemoteWebhook.systemMessageRemoteId).useCache(true).disableAuthz().one();
