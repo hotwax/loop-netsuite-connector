@@ -1,0 +1,356 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+This software is in the public domain under CC0 1.0 Universal plus a
+Grant of Patent License.
+
+To the extent possible under law, the author(s) have dedicated all
+copyright and related and neighboring rights to this software to the
+public domain worldwide. This software is distributed without any
+warranty.
+
+You should have received a copy of the CC0 Public Domain Dedication
+along with this software (see the LICENSE.md file). If not, see
+<http://creativecommons.org/publicdomain/zero/1.0/>.
+-->
+<entities xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/entity-definition-3.xsd">
+  <!-- ========================================================= -->
+  <!--  - co.hotwax.netsuite.party -->
+  <!--  - co.hotwax.netsuite.party.contact -->
+  <!-- ========================================================= -->
+
+
+  <!-- ========================================================= -->
+  <!-- co.hotwax.netsuite.party -->
+  <!-- ========================================================= -->
+  <entity entity-name="Party" package="co.hotwax.netsuite.party">
+    <field name="partyId" type="id" is-pk="true"/>
+    <field name="partyTypeEnumId" type="id"/>
+    <field name="disabled" type="text-indicator" enable-audit-log="true" default="'N'"/>
+    <field name="customerStatusId" type="id"/>
+    <field name="ownerPartyId" type="id" enable-audit-log="update" default="'_NA_'">
+      <description>If applicable, such as for customer records, the other Party that 'owns' the data for this Party.</description></field>
+    <field name="externalId" type="id"/>
+    <field name="dataSourceId" type="id"/>
+    <field name="comments" type="text-long"/>
+    <relationship type="one" title="PartyType" related="moqui.basic.Enumeration">
+      <key-map field-name="partyTypeEnumId"/></relationship>
+    <relationship type="one" title="CustomerStatus" related="moqui.basic.StatusItem">
+      <key-map field-name="customerStatusId" related="statusId"/></relationship>
+    <relationship type="one" title="Owner" related="co.hotwax.netsuite.party.Party">
+      <key-map field-name="ownerPartyId"/></relationship>
+    <relationship type="one" related="moqui.basic.DataSource"/>
+
+    <relationship type="one-nofk" related="co.hotwax.netsuite.party.Organization"/>
+    <relationship type="one-nofk" related="co.hotwax.netsuite.party.Person"/>
+    <relationship type="many" related="co.hotwax.netsuite.party.PartyRole">
+      <key-map field-name="partyId"/></relationship>
+    <relationship type="many" title="From" related="co.hotwax.netsuite.party.PartyRelationship">
+      <key-map field-name="partyId" related="fromPartyId"/></relationship>
+    <relationship type="many" title="To" related="co.hotwax.netsuite.party.PartyRelationship">
+      <key-map field-name="partyId" related="toPartyId"/></relationship>
+    <relationship type="many" related="co.hotwax.netsuite.party.contact.PartyContactMech">
+      <key-map field-name="partyId"/></relationship>
+
+    <relationship type="many" related="moqui.security.UserAccount">
+      <key-map field-name="partyId"/></relationship>
+    <index name="PARTY_ID_EXT"><index-field name="externalId"/></index>
+    <seed-data>
+
+      <!-- Party Type -->
+      <moqui.basic.EnumerationType description="Party Type" enumTypeId="PartyType"/>
+      <moqui.basic.Enumeration description="Person" enumId="Person" enumTypeId="PartyType"/>
+      <moqui.basic.Enumeration description="Organization" enumId="Organization" enumTypeId="PartyType"/>
+
+      <!-- _NA_ Party -->
+      <Party partyId="_NA_" partyTypeEnumId="PtyPerson"/>
+      <Person partyId="_NA_" firstName="Not" lastName="Applicable"/>
+    </seed-data>
+
+    <master name="default">
+      <detail relationship="type"/>
+      <detail relationship="organization"/>
+      <detail relationship="person"/>
+      <detail relationship="notes"/>
+      <detail relationship="roles"><detail relationship="role"/></detail>
+      <detail relationship="fromRelationships">
+        <detail relationship="fromRole"/>
+        <detail relationship="toParty">
+          <detail relationship="organization"/>
+          <detail relationship="person"/>
+        </detail>
+        <detail relationship="toRole"/>
+        <detail relationship="status"/>
+        <detail relationship="type"/>
+      </detail>
+      <detail relationship="toRelationships">
+        <detail relationship="fromParty">
+          <detail relationship="organization"/>
+          <detail relationship="person"/>
+        </detail>
+        <detail relationship="fromRole"/>
+        <detail relationship="toRole"/>
+        <detail relationship="status"/>
+        <detail relationship="type"/>
+      </detail>
+      <detail relationship="contactMechs">
+        <detail relationship="contactMech" use-master="default"/>
+        <detail relationship="purpose"/>
+      </detail>
+    </master>
+    <master name="contact">
+      <detail relationship="type"/>
+      <detail relationship="organization"/>
+      <detail relationship="person"/>
+      <detail relationship="contactMechs">
+        <detail relationship="contactMech" use-master="default"/>
+        <detail relationship="purpose"/>
+      </detail>
+    </master>
+    <master name="basic">
+      <detail relationship="organization"/>
+      <detail relationship="person"/>
+    </master>
+  </entity>
+  <entity entity-name="Organization" package="co.hotwax.netsuite.party">
+    <field name="partyId" type="id" is-pk="true"/>
+    <field name="organizationName" type="text-medium"/>
+    <field name="officeSiteName" type="text-medium"/>
+    <field name="annualRevenue" type="currency-amount"/>
+    <field name="numEmployees" type="number-integer"/>
+    <relationship type="one" related="co.hotwax.netsuite.party.Party"/>
+    <index name="PTY_ORG_NAME_IDX"><index-field name="organizationName"/></index>
+  </entity>
+  <entity entity-name="Person" package="co.hotwax.netsuite.party">
+    <field name="partyId" type="id" is-pk="true"/>
+    <field name="salutation" type="text-medium"/>
+    <field name="firstName" type="text-medium"/>
+    <field name="middleName" type="text-medium"/>
+    <field name="lastName" type="text-medium" enable-audit-log="update"/>
+    <field name="personalTitle" type="text-medium"/>
+    <field name="suffix" type="text-medium"/>
+    <field name="gender" type="text-indicator"/>
+    <field name="birthDate" type="date"/>
+    <field name="height" type="number-float"/>
+    <field name="weight" type="number-float"/>
+    <field name="employmentStatusEnumId" type="id"/>
+    <field name="occupation" type="text-medium"/>
+    <relationship type="one" related="co.hotwax.netsuite.party.Party"/>
+    <relationship type="one" title="EmploymentStatus" related="moqui.basic.Enumeration">
+      <key-map field-name="employmentStatusEnumId"/></relationship>
+    <index name="FIRST_NAME_IDX"><index-field name="firstName"/></index>
+    <index name="LAST_NAME_IDX"><index-field name="lastName"/></index>
+    <seed-data>
+
+      <moqui.basic.EnumerationType description="Employment Status" enumTypeId="EmploymentStatus"/>
+      <moqui.basic.Enumeration description="Full-time Employed" enumId="EmpsFullTime" enumTypeId="EmploymentStatus"/>
+
+    </seed-data>
+  </entity>
+  <extend-entity entity-name="UserAccount" package="moqui.security">
+    <field name="partyId" type="id"/>
+    <relationship type="one" related="co.hotwax.netsuite.party.Party"/>
+  </extend-entity>
+  <entity entity-name="PartyRelationship" package="co.hotwax.netsuite.party">
+    <field name="partyRelationshipId" type="id" is-pk="true"/>
+    <field name="relationshipTypeEnumId" type="id"/>
+    <field name="fromPartyId" type="id"/>
+    <field name="fromRoleTypeId" type="id"/>
+    <field name="toPartyId" type="id"/>
+    <field name="toRoleTypeId" type="id"/>
+    <field name="fromDate" type="date-time"/>
+    <field name="thruDate" type="date-time"/>
+    <field name="statusId" type="id" enable-audit-log="true"/>
+    <field name="comments" type="text-medium"/>
+    <field name="relationshipName" type="text-medium">
+      <description>Official name of relationship, such as title in an organization.</description>
+    </field>
+    <relationship type="one" title="PartyRelationshipType" related="moqui.basic.Enumeration">
+      <key-map field-name="relationshipTypeEnumId"/></relationship>
+    <relationship type="one" title="From" related="co.hotwax.netsuite.party.Party">
+      <key-map field-name="fromPartyId"/></relationship>
+    <relationship type="one" title="From" related="co.hotwax.netsuite.party.RoleType">
+      <key-map field-name="fromRoleTypeId"/></relationship>
+    <relationship type="one" title="To" related="co.hotwax.netsuite.party.Party">
+      <key-map field-name="toPartyId"/></relationship>
+    <relationship type="one" title="To" related="co.hotwax.netsuite.party.RoleType">
+      <key-map field-name="toRoleTypeId"/></relationship>
+    <relationship type="one" title="PartyRelationship" related="moqui.basic.StatusItem"/>
+    <seed-data>
+
+      <!-- NOTE: The partyRelationshipTypeEnumId describes the FROM Party, ie Joe is a customer of ACME, so Joe
+          is the fromPartyId (fromRoleTypeId=Customer) and ACME is the toPartyId (toRoleTypeId=OrgInternal); for
+          -->
+
+      <moqui.basic.EnumerationType description="Party Relationship Type" enumTypeId="PartyRelationshipType"/>
+      <moqui.basic.Enumeration description="Contact" enumId="PrtContact" enumTypeId="PartyRelationshipType"/>
+      <moqui.basic.Enumeration description="Customer" enumId="PrtCustomer" enumTypeId="PartyRelationshipType"/>
+      <moqui.basic.Enumeration description="Employee" enumId="PrtEmployee" enumTypeId="PartyRelationshipType"/>
+      <moqui.basic.StatusType description="Party Relationship" statusTypeId="PartyRelationship"/>
+    </seed-data>
+  </entity>
+
+  <entity entity-name="PartyRole" package="co.hotwax.netsuite.party">
+    <field name="partyId" type="id" is-pk="true"/>
+    <field name="roleTypeId" type="id" is-pk="true"/>
+    <relationship type="one" related="co.hotwax.netsuite.party.Party"/>
+    <relationship type="one" related="co.hotwax.netsuite.party.RoleType"/>
+  </entity>
+
+  <entity entity-name="RoleType" package="co.hotwax.netsuite.party" cache="true">
+    <!-- NOTE: RoleType is not moved to Enumeration because there are many of them (ID conflicts) and it is referred to in many places. -->
+    <field name="roleTypeId" type="id" is-pk="true"/>
+    <field name="parentTypeId" type="id"/>
+    <field name="description" type="text-medium"/>
+    <relationship type="one" title="Parent" related="co.hotwax.netsuite.party.RoleType">
+      <key-map field-name="parentTypeId" related="roleTypeId"/></relationship>
+    <seed-data>
+      <!-- Role to use when a role is not really applicable for the party association with a record. -->
+      <co.hotwax.netsuite.party.RoleType description="Not Applicable" roleTypeId="_NA_"/>
+
+      <!-- General Roles -->
+      <co.hotwax.netsuite.party.RoleType description="Owner"  roleTypeId="Owner"/>
+      <co.hotwax.netsuite.party.RoleType description="Employee" roleTypeId="Employee"/>
+      <co.hotwax.netsuite.party.RoleType description="Sales Contact" roleTypeId="Contact"/>
+      <moqui.basic.Enumeration description="Person Roles" enumId="RgpPerson" enumTypeId="RoleGroup"/>
+      <co.hotwax.netsuite.party.RoleType description="Customer" roleTypeId="Customer"/>
+      <co.hotwax.netsuite.party.RoleType description="Organization" roleTypeId="Organization"/>
+    </seed-data>
+  </entity>
+
+  <entity entity-name="PartySystemMessageRemote" package="co.hotwax.netsuite.party">
+    <field name="partyId" type="id" is-pk="true"/>
+    <field name="systemMessageRemoteId" type="id" is-pk="true"/>
+    <field name="fromDate" type="date-time" is-pk="true"/>
+    <field name="thruDate" type="date-time"/>
+    <field name="systemMessageTypeId" type="id" is-pk="true"/>
+    <relationship type="one" related="co.hotwax.netsuite.party.Party"/>
+  </entity>
+  <!-- ========================================================= -->
+  <!-- co.hotwax.netsuite.party.contact -->
+  <!-- ========================================================= -->
+
+  <entity entity-name="ContactMech" package="co.hotwax.netsuite.party.contact">
+    <field name="contactMechId" type="id" is-pk="true"/>
+    <field name="contactMechTypeEnumId" type="id"/>
+    <field name="dataSourceId" type="id"/>
+    <field name="infoString" type="text-medium"/>
+    <field name="validateMessage" type="text-medium"/>
+    <relationship type="one" title="ContactMechType" related="moqui.basic.Enumeration">
+      <key-map field-name="contactMechTypeEnumId"/></relationship>
+    <relationship type="one" related="moqui.basic.DataSource"/>
+    <relationship type="one-nofk" related="co.hotwax.netsuite.party.contact.TelecomNumber"/>
+    <relationship type="one-nofk" related="co.hotwax.netsuite.party.contact.PostalAddress"/>
+    <relationship type="many" related="co.hotwax.netsuite.party.contact.PartyContactMech">
+      <key-map field-name="contactMechId"/></relationship>
+    <seed-data>
+    <moqui.basic.EnumerationType description="Contact Mechanism Type" enumTypeId="ContactMechType"/>
+    <moqui.basic.Enumeration enumId="CmtEmailAddress" description="Email Address" parentEnumId="CmtElectronicAddress" enumTypeId="ContactMechType"/>
+    <moqui.basic.Enumeration enumId="CmtTelecomNumber" description="Phone Number" enumTypeId="ContactMechType"/>
+    </seed-data>
+
+    <index name="CMECH_INFO_STRING"><index-field name="infoString"/></index>
+    <index name="CMECH_REPL_CMECH"><index-field name="replacesContactMechId"/></index>
+
+    <master>
+      <detail relationship="telecomNumber"/>
+      <detail relationship="postalAddress">
+        <detail relationship="cityGeo"/>
+        <detail relationship="countyGeo"/>
+        <detail relationship="stateProvinceGeo"/>
+        <detail relationship="postalCodeGeo"/>
+        <detail relationship="countryGeo"/>
+        <detail relationship="telecomContactMech" use-master="default"/>
+        <detail relationship="emailContactMech"/>
+      </detail>
+    </master>
+  </entity>
+  <entity entity-name="ContactMechPurpose" package="co.hotwax.netsuite.party.contact">
+    <field name="contactMechPurposeId" type="id" is-pk="true"/>
+    <field name="contactMechTypeEnumId" type="id"/>
+    <field name="description" type="text-medium"/>
+    <relationship type="one" title="ContactMechType" related="moqui.basic.Enumeration">
+      <key-map field-name="contactMechTypeEnumId"/></relationship>
+    <seed-data>
+      <ContactMechPurpose contactMechPurposeId="PostalPrimary" contactMechTypeEnumId="CmtPostalAddress"
+                          description="Postal - Primary"/>
+      <ContactMechPurpose contactMechPurposeId="PhonePrimary" contactMechTypeEnumId="CmtTelecomNumber"
+                          description="Phone - Primary"/>
+      <ContactMechPurpose contactMechPurposeId="EmailPrimary" contactMechTypeEnumId="CmtEmailAddress"
+                          description="Email - Primary Address"/>
+      <!-- General 'Other' purpose, mainly needed because PartyContactMech.contactMechPurposeId is a PK field, needs a non-null value -->
+      <ContactMechPurpose contactMechPurposeId="Other" contactMechTypeEnumId="" description="Other"/>
+    </seed-data>
+  </entity>
+  <entity entity-name="PartyContactMech" package="co.hotwax.netsuite.party.contact">
+    <field name="partyId" type="id" is-pk="true"/>
+    <field name="contactMechId" type="id" is-pk="true"/>
+    <field name="contactMechPurposeId" type="id" is-pk="true"/>
+    <field name="fromDate" type="date-time" is-pk="true"/>
+    <field name="thruDate" type="date-time"/>
+    <field name="extension" type="text-short"/>
+    <field name="comments" type="text-medium"/>
+    <field name="allowSolicitation" type="text-indicator"/>
+    <field name="usedSince" type="date"/>
+    <field name="usedUntil" type="date"/>
+    <field name="verifyCode" type="text-medium" enable-audit-log="true"/>
+    <field name="verifyCodeDate" type="date-time"/>
+    <field name="verifyCodeAttempts" type="number-integer"/>
+    <relationship type="one" related="co.hotwax.netsuite.party.Party"/>
+    <relationship type="one" related="co.hotwax.netsuite.party.contact.ContactMech"/>
+    <relationship type="one" related="co.hotwax.netsuite.party.contact.ContactMechPurpose"/>
+    <relationship type="one-nofk" related="co.hotwax.netsuite.party.contact.PostalAddress"/>
+    <relationship type="one-nofk" related="co.hotwax.netsuite.party.contact.TelecomNumber"/>
+  </entity>
+  <entity entity-name="PostalAddress" package="co.hotwax.netsuite.party.contact">
+    <field name="contactMechId" type="id" is-pk="true"/>
+    <field name="toName" type="text-medium"/>
+    <field name="attnName" type="text-medium"/>
+    <field name="address1" type="text-medium"/>
+    <field name="address2" type="text-medium"/>
+    <field name="unitNumber" type="text-medium"/>
+    <field name="directions" type="text-long"/>
+    <field name="city" type="text-medium"/>
+    <field name="cityGeoId" type="id"/>
+    <field name="countyGeoId" type="id"/>
+    <field name="stateProvinceGeoId" type="id"/>
+    <field name="countryGeoId" type="id"/>
+    <field name="postalCode" type="text-short"/>
+    <field name="postalCodeExt" type="text-short"/>
+    <field name="postalCodeGeoId" type="id"/>
+    <field name="geoPointId" type="id"/>
+    <field name="commercial" type="text-indicator"/>
+    <field name="accessCode" type="text-short"/>
+    <field name="telecomContactMechId" type="id"/>
+    <field name="emailContactMechId" type="id"/>
+    <relationship type="one" related="co.hotwax.netsuite.party.contact.ContactMech"/>
+    <relationship type="one" title="City" related="moqui.basic.Geo">
+      <key-map field-name="cityGeoId"/></relationship>
+    <relationship type="one" title="County" related="moqui.basic.Geo">
+      <key-map field-name="countyGeoId"/></relationship>
+    <relationship type="one" title="StateProvince" related="moqui.basic.Geo">
+      <key-map field-name="stateProvinceGeoId"/></relationship>
+    <relationship type="one" title="Country" related="moqui.basic.Geo">
+      <key-map field-name="countryGeoId"/></relationship>
+    <relationship type="one" title="PostalCode" related="moqui.basic.Geo">
+      <key-map field-name="postalCodeGeoId"/></relationship>
+    <relationship type="one" related="GeoPoint"/>
+    <relationship type="one-nofk" title="Telecom" related="co.hotwax.netsuite.party.contact.ContactMech">
+      <key-map field-name="telecomContactMechId"/></relationship>
+    <relationship type="one" title="Telecom" related="co.hotwax.netsuite.party.contact.TelecomNumber" mutable="true">
+      <key-map field-name="telecomContactMechId"/></relationship>
+    <relationship type="one" title="Email" related="co.hotwax.netsuite.party.contact.ContactMech">
+      <key-map field-name="emailContactMechId"/></relationship>
+    <index name="CITY_IDX"><index-field name="city"/></index>
+    <index name="POSTAL_CODE_IDX"><index-field name="postalCode"/></index>
+  </entity>
+  <entity entity-name="TelecomNumber" package="co.hotwax.netsuite.party.contact">
+    <field name="contactMechId" type="id" is-pk="true"/>
+    <field name="countryCode" type="text-short"/>
+    <field name="areaCode" type="text-short"/>
+    <field name="contactNumber" type="text-short"/>
+    <field name="askForName" type="text-medium"/>
+    <relationship type="one" related="co.hotwax.netsuite.party.contact.ContactMech"/>
+    <index name="AREA_CONTACT_IDX"><index-field name="areaCode"/><index-field name="contactNumber"/></index>
+  </entity>
+</entities>
