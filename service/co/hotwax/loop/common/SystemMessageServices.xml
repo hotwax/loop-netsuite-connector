@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<services xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/service-definition-3.xsd">
+    <!-- This service is added to get the file text from the file path saved in SystemMessage's messageText and
+        use that file text instead of systemMessage.messageText. -->
+    <!-- NOTE: The reference is taken from send#SystemMessageSftp service of moqui-sftp and enhanced to read the
+         file content from file path stored in message Text and then send the file to SFTP -->
+    <service verb="send" noun="SystemMessageFileSftp">
+        <description>
+            Send message by dropping a file on a SFTP server for messages of a specific type to a specific remote server.
+
+            Configuration for SFTP server access is on the SystemMessageRemote entity:
+            - sendUrl (hostname; may include a colon separated port number)
+            - username
+            - password OR publicKey/privateKey
+
+            Configuration for path and filename pattern is in the sendPath field on the SystemMessageType entity.
+
+            The remoteMessageId will be used as the filename on the SFTP server if the sendPath expression evaluates to a directory
+            or if it evaluates to a filename (directory does not exist) then that will be the filename on the remote server.
+        </description>
+        <implements service="org.moqui.impl.SystemMessageServices.send#SystemMessage"/>
+        <actions>
+            <entity-find-one entity-name="moqui.service.message.SystemMessage" value-field="systemMessage"/>
+            <if condition="systemMessage == null"><return error="true" message="Could not find SystemMessage with ID ${systemMessageId}"/></if>
+
+            <set field="systemMessageType" from="systemMessage.'moqui.service.message.SystemMessageType'"/>
+            <if condition="systemMessageType == null"><return error="true" message="System message ${systemMessageId} has no SystemMessageType, not sending."/></if>
+            <set field="systemMessageRemote" from="systemMessage.'moqui.service.message.SystemMessageRemote'"/>
+            <if condition="systemMessageRemote == null"><return error="true" message="System message ${systemMessageId} has no SystemMessageRemote, not sending."/></if>
+            <if condition="!systemMessageRemote.sendUrl"><return error="true" message="No sendUrl on SystemMessageRemote ${systemMessageRemote.systemMessageRemoteId}, not sending."/></if>
+            <if condition="!systemMessageRemote.username"><return error="true" message="No username on SystemMessageRemote ${systemMessageRemote.systemMessageRemoteId}, not sending."/></if>
+
+            <script><![CDATA[
+                import org.moqui.sftp.SftpClient
+                import java.nio.charset.Charset
+                import java.sql.Timestamp
+
+                Timestamp msgDate = systemMessage.messageDate ?: systemMessage.initDate ?: ec.user.nowTimestamp
+
+                //NOTE: The service is customised to add the support of sftpUsername and productStoreId in sendPath for
+                //file name preparation when sending files to SFTP
+                String sendPath = ec.resource.expand(systemMessageType.sendPath, null,
+                        [systemMessageId:systemMessage.systemMessageId, remoteMessageId:systemMessage.remoteMessageId,
+                         systemMessageTypeId:systemMessage.systemMessageTypeId, systemMessageRemoteId:systemMessage.systemMessageRemoteId,
+                         date:ec.l10n.format(msgDate, "yyyy-MM-dd"), dateTime:ec.l10n.format(msgDate, "yyyy-MM-dd-HH-mm-ss"),
+                         sftpUsername:systemMessageRemote.username, productStoreId:systemMessage.productStoreId, shopId:systemMessage.shopId], false)
+                String filename = systemMessage.remoteMessageId ?: systemMessage.systemMessageId
+                Charset charset = Charset.forName(systemMessageRemote.remoteCharset ?: "UTF-8")
+
+                //get the file text from the file path stored in messageText
+                fileText = ec.resource.getLocationReference(systemMessage.messageText).getText();
+
+                // use SftpClient to put the file
+                // declaring SftpClient in the try statement, so that it is automatically closed regardless of whether the try statement completes normally or abruptly
+                try (SftpClient sftpClient = new SftpClient((String) systemMessageRemote.sendUrl, (String) systemMessageRemote.username)) {
+                    if (systemMessageRemote.privateKey) sftpClient.publicKeyPkcs8((String) systemMessageRemote.privateKey, (String) systemMessageRemote.publicKey)
+                    else sftpClient.password((String) systemMessageRemote.password)
+
+                    // if SFTP server doesn't support set file attributes after put/upload
+                    if (systemMessageRemote.remoteAttributes == 'N') sftpClient.preserveAttributes(false)
+
+                    ec.logger.info("SFTP put message ${systemMessageId} to path ${sendPath} file ${filename} charset ${charset}")
+                    sftpClient.connect()
+                    sftpClient.put(sendPath, filename, (String) fileText, charset, true)
+                }
+            ]]></script>
+            <set field="remoteMessageId" from="filename"/>
+        </actions>
+    </service>
+</services>
