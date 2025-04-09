@@ -73,7 +73,7 @@ under the License.
             <parameter name="webhookSubscriptionId"/>
         </out-parameters>
         <actions>
-            <entity-find entity-name="moqui.service.message.PartySystemMessageRemote" list="partySystemMessageRemoteList">
+            <entity-find entity-name="co.hotwax.netsuite.party.PartySystemMessageRemote" list="partySystemMessageRemoteList">
                 <econdition field-name="systemMessageRemoteId" operator="equals" from="systemMessageRemoteId"/>
             </entity-find>
             <if condition="partySystemMessageRemoteList">
@@ -146,7 +146,7 @@ under the License.
                 <return message="Invalid webhook payload for topic [${webhookTrigger}], webhook configuration missing or incomplete."/>
             </if>
 
-            <entity-find entity-name="moqui.service.message.PartySystemMessageRemote" list="partySystemMessageRemoteList">
+            <entity-find entity-name="co.hotwax.netsuite.party.PartySystemMessageRemote" list="partySystemMessageRemoteList">
                 <econdition field-name="partyId" operator="equals" from="webhookPartyId"/>
                 <econdition field-name="systemMessageTypeId" operator="equals" from="'LoopSFTP'"/>
             </entity-find>
