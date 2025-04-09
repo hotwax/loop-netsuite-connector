@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+This software is in the public domain under CC0 1.0 Universal plus a
+Grant of Patent License.
+
+To the extent possible under law, the author(s) have dedicated all
+copyright and related and neighboring rights to this software to the
+public domain worldwide. This software is distributed without any
+warranty.
+
+You should have received a copy of the CC0 Public Domain Dedication
+along with this software (see the LICENSE.md file). If not, see
+<http://creativecommons.org/publicdomain/zero/1.0/>.
+-->
+<entities xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/entity-definition-3.xsd">
+  <entity entity-name="SystemMessageTypeParameter" package="moqui.service.message" use="configuration">
+    <description>
+      Entity to define any additional parameters w.r.t. SystemMessageType required to process a SystemMessage.
+      Optionally configure systemMessageRemoteId.
+    </description>
+    <field name="systemMessageTypeId" type="id" is-pk="true"/>
+    <field name="parameterName" type="id" is-pk="true"/>
+    <field name="parameterValue" type="text-long"/>
+    <field name="systemMessageRemoteId" type="id"/>
+    <relationship type="one" related="moqui.service.message.SystemMessageType"/>
+    <relationship type="one" related="moqui.service.message.SystemMessageRemote"/>
+  </entity>
+
+  <extend-entity entity-name="SystemMessageType" package="moqui.service.message" cache="true">
+    <field name="parentTypeId" type="id"/>
+    <relationship type="one" title="Parent" related="moqui.service.message.SystemMessageType" short-alias="parentType">
+      <key-map field-name="parentTypeId"/>
+    </relationship>
+    <relationship type="many" related="moqui.service.message.SystemMessageTypeParameter" short-alias="parameters"/>
+  </extend-entity>
+
+  <view-entity entity-name="SystemMessageAndType" package="moqui.service.message">
+    <member-entity entity-alias="SM" entity-name="moqui.service.message.SystemMessage"/>
+    <member-entity entity-alias="SMT" entity-name="moqui.service.message.SystemMessageType" join-from-alias="SM" join-optional="true">
+      <key-map field-name="systemMessageTypeId"/>
+    </member-entity>
+    <alias-all entity-alias="SM"/>
+    <alias-all entity-alias="SMT"/>
+  </view-entity>
+</entities>
