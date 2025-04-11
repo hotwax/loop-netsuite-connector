@@ -119,6 +119,14 @@ class LoopWebhookFilter implements Filter {
 
         // If the hmac matched with the calculatedHmac, break the loop and return
         if (result.isValidWebhook) {
+            EntityValue systemMessageRemoteSFTP = ec.entityFacade.find("co.hotwax.netsuite.party.PartySystemMessageRemote")
+                    .condition("partyId", webhookPartyId).condition("systemMessageTypeId", "LoopSFTP").useCache(true).disableAuthz().one();
+            if (systemMessageRemoteSFTP) {
+                request.setAttribute("systemMessageRemoteId", systemMessageRemoteSFTP.systemMessageRemoteId)
+            } else {
+                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "The SFTP ${webhookTrigger} is not configured for Loop")
+                return
+            }
             request.setAttribute("webhookTrigger", webhookTrigger)
             request.setAttribute("webhookPartyId", webhookPartyId);
             return;

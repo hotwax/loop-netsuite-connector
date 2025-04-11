@@ -17,6 +17,33 @@ under the License.
 -->
 
 <services xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://moqui.org/xsd/service-definition-3.xsd">
+    <service verb="create" noun="PartyWebhookSubscriptionSystemMessage" authenticate="anonymous-all">
+        <description>
+            Send service to invoke Queue Webhook Subscription API for the System Message.
+        </description>
+        <in-parameters>
+            <parameter name="partyId" required="true"/>
+        </in-parameters>
+        <actions>
+            <entity-find entity-name="co.hotwax.netsuite.party.PartySystemMessageRemote" list="partySystemMessageRemoteList">
+                <econdition field-name="partyId" operator="equals" from="partyId"/>
+                <econdition field-name="systemMessageTypeId" operator="equals" from="'LoopWebhook'"/>
+            </entity-find>
+            <if condition="partySystemMessageRemoteList">
+                <set field="systemMessageRemoteId" from="partySystemMessageRemoteList[0].systemMessageRemoteId" type="String"/>
+            </if>
+            <entity-find entity-name="moqui.service.message.SystemMessageType" list="systemMessageTypeList">
+                <econdition field-name="parentTypeId" operator="equals" from="'LoopWebhook'"/>
+            </entity-find>
+            <iterate list="systemMessageTypeList" entry="systemMessageType">
+                <set field="serviceCtx" from="[:]"/>
+                <set field="serviceCtx.systemMessageRemoteId" from="systemMessageRemoteId"/>
+                <set field="serviceCtx.systemMessageTypeId" from="systemMessageType.systemMessageTypeId"/>
+                <service-call name="co.hotwax.loop.webhook.LoopWebhookServices.queue#WebhookSubscriptionSystemMessage" in-map="serviceCtx"/>
+            </iterate>
+        </actions>
+    </service>
+
     <service verb="queue" noun="WebhookSubscriptionSystemMessage" authenticate="anonymous-all">
         <description>
             Service to initiate webhook subscription of a specific type by creating a system message.
@@ -132,11 +159,12 @@ under the License.
     </service>
 
     <service verb="receive" noun="WebhookPayload" authenticate="anonymous-all">
-        <description>Receive webhook payload in an incoming SystemMessage of the webhook topics SystemMessageType.</description>
+        <description>Receive webhook payload in an incoming SystemMessage of the webhook topics SystemMessageType and put it to SFTP server.</description>
         <in-parameters>
             <parameter name="payload" type="Map" required="true"/>
             <parameter name="webhookTrigger" required="true"/>
             <parameter name="webhookPartyId" required="true"/>
+            <parameter name="systemMessageRemoteId" required="true"/>
         </in-parameters>
         <actions>
             <entity-find entity-name="moqui.basic.Enumeration" list="enums" cache="true">
@@ -144,14 +172,6 @@ under the License.
             </entity-find>
             <if condition="!enums">
                 <return message="Invalid webhook payload for topic [${webhookTrigger}], webhook configuration missing or incomplete."/>
-            </if>
-
-            <entity-find entity-name="co.hotwax.netsuite.party.PartySystemMessageRemote" list="partySystemMessageRemoteList">
-                <econdition field-name="partyId" operator="equals" from="webhookPartyId"/>
-                <econdition field-name="systemMessageTypeId" operator="equals" from="'LoopSFTP'"/>
-            </entity-find>
-            <if condition="partySystemMessageRemoteList">
-                <set field="systemMessageRemoteId" from="partySystemMessageRemoteList[0].systemMessageRemoteId" type="String"/>
             </if>
 
             <entity-find-one entity-name="moqui.service.message.SystemMessageType" value-field="systemMessageType">
