@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+Loop Access Key     => SystemMessageRemote.privateKey
+Loop Webhook Secret => SystemMessageRemote.sendSharedSecret
+-->
+
+<!-- Updated screen definition for creating a Loop user account -->
+<screen
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-1.4.xsd"
+    default-menu-title="Create LOOP Account"
+    default-menu-index="1"
+    require-authentication="anonymous-all">
+
+  <!-- Transition to create a new user account using the updated service -->
+  <transition name="createLoopConnection">
+    <service-call name="LoopService.create#LoopSystemMessageRemote" in-map="context"/>
+    <default-response url="."/>
+  </transition>
+
+  <!-- Dialog container for creating a Loop user account -->
+  <widgets>
+      <form-single name="CreateUserLoopAccount" transition="createLoopConnection">
+
+        <!-- Form fields -->
+        <field name="privateKey">
+          <default-field title="Access Key">
+            <text-line size="30"/>
+          </default-field>
+        </field>
+
+        <!-- Webhook Secret  -->
+        <field name="sendSharedSecret">
+          <default-field title="Webhook Secret">
+            <password size="50"/>
+          </default-field>
+        </field>
+
+        <!-- Submit Button -->
+        <field name="submitButton">
+          <default-field title="Create">
+            <submit/>
+          </default-field>
+        </field>
+      </form-single>
+  </widgets>
+</screen>
