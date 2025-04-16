@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!-- No copyright or license for configuration file, details here are not considered a creative work. -->
+<moqui-conf xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/moqui-conf-3.xsd">
+    <webapp-list>
+        <webapp name="webroot">
+            <!-- Loop Webhook Request Filter  -->
+            <filter name="LoopWebhookFilter" class="co.hotwax.loop.LoopWebhookFilter" async-supported="true">
+                <url-pattern>/rest/s1/loop/webhook/*</url-pattern>
+            </filter>
+        </webapp>
+    </webapp-list>
+</moqui-conf>
