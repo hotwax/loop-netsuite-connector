@@ -26,7 +26,7 @@ under the License.
             <parameter name="requestType" required="true"/>
             <parameter name="contentType" required="true"/>
             <parameter name="requestBody" type="Map"/>
-            <parameter name="limit"/>
+            <parameter name="endPoint"/>
         </in-parameters>
         <out-parameters>
             <parameter name="statusCode" type="Integer" required="true"/>
@@ -39,7 +39,11 @@ under the License.
             <if condition="systemMessageRemote.privateKey == null"><return error="true" message="Credentials are missing in SystemMessageRemote data with ID ${systemMessageRemoteId}"/></if>
 
             <set field="token" from="systemMessageRemote.privateKey"/>
-            <set field="loopUrl" from="systemMessageRemote.sendUrl"/>
+            <!-- Preparing the Loop url -->
+            <if condition="endPoint">
+                <set field="remoteSendUrl" from="systemMessageRemote.sendUrl"/>
+                <set field="loopUrl" from="remoteSendUrl + endPoint"/>
+            </if>
 
             <script><![CDATA[
                 import org.moqui.util.RestClient

@@ -94,7 +94,6 @@ under the License.
             <parameter name="topic" required="true"/>
             <parameter name="trigger" required="true"/>
             <parameter name="status" required="true"/>
-            <parameter name="endPoint"/>
         </in-parameters>
         <out-parameters>
             <parameter name="webhookSubscriptionId"/>
@@ -107,20 +106,20 @@ under the License.
                 <set field="partyId" from="partySystemMessageRemoteList[0].partyId" type="String"/>
             </if>
             <script>
-                if (!endPoint) endPoint = System.getProperty('loop_webhook_end_point')
-                endPoint = ec.web.getWebappRootUrl(true, false) + endPoint
-                endPoint = endPoint  + partyId
+                callBackUrl = ec.resourceFacade.expand('/rest/s1/loop/webhook/payload/${partyId}', null, ["partyId": partyId])
+                callBackUrl = ec.web.getWebappRootUrl(true, false) + callBackUrl
             </script>
 
+            <set field="endPoint" from="'/webhooks'"/>
             <set field="requestBody" from="[:]"/>
 
             <set field="requestBody.topic" from="topic"/>
             <set field="requestBody.trigger" from="trigger"/>
             <set field="requestBody.status" from="status"/>
-            <set field="requestBody.url" from="endPoint"/>
+            <set field="requestBody.url" from="callBackUrl"/>
 
             <service-call name="co.hotwax.loop.common.LoopHelperServices.send#LoopRequest" in-map="[systemMessageRemoteId:systemMessageRemoteId,
-                        requestType:'POST', contentType:'application/json', requestBody:requestBody]" out-map="webhookSubscriptionCreateResponse"/>
+                        requestType:'POST', contentType:'application/json', requestBody:requestBody, endPoint: endPoint]" out-map="webhookSubscriptionCreateResponse"/>
 
             <set field="webhookSubscriptionId" from="webhookSubscriptionCreateResponse.response.id"/>
         </actions>
