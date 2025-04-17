@@ -29,40 +29,30 @@ along with this software (see the LICENSE.md file). If not, see
     <field name="disabled" type="text-indicator" enable-audit-log="true" default="'N'"/>
     <field name="customerStatusId" type="id"/>
     <field name="ownerPartyId" type="id" enable-audit-log="update" default="'_NA_'">
-      <description>If applicable, such as for customer records, the other Party that 'owns' the data for this Party.</description>
-    </field>
+      <description>If applicable, such as for customer records, the other Party that 'owns' the data for this Party.</description></field>
     <field name="externalId" type="id"/>
     <field name="dataSourceId" type="id"/>
     <field name="comments" type="text-long"/>
     <relationship type="one" title="PartyType" related="moqui.basic.Enumeration" short-alias="type">
-      <key-map field-name="partyTypeEnumId"/>
-    </relationship>
+      <key-map field-name="partyTypeEnumId"/></relationship>
     <relationship type="one" title="CustomerStatus" related="moqui.basic.StatusItem">
-      <key-map field-name="customerStatusId" related="statusId"/>
-    </relationship>
+      <key-map field-name="customerStatusId" related="statusId"/></relationship>
     <relationship type="one" title="Owner" related="co.hotwax.netsuite.party.Party" short-alias="owner">
-      <key-map field-name="ownerPartyId"/>
-    </relationship>
+      <key-map field-name="ownerPartyId"/></relationship>
     <relationship type="one" related="moqui.basic.DataSource">
-      <key-map field-name="dataSourceId"/>
-    </relationship>
+      <key-map field-name="dataSourceId"/></relationship>
     <relationship type="one-nofk" title="Organization" related="co.hotwax.netsuite.party.Organization" short-alias="organization" mutable="true"/>
     <relationship type="one-nofk" title="Person" related="co.hotwax.netsuite.party.Person" short-alias="person" mutable="true"/>
     <relationship type="many" title="Roles" related="co.hotwax.netsuite.party.PartyRole" short-alias="roles">
-      <key-map field-name="partyId"/>
-    </relationship>
+      <key-map field-name="partyId"/></relationship>
     <relationship type="many" title="FromRelationships" related="co.hotwax.netsuite.party.PartyRelationship" short-alias="fromRelationships">
-      <key-map field-name="partyId" related="fromPartyId"/>
-    </relationship>
+      <key-map field-name="partyId" related="fromPartyId"/></relationship>
     <relationship type="many" title="ToRelationships" related="co.hotwax.netsuite.party.PartyRelationship" short-alias="toRelationships">
-      <key-map field-name="partyId" related="toPartyId"/>
-    </relationship>
+      <key-map field-name="partyId" related="toPartyId"/></relationship>
     <relationship type="many" title="ContactMechs" related="co.hotwax.netsuite.party.contact.PartyContactMech" short-alias="contactMechs">
-      <key-map field-name="partyId"/>
-    </relationship>
+      <key-map field-name="partyId"/></relationship>
     <relationship type="many" title="UserAccounts" related="moqui.security.UserAccount" short-alias="userAccounts">
-      <key-map field-name="partyId"/>
-    </relationship>
+      <key-map field-name="partyId"/></relationship>
     <index name="PARTY_ID_EXT">
       <index-field name="externalId"/>
     </index>
@@ -197,7 +187,6 @@ along with this software (see the LICENSE.md file). If not, see
     <relationship type="one" title="Parent" related="co.hotwax.netsuite.party.RoleType">
       <key-map field-name="parentTypeId" related="roleTypeId"/></relationship>
     <seed-data>
-      <!-- General Roles -->
       <co.hotwax.netsuite.party.RoleType description="Contact" roleTypeId="Contact"/>
       <co.hotwax.netsuite.party.RoleType description="Organization" roleTypeId="Organization"/>
     </seed-data>
