@@ -67,4 +67,174 @@
             <set field="remoteMessageId" from="filename"/>
         </actions>
     </service>
+
+    <service verb="poll" noun="SystemMessageFileSftp" authenticate="anonymous-all">
+        <description>
+            Poll an SFTP server for messages of a specific type from a specific remote server.
+
+            Configuration for SFTP server access is in the receiveUrl (hostname), username,
+            and password OR publicKey/privateKey fields on the SystemMessageRemote entity.
+
+            Configuration for path and filename pattern is in the receivePath field on the SystemMessageType entity.
+
+            The filename on the SFTP server will be used as the remoteMessageId.
+        </description>
+        <in-parameters>
+            <parameter name="systemMessageTypeId" required="true"/>
+            <parameter name="systemMessageRemoteId" required="true"/>
+            <parameter name="fileCountLimit" type="Integer"/>
+            <parameter name="partyId" required="true"/>
+        </in-parameters>
+        <out-parameters>
+            <parameter name="fileCount"/>
+        </out-parameters>
+        <actions>
+            <entity-find-one entity-name="moqui.service.message.SystemMessageType" value-field="systemMessageType"/>
+            <if condition="systemMessageType == null"><return error="true" message="Could not find SystemMessageType with ID ${systemMessageTypeId}"/></if>
+            <entity-find-one entity-name="moqui.service.message.SystemMessageRemote" value-field="systemMessageRemote"/>
+            <if condition="systemMessageRemote == null"><return error="true" message="Could not find SystemMessageRemote with ID ${systemMessageRemoteId}"/></if>
+            <script><![CDATA[
+                import org.moqui.sftp.SftpClient
+                import java.nio.charset.Charset
+
+                // NOTE: The service is customised to add the support of sftpUsername in receivePath and receiveMovePath for
+                // file name preparation when receiving files from SFTP
+
+                String receivePath = ec.resource.expand(systemMessageType.receivePath, null,
+                        [systemMessageTypeId:systemMessageTypeId, systemMessageRemoteId:systemMessageRemoteId, sftpUsername:systemMessageRemote.username], false)
+
+                ec.logger.info("SFTP receivePath ${receivePath}")
+
+                Charset charset = Charset.forName(systemMessageRemote.remoteCharset ?: "UTF-8")
+                String filePattern = systemMessageType.receiveFilePattern
+                String receiveResponseEnumId = systemMessageType.receiveResponseEnumId
+                String receiveMovePath = ec.resource.expand(systemMessageType.receiveMovePath, null,
+                        [systemMessageTypeId:systemMessageTypeId, systemMessageRemoteId:systemMessageRemoteId, sftpUsername:systemMessageRemote.username], false)
+                // use SftpClient to put the file
+                String sftpHost = (String) systemMessageRemote.receiveUrl ?: (String) systemMessageRemote.sendUrl
+                // Using sendPath from SystemMessageType to prepare the path for storing the file (polled from sftp) in the receiving system. Ex: Moqui's datamanager directory in runtime for storing feeds.
+                String sendPath = ec.resource.expand(systemMessageType.sendPath, null,
+                        [contentRoot:ec.user.getPreference('mantle.content.root') ?: 'runtime://datamanager', partyId:partyId], false)
+                // declaring SftpClient in the try statement, so that it is automatically closed regardless of whether the try statement completes normally or abruptly
+                try (SftpClient sftpClient = new SftpClient(sftpHost, (String) systemMessageRemote.username)) {
+                    if (systemMessageRemote.privateKey) sftpClient.publicKeyPkcs8((String) systemMessageRemote.privateKey, (String) systemMessageRemote.publicKey)
+                    else sftpClient.password((String) systemMessageRemote.password)
+
+                    sftpClient.connect()
+                    ArrayList<String> fullFileList = sftpClient.lsFiles(receivePath)
+                    TreeSet<String> fileList = new TreeSet<>()
+                    for (String filename in fullFileList) if (!filePattern || filename.matches(filePattern)) fileList.add(filename)
+                    ec.logger.info("SFTP Poll type ${systemMessageTypeId} remote ${systemMessageRemoteId} found matching files (${fileList.size()}): ${fileList}")
+                    if (fileCountLimit) {
+                        TreeSet<String> ltdList = new TreeSet<>()
+                        int count = 0
+                        for (String filename in fileList) {
+                            ltdList.add(filename)
+                            count++
+                            if (count == fileCountLimit) break
+                        }
+                        fileList = ltdList
+                        ec.logger.info("SFTP Poll type ${systemMessageTypeId} remote ${systemMessageRemoteId} has limit ${fileCountLimit}, getting only files (${fileList.size()}): ${fileList}")
+                    }
+
+                    fileCount = fileList.size()
+
+                    for (String filename in fileList) {
+                        // check for existing SystemMessage by systemMessageRemoteId, systemMessageTypeId, remoteMessageId==filename
+                        if ("MsgRrDelete".equals(receiveResponseEnumId) || "MsgRrMove".equals(receiveResponseEnumId)) {
+                            List existingMsgList = ec.entity.find("moqui.service.message.SystemMessage")
+                                    .condition("systemMessageRemoteId", systemMessageRemoteId)
+                                    .condition("systemMessageTypeId", systemMessageTypeId)
+                                    .condition("remoteMessageId", filename)
+                                    .condition("statusId", "not-in", "SmsgRejected,SmsgCancelled,SmsgError")
+                                    .selectField("systemMessageId").list()
+                            if (existingMsgList) {
+                                ec.logger.warn("SFTP poll file ${filename} for type ${systemMessageTypeId} remote ${systemMessageRemoteId} already in SystemMessage records ${existingMsgList*.systemMessageId}")
+                                continue
+                            }
+                        }
+
+                        String filePath = receivePath + '/' + filename
+                        String messageText = sftpClient.getText(filePath, charset)
+
+                        // Custom code added to create the file in a runtime directory and save the filepath in Message Text
+                        // Prepare the file path using sendPath of SystemMessageType
+                        runtimeFilePathRef = sendPath + '/' + filename
+                        runtimeFilePath = ec.resource.getLocationReference(runtimeFilePathRef).getUri().getPath()
+
+                        // Create the file structure if it does not already exist
+                        File file = new File(runtimeFilePath)
+                        if(!file.getParentFile().exists()) file.getParentFile().mkdirs()
+                        file.createNewFile()
+
+                        // Write the message text in the prepared directory structure
+                        // declaring PrintWriter in the try statement, so that it is automatically closed regardless of whether the try statement completes normally or abruptly
+                        try (PrintWriter pw = new PrintWriter(charset, file)) {
+                            pw.print(messageText);
+                        }
+
+                        // create SystemMessage with SystemMessageServices.receive#IncomingSystemMessage
+                        // NOTE requireNewTransaction(true) so we make sure the TX is committed before a response like delete or move
+                        Map<String, Object> result = ec.service.sync().name("co.hotwax.loop.common.SystemMessageServices.receive#IncomingSystemMessage")
+                               .parameter("systemMessageTypeId", systemMessageTypeId).parameter("systemMessageRemoteId", systemMessageRemoteId)
+                               .parameter("remoteMessageId", filename).parameter("messageText", runtimeFilePathRef).parameter("receiverId", partyId).disableAuthz()
+                               .requireNewTransaction(true).call()
+                        // NOTE: consider trying other files, but if there is an error saving a message it is likely to persist
+                        if (ec.message.hasError()) {
+                            ec.logger.error("SFTP poll error receiving SystemMessage, stopping poll for type ${systemMessageTypeId} remote ${systemMessageRemoteId}")
+                            return
+                        }
+                        ec.logger.info("SFTP poll type ${systemMessageTypeId} remote ${systemMessageRemoteId} saved file ${filename} in messages ${result.systemMessageIdList}")
+
+                        // response based on receiveResponseEnumId
+                        if ("MsgRrDelete".equals(receiveResponseEnumId)) {
+                            sftpClient.rm(filePath)
+                            ec.logger.info("SFTP poll SystemMessage ${result.systemMessageIdList} type ${systemMessageTypeId} deleted ${filePath}")
+                        } else if ("MsgRrMove".equals(receiveResponseEnumId)) {
+                            if (receiveMovePath) {
+                                String movedTo = sftpClient.moveFile(filePath, receiveMovePath, true)
+                                ec.logger.info("SFTP poll SystemMessage ${result.systemMessageIdList} type ${systemMessageTypeId} moved from ${filePath} to ${movedTo}")
+                            } else {
+                                ec.logger.error("SFTP poll SystemMessage ${result.systemMessageIdList} created for remote file ${filename} and configured to move but no receiveMovePath set on SystemMessageType ${systemMessageTypeId}")
+                            }
+                        }
+                    }
+                }
+            ]]></script>
+        </actions>
+    </service>
+
+    <service verb="receive" noun="IncomingSystemMessage" allow-remote="true">
+        <description>Call to receive a message (often through a remote interface). If there is a
+            SystemMessageType.receiveServiceName calls that service to save the message, otherwise creates a
+            SystemMessage record for the incoming message (in the Received status). Either way after saving
+            asynchronously calls the consume service based on the message type.</description>
+        <in-parameters>
+            <parameter name="receiverId"/>
+        </in-parameters>
+        <implements service="org.moqui.impl.SystemMessageServices.receive#SystemMessage"/>
+        <actions>
+            <entity-find-one entity-name="moqui.service.message.SystemMessageType" value-field="systemMessageType"/>
+            <if condition="systemMessageType == null">
+                <return error="true" message="Message type ${systemMessageTypeId} not valid"/></if>
+
+            <if condition="systemMessageType.receiveServiceName &amp;&amp;
+                    systemMessageType.receiveServiceName != 'org.moqui.impl.SystemMessageServices.receive#IncomingSystemMessage'"><then>
+                <service-call name="${systemMessageType.receiveServiceName}" out-map="context" transaction="force-new"
+                              in-map="context"/>
+            </then><else>
+                <!-- while it shouldn't happen that the consume service is called before the tx for this service is
+                    committed, run it in a separate tx to make sure -->
+                <service-call name="create#moqui.service.message.SystemMessage" out-map="context" transaction="force-new"
+                              in-map="context + [statusId:'SmsgReceived', isOutgoing:'N', initDate:ec.user.nowTimestamp]"/>
+                <set field="systemMessageIdList" from="[systemMessageId]"/>
+            </else></if>
+
+            <!-- run consume async for each message -->
+            <iterate list="systemMessageIdList" entry="systemMessageId">
+                <service-call name="org.moqui.impl.SystemMessageServices.consume#ReceivedSystemMessage"
+                              in-map="[systemMessageId:systemMessageId, allowError:false]" async="true"/>
+            </iterate>
+        </actions>
+    </service>
 </services>
