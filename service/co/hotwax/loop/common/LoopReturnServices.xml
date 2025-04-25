@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+Licensed to the Apache Software Foundation (ASF) under one
+or more contributor license agreements.  See the NOTICE file
+distributed with this work for additional information
+regarding copyright ownership.  The ASF licenses this file
+to you under the Apache License, Version 2.0 (the
+"License"); you may not use this file except in compliance
+with the License.  You may obtain a copy of the License at
+http://www.apache.org/licenses/LICENSE-2.0
+Unless required by applicable law or agreed to in writing,
+software distributed under the License is distributed on an
+"AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+KIND, either express or implied.  See the License for the
+specific language governing permissions and limitations
+under the License.
+-->
+
+<services xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://moqui.org/xsd/service-definition-3.xsd">
+    <service verb="create" noun="PartyProcessLoopReturnServiceJob" authenticate="anonymous-all">
+        <description>
+            This service will create a Process Loop Return Service Job for organization party.
+        </description>
+        <in-parameters>
+            <parameter name="partyId" required="true"/>
+        </in-parameters>
+        <actions>
+            <entity-find entity-name="co.hotwax.netsuite.party.PartySystemMessageRemote" list="partySystemMessageRemoteList">
+                <econdition field-name="partyId" operator="equals" from="partyId"/>
+                <econdition field-name="systemMessageTypeId" operator="equals" from="'LoopSFTP'"/>
+            </entity-find>
+            <if condition="partySystemMessageRemoteList">
+                <set field="systemMessageRemoteId" from="partySystemMessageRemoteList[0].systemMessageRemoteId" type="String"/>
+            </if>
+            <set field="serviceContext" from="[:]"/>
+            <set field="description" value="Service job to poll Process Loop Return Feed for organization ${partyId}"/>
+            <set field="serviceName" value="co.hotwax.loop.common.SystemMessageServices.poll#SystemMessageFileSftp"/>
+            <set field="paused" value="N"/>
+            <set field="cronExpression" value="0 0 * * * ?"/>
+            <set field="transactionTimeout" value="3600"/>
+            <set field="jobName" value="Poll_ProcessLoopReturnFeed_${partyId}"/>
+
+            <set field="serviceContext.jobName" from="jobName"/>
+            <set field="serviceContext.description" from="description"/>
+            <set field="serviceContext.serviceName" from="serviceName"/>
+            <set field="serviceContext.paused" from="paused"/>
+            <set field="serviceContext.cronExpression" from="cronExpression"/>
+            <set field="serviceContext.transactionTimeout" from="transactionTimeout"/>
+
+            <service-call name="create#moqui.service.job.ServiceJob" in-map="serviceContext"/>
+
+            <service-call name="create#moqui.service.job.ServiceJobParameter" in-map="[jobName: jobName, parameterName: 'systemMessageRemoteId', parameterValue: systemMessageRemoteId]"/>
+            <service-call name="create#moqui.service.job.ServiceJobParameter" in-map="[jobName: jobName, parameterName: 'systemMessageTypeId', parameterValue: 'ProcessLoopReturn']"/>
+            <service-call name="create#moqui.service.job.ServiceJobParameter" in-map="[jobName: jobName, parameterName: 'partyId', parameterValue: partyId]"/>
+
+            <return message="Process Loop Return Job schedule has been created successfully."/>
+        </actions>
+    </service>
+
+    <service verb="consume" noun="LoopReturnProcessedFeed" transaction-timeout="7200">
+        <description>Service to consume the Loop Return Feed and call Process Loop Return API.</description>
+        <implements service="org.moqui.impl.SystemMessageServices.consume#SystemMessage"/>
+        <actions>
+            <!-- Fetch the systemMessage record for the incoming systemMessageId -->
+            <entity-find-one entity-name="moqui.service.message.SystemMessage" value-field="systemMessage"/>
+            <set field="partyId" from="systemMessage.receiverId"/>
+
+            <entity-find entity-name="co.hotwax.netsuite.party.PartySystemMessageRemote" list="partySystemMessageRemoteList">
+                <econdition field-name="partyId" operator="equals" from="partyId"/>
+                <econdition field-name="systemMessageTypeId" operator="equals" from="'LoopWebhook'"/>
+            </entity-find>
+            <if condition="partySystemMessageRemoteList">
+                <set field="systemMessageRemoteId" from="partySystemMessageRemoteList[0].systemMessageRemoteId" type="String"/>
+            </if>
+
+            <set field="fileText" from="ec.resource.getLocationReference(systemMessage.messageText).getText()"/>
+            <set field="loopReturns" from="org.moqui.impl.context.ContextJavaUtil.jacksonMapper.readValue(fileText, List.class)"/>
+
+            <!-- Iterate through the loopReturns list -->
+            <iterate list="loopReturns" entry="loopReturn">
+                <set field="loopReturnId" from="loopReturn.loopReturnId"/>
+                <log level="info" message="Processing Loop Return ${loopReturnId}"/>
+
+                <set field="endPoint" from="'/warehouse/return/' + loopReturnId + '/process'"/>
+
+                <service-call name="co.hotwax.loop.common.LoopHelperServices.send#LoopRequest" in-map="[systemMessageRemoteId:systemMessageRemoteId,
+                        requestType:'POST', contentType:'application/json', endPoint: endPoint, responseType:'text']"/>
+            </iterate>
+        </actions>
+    </service>
+
+</services>
