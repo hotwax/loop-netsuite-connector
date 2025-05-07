@@ -4,13 +4,13 @@
   <screen-facade>
     <screen location="component://webroot/screen/webroot/apps.xml">
       <subscreens-item name="netsuiteLoopConnectorCreateUser" menu-title="Create New User" menu-index="95"
-                       location="component://netsuiteLoopConnector/screen/CreateNewUser.xml"/>
+                       location="component://loop-netsuite-connector/screen/CreateNewUser.xml"/>
       <subscreens-item name="netsuiteLoopConnectorCreateSFTPConnection" menu-title="Create SFTP Connection" menu-index="96"
-                       location="component://netsuiteLoopConnector/screen/SftpConnection.xml"/>
+                       location="component://loop-netsuite-connector/screen/SftpConnection.xml"/>
       <subscreens-item name="netsuiteLoopConnectorCreateLoopConnection" menu-title="Create Loop Connection" menu-index="97"
-                       location="component://netsuiteLoopConnector/screen/LoopConnection.xml"/>
+                       location="component://loop-netsuite-connector/screen/LoopConnection.xml"/>
       <subscreens-item name="netsuiteLoopConnectorCreateNetsuiteConnection" menu-title="Create Netsuite Connection" menu-index="98"
-                       location="component://netsuiteLoopConnector/screen/NetsuiteConnection.xml"/>
+                       location="component://loop-netsuite-connector/screen/NetsuiteConnection.xml"/>
     </screen>
   </screen-facade>
   <webapp-list>
