@@ -197,7 +197,6 @@ along with this software (see the LICENSE.md file). If not, see
     <relationship type="one" title="Parent" related="co.hotwax.netsuite.party.RoleType">
       <key-map field-name="parentTypeId" related="roleTypeId"/></relationship>
     <seed-data>
-      <!-- General Roles -->
       <co.hotwax.netsuite.party.RoleType description="Contact" roleTypeId="Contact"/>
       <co.hotwax.netsuite.party.RoleType description="Organization" roleTypeId="Organization"/>
     </seed-data>

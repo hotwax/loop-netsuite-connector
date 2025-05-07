@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<entity-facade-xml type="seed">
+ <!-- Parent SystemMessageType for all the loop webhook system message types -->
+ <moqui.service.message.SystemMessageType systemMessageTypeId="LoopWebhook"
+         description="Parent SystemMessageType for Loop Webhooks"/>
+ <moqui.service.message.SystemMessageType systemMessageTypeId="LoopSFTP"
+         description="Parent SystemMessageType for Loop Webhooks"/>
+
+ <!-- Parent SystemMessageType record for incoming and outgoing local feed file system message types -->
+ <moqui.service.message.SystemMessageType systemMessageTypeId="LocalFeedFile" description="Local Feed File"/>
+
+ <!-- SystemMessageType record for loop return.created webhook -->
+ <moqui.service.message.SystemMessageType systemMessageTypeId="LoopReturnsCreate"
+         description="Loop Returns Create Webhook"
+         parentTypeId="LoopWebhook"
+         sendServiceName="co.hotwax.loop.webhook.LoopWebhookServices.send#WebhookSubscriptionSystemMessage">
+  <parameters parameterName="topic" parameterValue="return" systemMessageRemoteId=""/>
+  <parameters parameterName="trigger" parameterValue="return.created" systemMessageRemoteId=""/>
+  <parameters parameterName="status" parameterValue="active" systemMessageRemoteId=""/>
+ </moqui.service.message.SystemMessageType>
+
+ <!--
+    Loop webhook url    => SystemMessageRemote.sendUrl
+    Loop API Access Key     => SystemMessageRemote.privateKey
+    Loop Webhook Secret  => SystemMessageRemote.sendSharedSecret
+ -->
+
+ <moqui.service.message.SystemMessageRemote systemMessageRemoteId="LOOP_CREATE_RET"
+         systemMessageTypeId="LoopWebhook"
+         description="Loop Create Return Webhook"
+         sendUrl="https://api.loopreturns.com/api/v1/webhooks"
+         privateKey=""
+         sendSharedSecret=""/>
+
+ <!-- EnumerationType for Loop system message type enum and relationship -->
+ <moqui.basic.EnumerationType description="Loop System Message Type Enum" enumTypeId="LoopMessageTypeEnum"/>
+
+ <!-- Enumeration for mapping LoopReturnsCreate SystemMessageType to return.created loop webhook trigger -->
+ <moqui.basic.Enumeration description="Loop Create Return Webhook" enumId="LoopReturnsCreate"
+         enumTypeId="LoopMessageTypeEnum" enumCode="return.created"/>
+
+ <moqui.service.message.SystemMessageType systemMessageTypeId="return.created"
+         description="Send Create Return JSON file to SFTP"
+         parentTypeId="LocalFeedFile"
+         receivePath="${contentRoot}/Netsuite/LoopReturns/${partyId}/create/loopCreateReturnFeed-${dateTime}.json"
+         sendPath="/home/${sftpUsername}/netsuite/moqui-loop-return/create/LoopCreateReturn-${systemMessageId}-${dateTime}.json"
+         sendServiceName="co.hotwax.loop.common.SystemMessageServices.send#SystemMessageFileSftp"/>
+
+ <moqui.service.message.SystemMessageRemote systemMessageRemoteId="LOOP_REMOTE_SFTP"
+         systemMessageTypeId="LoopSFTP"
+         description="SFTP server connection details"
+         sendUrl=""
+         username=""
+         password=""/>
+
+ <!-- SystemMessageType record for loop return.updated webhook -->
+ <moqui.service.message.SystemMessageType systemMessageTypeId="LoopReturnsUpdate"
+         description="Loop Returns Update Webhook"
+         parentTypeId="LoopWebhook"
+         sendServiceName="co.hotwax.loop.webhook.LoopWebhookServices.send#WebhookSubscriptionSystemMessage">
+  <parameters parameterName="topic" parameterValue="return" systemMessageRemoteId=""/>
+  <parameters parameterName="trigger" parameterValue="return.updated" systemMessageRemoteId=""/>
+  <parameters parameterName="status" parameterValue="active" systemMessageRemoteId=""/>
+ </moqui.service.message.SystemMessageType>
+
+ <moqui.basic.Enumeration description="Loop Update Return Webhook" enumId="LoopReturnsUpdate"
+         enumTypeId="LoopMessageTypeEnum" enumCode="return.updated"/>
+
+ <!-- SystemMessageType record to put loop return.updated webhook payload on SFTP server -->
+ <moqui.service.message.SystemMessageType systemMessageTypeId="return.updated"
+         description="Send Update Return JSON file to SFTP"
+         parentTypeId="LocalFeedFile"
+         receivePath="${contentRoot}/Netsuite/LoopReturns/${partyId}/update/loopUpdateReturnFeed-${dateTime}.json"
+         sendPath="/home/${sftpUsername}/netsuite/moqui-loop-return/update/LoopUpdateReturn-${systemMessageId}-${dateTime}.json"
+         sendServiceName="co.hotwax.loop.common.SystemMessageServices.send#SystemMessageFileSftp"/>
+
+ <!-- SystemMessageType record for loop return.closed webhook -->
+ <moqui.service.message.SystemMessageType systemMessageTypeId="LoopReturnsClose"
+         description="Loop Returns Close Webhook"
+         parentTypeId="LoopWebhook"
+         sendServiceName="co.hotwax.loop.webhook.LoopWebhookServices.send#WebhookSubscriptionSystemMessage">
+  <parameters parameterName="topic" parameterValue="return" systemMessageRemoteId=""/>
+  <parameters parameterName="trigger" parameterValue="return.closed" systemMessageRemoteId=""/>
+  <parameters parameterName="status" parameterValue="active" systemMessageRemoteId=""/>
+ </moqui.service.message.SystemMessageType>
+
+ <moqui.basic.Enumeration description="Loop Close Return Webhook" enumId="LoopReturnsClose"
+         enumTypeId="LoopMessageTypeEnum" enumCode="return.closed"/>
+
+ <!-- SystemMessageType record to put loop return.closed webhook payload on SFTP server -->
+ <moqui.service.message.SystemMessageType systemMessageTypeId="return.closed"
+         description="Send Close Return JSON file to SFTP"
+         parentTypeId="LocalFeedFile"
+         receivePath="${contentRoot}/Netsuite/LoopReturns/${partyId}/close/loopCloseReturnFeed-${dateTime}.json"
+         sendPath="/home/${sftpUsername}/netsuite/moqui-loop-return/close/LoopCloseReturn-${systemMessageId}-${dateTime}.json"
+         sendServiceName="co.hotwax.loop.common.SystemMessageServices.send#SystemMessageFileSftp"/>
+
+</entity-facade-xml>

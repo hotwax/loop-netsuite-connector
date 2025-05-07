@@ -13,4 +13,12 @@
                        location="component://netsuiteLoopConnector/screen/NetsuiteConnection.xml"/>
     </screen>
   </screen-facade>
+  <webapp-list>
+      <webapp name="webroot">
+          <!-- Loop Webhook Request Filter  -->
+          <filter name="LoopWebhookFilter" class="co.hotwax.loop.LoopWebhookFilter" async-supported="true">
+                <url-pattern>/rest/s1/loop/webhook/*</url-pattern>
+          </filter>
+      </webapp>
+  </webapp-list>
 </moqui-conf>
