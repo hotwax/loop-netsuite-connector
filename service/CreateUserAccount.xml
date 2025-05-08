@@ -90,7 +90,7 @@
                 fromRoleTypeId:'Organization',
                 toPartyId:personPartyId,
                 toRoleTypeId:'Contact',
-                relationshipTypeEnumId:'Contact',
+                relationshipTypeEnumId:'PrtContact',
                 fromDate:fromDate
               ]"/>
       <!-- Create User Account -->

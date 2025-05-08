@@ -1,24 +1,24 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <moqui-conf xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
             xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/moqui-conf-2.1.xsd">
-  <screen-facade>
-    <screen location="component://webroot/screen/webroot/apps.xml">
-      <subscreens-item name="netsuiteLoopConnectorCreateUser" menu-title="Create New User" menu-index="95"
+    <screen-facade>
+        <screen location="component://webroot/screen/webroot/apps.xml">
+            <subscreens-item name="netsuiteLoopConnectorCreateUser" menu-title="Create New User" menu-index="95"
                        location="component://loop-netsuite-connector/screen/CreateNewUser.xml"/>
-      <subscreens-item name="netsuiteLoopConnectorCreateNetsuiteConnection" menu-title="Create Netsuite Connection" menu-index="96"
+            <subscreens-item name="netsuiteLoopConnectorCreateNetsuiteConnection" menu-title="Create Netsuite Connection" menu-index="96"
                          location="component://loop-netsuite-connector/screen/NetsuiteConnection.xml"/>
-      <subscreens-item name="netsuiteLoopConnectorCreateLoopConnection" menu-title="Create Loop Connection" menu-index="97"
+            <subscreens-item name="netsuiteLoopConnectorCreateLoopConnection" menu-title="Create Loop Connection" menu-index="97"
                        location="component://loop-netsuite-connector/screen/LoopConnection.xml"/>
-      <subscreens-item name="netsuiteLoopConnectorCreateSFTPConnection" menu-title="Create SFTP Connection" menu-index="98"
+            <subscreens-item name="netsuiteLoopConnectorCreateSFTPConnection" menu-title="Create SFTP Connection" menu-index="98"
                          location="component://loop-netsuite-connector/screen/SftpConnection.xml"/>
-    </screen>
-  </screen-facade>
-  <webapp-list>
-      <webapp name="webroot">
-          <!-- Loop Webhook Request Filter  -->
-          <filter name="LoopWebhookFilter" class="co.hotwax.loop.LoopWebhookFilter" async-supported="true">
+        </screen>
+    </screen-facade>
+    <webapp-list>
+        <webapp name="webroot">
+            <!-- Loop Webhook Request Filter  -->
+            <filter name="LoopWebhookFilter" class="co.hotwax.loop.LoopWebhookFilter" async-supported="true">
                 <url-pattern>/rest/s1/loop/webhook/*</url-pattern>
-          </filter>
-      </webapp>
-  </webapp-list>
+            </filter>
+        </webapp>
+    </webapp-list>
 </moqui-conf>
