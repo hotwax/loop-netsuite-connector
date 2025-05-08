@@ -17,7 +17,7 @@ NetSuite accountId      => SystemMessageRemote.remoteId
 
   <!-- Transition to create a new Netsuite connection -->
   <transition name="createNetsuiteConnection">
-    <service-call name="NetsuiteService.create#NetsuiteSystemMessageRemote" in-map="context"/>
+    <service-call name="co.hotwax.configuration.CompanyConfigurationServices.create#NetsuiteSystemMessageRemote" in-map="context"/>
     <default-response url="."/>
   </transition>
 

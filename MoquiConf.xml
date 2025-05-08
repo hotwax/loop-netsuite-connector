@@ -9,8 +9,6 @@
                          location="component://loop-netsuite-connector/screen/NetsuiteConnection.xml"/>
             <subscreens-item name="netsuiteLoopConnectorCreateLoopConnection" menu-title="Create Loop Connection" menu-index="97"
                        location="component://loop-netsuite-connector/screen/LoopConnection.xml"/>
-            <subscreens-item name="netsuiteLoopConnectorCreateSFTPConnection" menu-title="Create SFTP Connection" menu-index="98"
-                         location="component://loop-netsuite-connector/screen/SftpConnection.xml"/>
         </screen>
     </screen-facade>
     <webapp-list>

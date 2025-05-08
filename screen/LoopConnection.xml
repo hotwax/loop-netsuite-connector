@@ -14,7 +14,7 @@ Loop Webhook Secret => SystemMessageRemote.sendSharedSecret
 
   <!-- Transition to create a new user account using the updated service -->
   <transition name="createLoopConnection">
-    <service-call name="LoopService.create#LoopSystemMessageRemote" in-map="context"/>
+    <service-call name="co.hotwax.configuration.CompanyConfigurationServices.create#LoopSystemMessageRemote" in-map="context"/>
     <default-response url="."/>
   </transition>
 
