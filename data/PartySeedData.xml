@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<entity-facade-xml type="ext-seed">
+    <moqui.basic.EnumerationType description="Party Type" enumTypeId="PartyType"/>
+    <moqui.basic.Enumeration description="Person" enumId="PtyPerson" enumTypeId="PartyType"/>
+    <moqui.basic.Enumeration description="Organization" enumId="PtyOrganization" enumTypeId="PartyType"/>
+
+    <moqui.basic.EnumerationType description="Contact Mechanism Type" enumTypeId="ContactMechType"/>
+    <moqui.basic.Enumeration enumId="CmtEmailAddress" description="Email Address" enumTypeId="ContactMechType"/>
+    <moqui.basic.Enumeration enumId="CmtTelecomNumber" description="Phone Number" enumTypeId="ContactMechType"/>
+    <moqui.basic.Enumeration enumId="CmtPostalAddress" enumTypeId="ContactMechType" description="Postal Address"/>
+
+    <!-- NOTE: The partyRelationshipTypeEnumId describes the FROM Party of Organization, ie Joe is a contact of ACME, so ACE
+          is the fromPartyId (fromRoleTypeId= Organization) and Joe is the toPartyId (toRoleTypeId= Contact);
+    -->
+    <moqui.basic.EnumerationType description="Party Relationship Type" enumTypeId="PartyRelationshipType"/>
+    <moqui.basic.Enumeration description="Contact" enumId="PrtContact" enumTypeId="PartyRelationshipType"/>
+    <moqui.basic.StatusType description="Party Relationship" statusTypeId="PartyRelationship"/>
+
+    <co.hotwax.netsuite.party.RoleType description="Contact" roleTypeId="Contact"/>
+    <co.hotwax.netsuite.party.RoleType description="Organization" roleTypeId="Organization"/>
+
+    <ContactMechPurpose contactMechPurposeId="PostalPrimary" contactMechTypeEnumId="CmtPostalAddress"
+                        description="Postal - Primary"/>
+    <ContactMechPurpose contactMechPurposeId="PhonePrimary" contactMechTypeEnumId="CmtTelecomNumber"
+                        description="Phone - Primary"/>
+    <ContactMechPurpose contactMechPurposeId="EmailPrimary" contactMechTypeEnumId="CmtEmailAddress"
+                        description="Email - Primary Address"/>
+    <!-- General 'Other' purpose, mainly needed because PartyContactMech.contactMechPurposeId is a PK field, needs a non-null value -->
+    <ContactMechPurpose contactMechPurposeId="Other" contactMechTypeEnumId="" description="Other"/>
+
+    <Party partyId="_NA_" partyTypeEnumId="PtyPerson"/>
+    <Person partyId="_NA_" firstName="Not" lastName="Applicable"/>
+</entity-facade-xml>

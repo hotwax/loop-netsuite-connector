@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<entity-facade-xml type="seed-initial">
+  <moqui.service.message.SystemMessageType systemMessageTypeId="LoopWebhook" parentTypeId="" description="ParentSystemMessageType for Loop Webhook."/>
+  <moqui.service.message.SystemMessageType systemMessageTypeId="LoopReturnsClosed" parentTypeId="LoopWebhook" description="Loop Returns Create Webhook"/>
+  <moqui.service.message.SystemMessageType systemMessageTypeId="LoopReturnsCreate" parentTypeId="LoopWebhook" description="Loop Returns Create Webhook"/>
+  <moqui.service.message.SystemMessageType systemMessageTypeId="LoopReturnsUpdate" parentTypeId="LoopWebhook" description="Loop Returns Create Webhook"/>
+  <moqui.service.message.SystemMessageType systemMessageTypeId="LoopSFTP" description="Loop Sftp credentials"/>
+</entity-facade-xml>
