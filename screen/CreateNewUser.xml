@@ -95,11 +95,11 @@
     <form-list name="UserAccountList" list="userAccountList" skip-form="true" header-dialog="true">
         <field name="userId">
           <header-field title="ID" show-order-by="true"/>
-          <default-field><link text="${userId}" url="userAccountDetail" link-type="anchor"/></default-field>
+          <default-field><display/></default-field>
         </field>
         <field name="username">
           <header-field show-order-by="true"/>
-          <default-field><link text="${username}" url="userAccountDetail" link-type="anchor"/></default-field>
+          <default-field><display/></default-field>
         </field>
         <field name="emailAddress">
           <header-field show-order-by="true"/>

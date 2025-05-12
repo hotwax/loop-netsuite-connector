@@ -22,17 +22,24 @@ Loop Webhook Secret => SystemMessageRemote.sendSharedSecret
   <widgets>
       <form-single name="CreateUserLoopAccount" transition="createLoopConnection">
 
+        <field name="accountType">
+          <default-field title="Account Type">
+            <radio>
+              <option key="sandbox" text="Sandbox"/>
+              <option key="producion" text="Production"/>
+            </radio>
+          </default-field>
+        </field>
+
         <!-- Form fields -->
-        <field name="privateKey">
+        <field name="privateKey" required="true">
           <default-field title="Access Key">
-            <text-line size="30"/>
           </default-field>
         </field>
 
         <!-- Webhook Secret  -->
-        <field name="sendSharedSecret">
+        <field name="sendSharedSecret" required="true">
           <default-field title="Webhook Secret">
-            <password size="50"/>
           </default-field>
         </field>
 

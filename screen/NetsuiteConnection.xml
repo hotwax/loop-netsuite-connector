@@ -25,7 +25,7 @@ NetSuite accountId      => SystemMessageRemote.remoteId
   <widgets>
       <form-single name="CreateNetsuiteConnection" transition="createNetsuiteConnection">
         <!-- Netsuite Account ID -->
-        <field name="remoteId">
+        <field name="remoteId" required="true">
           <default-field title="NetSuite Account Id">
             <text-line size="20"/>
           </default-field>
@@ -41,23 +41,20 @@ NetSuite accountId      => SystemMessageRemote.remoteId
         </field>
 
         <!-- Hidden Token ID -->
-        <field name="sshKey">
+        <field name="sshKey" required="true">
           <default-field title="Open SSH Private Key">
-            <password size="30"/>
           </default-field>
         </field>
 
         <!-- Consumer Key -->
-        <field name="sharedSecret">
+        <field name="sharedSecret" required="true">
           <default-field title="NetSuite Consumer Key">
-            <password size="50"/>
           </default-field>
         </field>
 
         <!-- Certificate Key -->
-        <field name="sendSharedSecret">
+        <field name="sendSharedSecret" required="true">
           <default-field title="NetSuite Certificate Id">
-            <password size="50"/>
           </default-field>
         </field>
 

@@ -134,6 +134,7 @@
         <in-parameters>
             <parameter name="privateKey" required="true"/>
             <parameter name="sendSharedSecret" required="true"/>
+            <parameter name="accountType" required="true"/>
         </in-parameters>
         <out-parameters>
             <parameter name="systemMessageRemoteId"/>
@@ -166,6 +167,7 @@
                           in-map="[
                              privateKey:privateKey,
                              sendSharedSecret:sendSharedSecret,
+                             remoteIdType:accountType,
                              systemMessageTypeId:systemMessageTypeId]"
                           out-map="systemMessageOut"/>
             <set field="systemMessageRemoteId" from="systemMessageOut.systemMessageRemoteId"/>
