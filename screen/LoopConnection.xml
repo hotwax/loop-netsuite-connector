@@ -34,12 +34,14 @@ Loop Webhook Secret => SystemMessageRemote.sendSharedSecret
         <!-- Form fields -->
         <field name="privateKey" required="true">
           <default-field title="Access Key">
+            <text-line/>
           </default-field>
         </field>
 
         <!-- Webhook Secret  -->
         <field name="sendSharedSecret" required="true">
           <default-field title="Webhook Secret">
+            <text-line/>
           </default-field>
         </field>
 

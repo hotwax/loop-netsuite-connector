@@ -43,18 +43,21 @@ NetSuite accountId      => SystemMessageRemote.remoteId
         <!-- Hidden Token ID -->
         <field name="sshKey" required="true">
           <default-field title="Open SSH Private Key">
+            <text-line/>
           </default-field>
         </field>
 
         <!-- Consumer Key -->
         <field name="sharedSecret" required="true">
           <default-field title="NetSuite Consumer Key">
+            <text-line/>
           </default-field>
         </field>
 
         <!-- Certificate Key -->
         <field name="sendSharedSecret" required="true">
           <default-field title="NetSuite Certificate Id">
+            <text-line/>
           </default-field>
         </field>
 
