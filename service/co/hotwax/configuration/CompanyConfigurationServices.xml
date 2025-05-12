@@ -163,7 +163,8 @@
             <!-- Create SystemMessageRemote entry -->
             <set field="systemMessageTypeId" from="'LoopWebhook'"/>
             <service-call name="create#SystemMessageRemote"
-                          in-map="[privateKey:privateKey,
+                          in-map="[
+                             privateKey:privateKey,
                              sendSharedSecret:sendSharedSecret,
                              systemMessageTypeId:systemMessageTypeId]"
                           out-map="systemMessageOut"/>
@@ -182,15 +183,14 @@
             </if>
 
             <!-- Associate SystemMessageRemote with PartySystemMessageRemote -->
-            <set field="systemMessageTypeId" from="'LoopWebhook'"/>
             <set field="fromDate" from="ec.user.nowTimestamp"/>
             <service-call name="create#PartySystemMessageRemote"
                           in-map="[
-                      partyId:partyId,
-                      systemMessageRemoteId:systemMessageRemoteId,
-                      fromDate:fromDate,
-                      systemMessageTypeId:systemMessageTypeId
-                    ]"/>
+                            partyId:partyId,
+                            systemMessageRemoteId:systemMessageRemoteId,
+                            fromDate:fromDate,
+                            systemMessageTypeId:systemMessageTypeId
+                          ]"/>
             <set field="statusMessage" from="'LOOP Account successfully created and linked to the logged-in user.'"/>
         </actions>
     </service>
@@ -201,7 +201,8 @@
         </description>
         <in-parameters>
             <parameter name="remoteId" required="true"/>
-            <parameter name="receiveUrl" required="true"/>
+            <parameter name="accountType" required="true"/>
+            <parameter name="sshKey" required="true"/>
             <parameter name="sharedSecret" required="true"/>
             <parameter name="sendSharedSecret" required="true"/>
         </in-parameters>
@@ -209,14 +210,30 @@
             <parameter name="systemMessageRemoteId"/>
         </out-parameters>
         <actions>
-            <set field="createdTimestamp" from="ec.user.nowTimestamp"/>
+            <if condition="remoteId.contains('_')">
+                <then>
+                    <set field="accountId" from="remoteId.replace('_', '-')"/>
+                </then>
+                <else>
+                    <set field="accountId" from="remoteId"/>
+                </else>
+            </if>
+            <set field="sshKeyValue" value="${sshKey.replaceAll('\\s+', '')}"/>
+            <set field="systemMessageTypeId" from="'NetsuiteCredentials'"/>
+            <set field="tokenUrl" from="'https://' + accountId + '.suitetalk.api.netsuite.com/services/rest/auth/oauth2/v1/token'"/>
+            <set field="sendUrl" from="'https://' + accountId + '.restlets.api.netsuite.com/app/site/hosting/restlet.nl'"/>
+
             <!-- Create SystemMessage entry -->
             <service-call name="create#SystemMessageRemote"
                           in-map="[
-                              remoteId:remoteId,
+                              remoteId:accountId,
+                              sendUrl:sendUrl,
+                              remoteIdType:accountType,
                               description:'NetSuite connection credentials',
-                              receiveUrl:receiveUrl,
+                              systemMessageTypeId:systemMessageTypeId,
+                              receiveUrl:tokenUrl,
                               sharedSecret:sharedSecret,
+                              remotePublicKey:sshKeyValue,
                               sendSharedSecret:sendSharedSecret]"
                           out-map="messageOut"/>
 
@@ -247,7 +264,6 @@
                 <return error="true" message="No Party ID associated with the logged-in user (userId: ${userId})."/>
             </if>
             <!-- Step 3: Associate SystemMessageRemote with PartySystemMessageRemote -->
-            <set field="systemMessageTypeId" from="'NETSUITE_CREDENTIALS'"/>
             <set field="fromDate" from="ec.user.nowTimestamp"/>
             <service-call name="create#PartySystemMessageRemote"
                           in-map="[

@@ -24,7 +24,6 @@ NetSuite accountId      => SystemMessageRemote.remoteId
   <!-- Dialog container for creating a Netsuite connection -->
   <widgets>
       <form-single name="CreateNetsuiteConnection" transition="createNetsuiteConnection">
-
         <!-- Netsuite Account ID -->
         <field name="remoteId">
           <default-field title="NetSuite Account Id">
@@ -32,9 +31,18 @@ NetSuite accountId      => SystemMessageRemote.remoteId
           </default-field>
         </field>
 
+        <field name="accountType">
+          <default-field title="Account Type">
+            <radio>
+              <option key="sandbox" text="Sandbox"/>
+              <option key="producion" text="Production"/>
+            </radio>
+          </default-field>
+        </field>
+
         <!-- Hidden Token ID -->
-        <field name="receiveUrl">
-          <default-field title="NetSuite Token">
+        <field name="sshKey">
+          <default-field title="Open SSH Private Key">
             <password size="30"/>
           </default-field>
         </field>
