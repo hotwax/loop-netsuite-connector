@@ -12,30 +12,14 @@
     <default-response url="."/>
   </transition>
   <actions>
-    <set field="userGroupIds" value="${ec.user.userGroupIdSet}"/>
-    <!-- Check if the user is in the 'ADMIN' group -->
-    <set field="isAdmin" value="${userGroupIds.contains('ADMIN')}"/>
-
-    <if condition="isAdmin == true">
-      <entity-find entity-name="moqui.security.UserAccountAndGroup" list="userAccountList" distinct="true">
-        <search-form-inputs default-order-by="username"/>
-        <select-field field-name="userId"/>
-        <select-field field-name="emailAddress"/>
-        <select-field field-name="userFullName"/>
-        <select-field field-name="partyId"/>
-      </entity-find>
-    </if>
-
-    <if condition="isAdmin == false">
-      <entity-find entity-name="moqui.security.UserAccountAndGroup" list="userAccountList" distinct="true">
-        <search-form-inputs default-order-by="username"/>
-        <econdition field-name="userId" value="${ec.user.userId}"/>
-        <select-field field-name="userId"/>
-        <select-field field-name="emailAddress"/>
-        <select-field field-name="userFullName"/>
-        <select-field field-name="partyId"/>
-      </entity-find>
-    </if>
+    <entity-find entity-name="moqui.security.UserAccountAndGroup" list="userAccountList" distinct="true">
+      <search-form-inputs default-order-by="username"/>
+      <econdition field-name="userId" value="${ec.user.userId}"/>
+      <select-field field-name="userId"/>
+      <select-field field-name="emailAddress"/>
+      <select-field field-name="userFullName"/>
+      <select-field field-name="partyId"/>
+    </entity-find>
   </actions>
 
   <!-- Show form directly on the screen -->
