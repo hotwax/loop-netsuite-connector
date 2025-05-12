@@ -84,7 +84,7 @@ under the License.
                 <set field="endPoint" from="'/warehouse/return/' + loopReturnId + '/process'"/>
 
                 <service-call name="co.hotwax.loop.common.LoopHelperServices.send#LoopRequest" in-map="[systemMessageRemoteId:systemMessageRemoteId,
-                        requestType:'POST', contentType:'application/json', endPoint: endPoint, responseType:'text']"/>
+                        requestType:'POST', contentType:'application/json', endPoint: endPoint]"/>
             </iterate>
         </actions>
     </service>

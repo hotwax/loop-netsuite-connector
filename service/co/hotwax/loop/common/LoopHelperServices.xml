@@ -27,7 +27,6 @@ under the License.
             <parameter name="contentType" required="true"/>
             <parameter name="requestBody" type="Map"/>
             <parameter name="endPoint"/>
-            <parameter name="responseType" default-value="json"/>
         </in-parameters>
         <out-parameters>
             <parameter name="statusCode" type="Integer"/>
@@ -64,8 +63,8 @@ under the License.
                 }
                 try {
                     RestClient.RestResponse restResponse = restClient.call()
-                    if (responseType == "text") {
-                        resposeText = restResponse.text()
+                    resposeText = restResponse.text()
+                    if (resposeText == "true") {
                         ec.logger.info("resposeText : " + resposeText);
                     } else {
                         response = restResponse.jsonObject()
