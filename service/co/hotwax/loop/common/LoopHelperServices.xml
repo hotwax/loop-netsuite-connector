@@ -74,10 +74,7 @@ under the License.
                     statusCode = restResponse.getStatusCode()
                     ec.logger.info("statusCode : " + statusCode);
 
-                    if (restResponse.statusCode < 200 || restResponse.statusCode >= 300) {
-                        ec.logger.warn("Unsuccessful with status code: ${statusCode} and response: ${response}")
-                        return
-                    }
+                    restResponse.checkError()
                 } catch (Exception e) {
                     ec.logger.error("Error in API call Error: ${e.getMessage()}")
                 }
