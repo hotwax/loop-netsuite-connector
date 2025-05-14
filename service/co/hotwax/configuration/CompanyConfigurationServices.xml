@@ -2,7 +2,99 @@
 <services xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
           xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/service-definition-3.xsd">
 
-    <service verb="create" noun="UserWithOrganization" authenticate="anonymous-all">
+    <service verb="create" noun="OrganizationParty" authenticate="anonymous-all">
+        <description>Creates an Organization party and its associated role.</description>
+        <in-parameters>
+            <parameter name="organizationName" required="true"/>
+        </in-parameters>
+        <out-parameters>
+            <parameter name="organizationPartyId"/>
+        </out-parameters>
+        <actions>
+            <service-call name="create#co.hotwax.netsuite.party.Party"
+                          in-map="[partyTypeEnumId:'PtyOrganization', disabled:'N']"
+                          out-map="orgPartyOut"/>
+            <set field="organizationPartyId" from="orgPartyOut.partyId"/>
+
+            <service-call name="create#co.hotwax.netsuite.party.Organization"
+                          in-map="[partyId:organizationPartyId, organizationName:organizationName]"/>
+
+            <service-call name="create#co.hotwax.netsuite.party.PartyRole"
+                          in-map="[partyId:organizationPartyId, roleTypeId:'Organization']"/>
+        </actions>
+    </service>
+
+    <service verb="create" noun="ContactPerson" authenticate="anonymous-all">
+        <description>Creates a Contact Person and associates with an existing Organization party.</description>
+        <in-parameters>
+            <parameter name="userFullName" required="true"/>
+            <parameter name="emailAddress" required="true"/>
+            <parameter name="username" required="true"/>
+            <parameter name="newPassword" required="true"/>
+            <parameter name="newPasswordVerify" required="true"/>
+            <parameter name="contactNumber" required="true"/>
+            <parameter name="organizationPartyId" required="true"/>
+            <parameter name="requirePasswordChange" default-value="N"/>
+        </in-parameters>
+        <out-parameters>
+            <parameter name="personPartyId"/>
+            <parameter name="emailContactMechId"/>
+            <parameter name="telecomContactMechId"/>
+            <parameter name="userId"/>
+        </out-parameters>
+        <actions>
+            <set field="fromDate" from="ec.user.nowTimestamp"/>
+
+            <!-- Create Person Party -->
+            <service-call name="create#co.hotwax.netsuite.party.Party"
+                          in-map="[partyTypeEnumId:'PtyPerson', disabled:'N', ownerPartyId:organizationPartyId]"
+                          out-map="personPartyOut"/>
+            <set field="personPartyId" from="personPartyOut.partyId"/>
+
+            <set field="firstName" from="userFullName"/>
+            <set field="lastName" from="null"/>
+            <if condition="firstName?.contains(' ')">
+                <set field="lastName" from="firstName.substring(firstName.lastIndexOf(' ')+1)"/>
+                <set field="firstName" from="firstName.substring(0, firstName.lastIndexOf(' '))"/>
+            </if>
+
+            <service-call name="create#co.hotwax.netsuite.party.Person"
+                          in-map="[partyId:personPartyId, firstName:firstName, lastName:lastName]"/>
+
+            <!-- Create Email Contact Mechanism -->
+            <service-call name="create#co.hotwax.netsuite.party.contact.ContactMech"
+                          in-map="[contactMechTypeEnumId:'CmtEmailAddress', infoString:emailAddress]"
+                          out-map="emailOut"/>
+            <set field="emailContactMechId" from="emailOut.contactMechId"/>
+
+            <service-call name="create#co.hotwax.netsuite.party.contact.PartyContactMech"
+                          in-map="[partyId:personPartyId, contactMechId:emailContactMechId, contactMechPurposeId:'EmailPrimary']"/>
+
+            <!-- Create User Account -->
+            <service-call name="org.moqui.impl.UserServices.create#UserAccount"
+                          in-map="[username:username, userFullName:userFullName, newPassword:newPassword, newPasswordVerify:newPasswordVerify, emailAddress:emailAddress, requirePasswordChange:requirePasswordChange, partyId:organizationPartyId]"
+                          out-map="userOut"/>
+            <set field="userId" from="userOut.userId"/>
+
+            <!-- Create Telecom Contact Mechanism -->
+            <service-call name="create#co.hotwax.netsuite.party.contact.ContactMech"
+                          in-map="[contactMechTypeEnumId:'CmtTelecomNumber']"
+                          out-map="telecomOut"/>
+            <set field="telecomContactMechId" from="telecomOut.contactMechId"/>
+
+            <service-call name="create#co.hotwax.netsuite.party.contact.PartyContactMech"
+                          in-map="[partyId:personPartyId, contactMechId:telecomContactMechId, contactMechPurposeId:'PhonePrimary']"/>
+
+            <service-call name="create#co.hotwax.netsuite.party.contact.TelecomNumber"
+                          in-map="[contactMechId:telecomContactMechId, contactNumber:contactNumber]"/>
+
+            <!-- Link Person as a contact for the Organization -->
+            <service-call name="create#co.hotwax.netsuite.party.PartyRelationship"
+                          in-map="[fromPartyId:organizationPartyId, fromRoleTypeId:'Organization', toPartyId:personPartyId, toRoleTypeId:'Contact', relationshipTypeEnumId:'PrtContact', fromDate:fromDate]"/>
+        </actions>
+    </service>
+
+    <service verb="create" noun="OrganizationWithContact" authenticate="anonymous-all">
         <description>
             Creates a Person party with userFullName and email,
             creates an Organization with organizationName,
@@ -26,104 +118,23 @@
             <parameter name="userId"/>
         </out-parameters>
         <actions>
-            <set field="fromDate" from="ec.user.nowTimestamp"/>
             <!-- Create Organization Party -->
-            <service-call name="create#co.hotwax.netsuite.party.Party"
-                          in-map="[partyTypeEnumId:'PtyOrganization', disabled:'N']"
+            <service-call name="co.hotwax.configuration.CompanyConfigurationServices.create#OrganizationParty"
+                          in-map="[organizationName: organizationName]"
                           out-map="orgPartyOut"/>
-            <set field="organizationPartyId" from="orgPartyOut.partyId"/>
+            <set field="organizationPartyId" from="orgPartyOut.organizationPartyId"/>
 
-            <!-- Create Organization Entity -->
-            <service-call name="create#co.hotwax.netsuite.party.Organization"
-                          in-map="[partyId:organizationPartyId, organizationName:organizationName]"/>
-
-            <!-- Create Person Party -->
-            <service-call name="create#co.hotwax.netsuite.party.Party"
-                          in-map="[partyTypeEnumId:'PtyPerson',
-                             disabled:'N',
-                             ownerPartyId:organizationPartyId]"
-                          out-map="personPartyOut"/>
-            <set field="personPartyId" from="personPartyOut.partyId"/>
-
-            <!-- Extract first and last name from userFullName -->
-            <set field="firstName" from="userFullName"/>
-            <set field="lastName" from="null"/>
-            <if condition="firstName?.contains(' ')">
-                <set field="lastName" from="firstName.substring(firstName.lastIndexOf(' ')+1)"/>
-                <set field="firstName" from="firstName.substring(0, firstName.lastIndexOf(' '))"/>
-            </if>
-            <!-- Create Person Entity -->
-            <service-call name="create#co.hotwax.netsuite.party.Person"
-                          in-map="[partyId:personPartyId,
-                             firstName:firstName,
-                             lastName:lastName
-                             ]"/>
-
-            <!-- Create Contact Mechanism -->
-            <service-call name="create#co.hotwax.netsuite.party.contact.ContactMech"
-                          in-map="[contactMechTypeEnumId:'CmtEmailAddress', infoString:emailAddress]"
-                          out-map="emailOut"/>
-            <set field="emailContactMechId" from="emailOut.contactMechId"/>
-
-            <!-- Create PartyContactMech Entry -->
-            <service-call name="create#co.hotwax.netsuite.party.contact.PartyContactMech"
-                          in-map="[
-                         partyId:personPartyId,
-                         contactMechId:emailContactMechId,
-                         contactMechPurposeId:'EmailPrimary'
-                     ]"
-                          out-map="partyContactMechOut"/>
-            <service-call name="create#co.hotwax.netsuite.party.PartyRole"
-                          in-map="[
-                partyId:personPartyId,
-                roleTypeId:'Contact'
-              ]"/>
-            <service-call name="create#co.hotwax.netsuite.party.PartyRole"
-                          in-map="[
-                partyId:organizationPartyId,
-                roleTypeId:'Organization'
-              ]"/>
-            <!-- Link Person as a contact for the Organization -->
-            <service-call name="create#co.hotwax.netsuite.party.PartyRelationship"
-                          in-map="[
-                fromPartyId:organizationPartyId,
-                fromRoleTypeId:'Organization',
-                toPartyId:personPartyId,
-                toRoleTypeId:'Contact',
-                relationshipTypeEnumId:'PrtContact',
-                fromDate:fromDate
-              ]"/>
-            <!-- Create User Account -->
-            <service-call name="org.moqui.impl.UserServices.create#UserAccount"
-                          in-map="[username:username,
-                      userFullName:userFullName,
-                      newPassword:newPassword,
-                      newPasswordVerify:newPasswordVerify,
-                      emailAddress:emailAddress,
-                      requirePasswordChange:requirePasswordChange,
-                      partyId:organizationPartyId]"
-                          out-map="userOut"/>
-            <set field="userId" from="userOut.userId"/>
-            <!-- Create Telecom Contact Mechanism -->
-            <service-call name="create#co.hotwax.netsuite.party.contact.ContactMech"
-                          in-map="[contactMechTypeEnumId:'CmtTelecomNumber']"
-                          out-map="telecomOut"/>
-            <set field="telecomContactMechId" from="telecomOut.contactMechId"/>
-
-            <!-- Link TelecomNumber to Person -->
-            <service-call name="create#co.hotwax.netsuite.party.contact.PartyContactMech"
-                          in-map="[
-                         partyId:personPartyId,
-                         contactMechId:telecomContactMechId,
-                         contactMechPurposeId:'PhonePrimary'
-                     ]"/>
-
-            <!-- Create TelecomNumber Entry -->
-            <service-call name="create#co.hotwax.netsuite.party.contact.TelecomNumber"
-                          in-map="[
-                   contactMechId:telecomContactMechId,
-                   contactNumber:contactNumber
-               ]"/>
+            <!-- Create ContactPerson Party and associate with Organization -->
+            <service-call name="co.hotwax.configuration.CompanyConfigurationServices.create#ContactPerson"
+                          in-map="[userFullName:userFullName,
+                             emailAddress:emailAddress,
+                             username:username,
+                             newPassword:newPassword,
+                             newPasswordVerify:newPasswordVerify,
+                             contactNumber:contactNumber,
+                             requirePasswordChange:requirePasswordChange,
+                             organizationPartyId:organizationPartyId]"
+                          />
         </actions>
     </service>
 
