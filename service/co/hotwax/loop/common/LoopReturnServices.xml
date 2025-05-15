@@ -25,18 +25,24 @@ under the License.
             <parameter name="partyId" required="true"/>
         </in-parameters>
         <actions>
-            <entity-find entity-name="co.hotwax.netsuite.party.PartySystemMessageRemote" list="partySystemMessageRemoteList">
+            <entity-find entity-name="co.hotwax.netsuite.party.PartySystemMessageRemote" list="partySystemMessageRemoteList" cache="true">
                 <econdition field-name="partyId" operator="equals" from="partyId"/>
                 <econdition field-name="systemMessageTypeId" operator="equals" from="'LoopSFTP'"/>
             </entity-find>
+
+            <entity-find-one entity-name="co.hotwax.netsuite.party.Organization" value-field="organization" cache="true">
+                <field-map field-name="partyId" from="partyId"/>
+            </entity-find-one>
+            <set field="organizationName" from="organization.organizationName"/>
+
             <if condition="partySystemMessageRemoteList">
                 <set field="systemMessageRemoteId" from="partySystemMessageRemoteList[0].systemMessageRemoteId" type="String"/>
             </if>
             <set field="serviceContext" from="[:]"/>
-            <set field="description" value="Service job to poll Process Loop Return Feed for organization ${partyId}"/>
+            <set field="description" value="Service job to poll Process Loop Return Feed for organization {organizationName} [${partyId}]"/>
             <set field="serviceName" value="co.hotwax.loop.common.SystemMessageServices.poll#SystemMessageFileSftp"/>
             <set field="paused" value="N"/>
-            <set field="cronExpression" value="0 0 * * * ?"/>
+            <set field="cronExpression" value="0 0/15 * * * ?"/>
             <set field="transactionTimeout" value="3600"/>
             <set field="jobName" value="Poll_ProcessLoopReturnFeed_${partyId}"/>
 
@@ -81,7 +87,7 @@ under the License.
                 <set field="loopReturnId" from="loopReturn.loopReturnId"/>
                 <log level="info" message="Processing Loop Return ${loopReturnId}"/>
 
-                <set field="endPoint" from="'/warehouse/return/' + loopReturnId + '/process'"/>
+                <set field="endPoint" value="/warehouse/return/${loopReturnId}/process"/>
 
                 <service-call name="co.hotwax.loop.common.LoopHelperServices.send#LoopRequest" in-map="[systemMessageRemoteId:systemMessageRemoteId,
                         requestType:'POST', contentType:'application/json', endPoint: endPoint]"/>

@@ -29,7 +29,6 @@ under the License.
             <parameter name="endPoint"/>
         </in-parameters>
         <out-parameters>
-            <parameter name="statusCode" type="Integer"/>
             <parameter name="response" type="Map"/>
         </out-parameters>
         <actions>
@@ -65,18 +64,14 @@ under the License.
                     RestClient.RestResponse restResponse = restClient.call()
                     resposeText = restResponse.text()
                     if (resposeText == "true") {
-                        ec.logger.info("resposeText : " + resposeText);
                     } else {
                         response = restResponse.jsonObject()
-                        ec.logger.info("response : " + response);
                     }
-
                     statusCode = restResponse.getStatusCode()
-                    ec.logger.info("statusCode : " + statusCode);
-
                     restResponse.checkError()
                 } catch (Exception e) {
                     ec.logger.error("Error in API call Error: ${e.getMessage()}")
+                    ec.message.addError("Error in API call Error: ${e.getMessage()}: ${response}")
                 }
             ]]></script>
         </actions>
