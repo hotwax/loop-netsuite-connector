@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+NetSuite accountId      => SystemMessageRemote.remoteId
+NetSuite token          => SystemMessageRemote.receiveUrl
+NetSuite consumerKey    => SystemMessageRemote.sharedSecret
+NetSuite certificateId  => SystemMessageRemote.sendSharedSecret
+NetSuite accountId      => SystemMessageRemote.remoteId
+-->
+<!-- Screen definition for creating a Netsuite connection -->
+<screen
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-1.4.xsd"
+    default-menu-title="Create Netsuite Connection"
+    default-menu-index="2"
+    require-authentication="anonymous-all">
+
+  <!-- Transition to create a new Netsuite connection -->
+  <transition name="createNetsuiteConnection">
+    <service-call name="co.hotwax.configuration.CompanyConfigurationServices.create#NetsuiteSystemMessageRemote" in-map="context"/>
+    <default-response url="."/>
+  </transition>
+
+  <!-- Dialog container for creating a Netsuite connection -->
+  <widgets>
+      <form-single name="CreateNetsuiteConnection" transition="createNetsuiteConnection">
+        <!-- Netsuite Account ID -->
+        <field name="remoteId" required="true">
+          <default-field title="NetSuite Account Id">
+            <text-line size="20"/>
+          </default-field>
+        </field>
+
+        <field name="accountType">
+          <default-field title="Account Type">
+            <radio>
+              <option key="sandbox" text="Sandbox"/>
+              <option key="producion" text="Production"/>
+            </radio>
+          </default-field>
+        </field>
+
+        <!-- Hidden Token ID -->
+        <field name="sshKey" required="true">
+          <default-field title="Open SSH Private Key">
+            <text-line/>
+          </default-field>
+        </field>
+
+        <!-- Consumer Key -->
+        <field name="sharedSecret" required="true">
+          <default-field title="NetSuite Consumer Key">
+            <text-line/>
+          </default-field>
+        </field>
+
+        <!-- Certificate Key -->
+        <field name="sendSharedSecret" required="true">
+          <default-field title="NetSuite Certificate Id">
+            <text-line/>
+          </default-field>
+        </field>
+
+        <!-- Submit Button -->
+        <field name="submitButton">
+          <default-field title="Create">
+            <submit/>
+          </default-field>
+        </field>
+      </form-single>
+  </widgets>
+</screen>
