@@ -95,4 +95,14 @@
          sendPath="/home/${sftpUsername}/netsuite/moqui-loop-return/close/LoopCloseReturn-${systemMessageId}-${dateTime}.json"
          sendServiceName="co.hotwax.loop.common.SystemMessageServices.send#SystemMessageFileSftp"/>
 
+ <!-- SystemMessageType data to call loop process return API-->
+ <moqui.service.message.SystemMessageType systemMessageTypeId="ProcessLoopReturn"
+         description="Fetch loop return CSV file from SFTP server and call process loop return API."
+         parentTypeId="LocalFeedFile"
+         receiveResponseEnumId="MsgRrMove"
+         sendPath="${contentRoot}/Netsuite/LoopReturns/${partyId}/ProcessLoopReturn"
+         receivePath="/home/${sftpUsername}/netsuite/moqui-loop-return/process-return/"
+         receiveMovePath="/home/${sftpUsername}/netsuite/moqui-loop-return/process-return/archive"
+         consumeServiceName="co.hotwax.loop.common.LoopReturnServices.consume#LoopReturnProcessedFeed">
+ </moqui.service.message.SystemMessageType>
 </entity-facade-xml>

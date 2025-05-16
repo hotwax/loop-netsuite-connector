@@ -29,7 +29,6 @@ under the License.
             <parameter name="endPoint"/>
         </in-parameters>
         <out-parameters>
-            <parameter name="statusCode" type="Integer" required="true"/>
             <parameter name="response" type="Map"/>
         </out-parameters>
         <actions>
@@ -63,18 +62,16 @@ under the License.
                 }
                 try {
                     RestClient.RestResponse restResponse = restClient.call()
-                    response = restResponse.jsonObject()
-                    ec.logger.info("response" + response);
-
-                    statusCode = restResponse.getStatusCode()
-                    ec.logger.info("statusCode" + statusCode);
-
-                    if (restResponse.statusCode < 200 || restResponse.statusCode >= 300) {
-                        ec.logger.warn("Unsuccessful with status code: ${statusCode} and response: ${response}")
-                        return
+                    resposeText = restResponse.text()
+                    if (resposeText == "true") {
+                    } else {
+                        response = restResponse.jsonObject()
                     }
+                    statusCode = restResponse.getStatusCode()
+                    restResponse.checkError()
                 } catch (Exception e) {
                     ec.logger.error("Error in API call Error: ${e.getMessage()}")
+                    ec.message.addError("Error in API call Error: ${e.getMessage()}: ${response}")
                 }
             ]]></script>
         </actions>
