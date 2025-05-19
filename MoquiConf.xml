@@ -1,6 +1,12 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <moqui-conf xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
             xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/moqui-conf-2.1.xsd">
+    <cache-list warm-on-start="false">
+        <cache name="netsuite.access.token" expire-time-idle="3000" value-type="String"/>
+    </cache-list>
+    <service-facade>
+        <service-type name="netsuite-rest-connector" runner-class="co.hotwax.netsuite.impl.service.runner.NetSuiteRestServiceRunner"/>
+    </service-facade>
     <screen-facade>
         <screen location="component://webroot/screen/webroot/apps.xml">
             <subscreens-item name="netsuiteLoopConnectorCreateUser" menu-title="Create New User" menu-index="95"
