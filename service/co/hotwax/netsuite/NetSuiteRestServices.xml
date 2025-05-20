@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+Licensed to the Apache Software Foundation (ASF) under one
+or more contributor license agreements.  See the NOTICE file
+distributed with this work for additional information
+regarding copyright ownership.  The ASF licenses this file
+to you under the Apache License, Version 2.0 (the
+"License"); you may not use this file except in compliance
+with the License.  You may obtain a copy of the License at
+http://www.apache.org/licenses/LICENSE-2.0
+Unless required by applicable law or agreed to in writing,
+software distributed under the License is distributed on an
+"AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+KIND, either express or implied.  See the License for the
+specific language governing permissions and limitations
+under the License.
+-->
+
+<services xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://moqui.org/xsd/service-definition-3.xsd">
+
+    <service verb="create" noun="NetSuiteLoopReturn"  type="netsuite-rest-connector" location="${restletEndPoint}" method="post" authenticate="false">
+        <description>Create RMA in NetSuite</description>
+        <in-parameters>
+            <parameter name="systemMessageRemoteId" required="true"/>
+            <parameter name="payload" type="Map" required="true"/>
+        </in-parameters>
+    </service>
+
+    <service verb="verify" noun="NetSuiteAcessToken">
+        <description>Verify and store access token from NetSuite</description>
+        <in-parameters>
+            <parameter name="systemMessageRemoteId"/>
+        </in-parameters>
+        <actions>
+            <entity-find-one entity-name="moqui.service.message.SystemMessageRemote" value-field="systemMessageRemote"/>
+            <if condition="systemMessageRemote == null"><return error="true" message="Could not find SystemMessageRemote with ID ${systemMessageRemote.systemMessageRemoteId}"/></if>
+            <script><![CDATA[
+                try {
+                    token = co.hotwax.netsuite.util.NetSuiteUtil.generateAcessToken(ec.ecfi, systemMessageRemoteId);
+                } catch (Exception e) {
+                    ec.logger.error("Error in API call Error: ${e.getMessage()}")
+                }
+            ]]></script>
+            <if condition="token == null">
+                <return error="true" message="Unable to generate access token for system message remote : ${systemMessageRemoteId}"/>
+                <else>
+                    <return type="success" message="NetSuite credentials verified for system message remote ${systemMessageRemoteId}"/>
+                </else>
+            </if>
+        </actions>
+    </service>
+
+    <service verb="send" noun="SystemMessageFileNetSuite">
+        <description>Send system message file to NetSuite</description>
+        <implements service="org.moqui.impl.SystemMessageServices.send#SystemMessage"/>
+        <actions>
+            <entity-find-one entity-name="moqui.service.message.SystemMessage" value-field="systemMessage"/>
+            <if condition="systemMessage == null"><return error="true" message="Could not find SystemMessage with ID ${systemMessageId}"/></if>
+
+            <set field="systemMessageType" from="systemMessage.'moqui.service.message.SystemMessageType'"/>
+            <if condition="systemMessageType == null"><return error="true" message="System message ${systemMessageId} has no SystemMessageType, not sending."/></if>
+            <set field="systemMessageRemote" from="systemMessage.'moqui.service.message.SystemMessageRemote'"/>
+            <if condition="systemMessageRemote == null"><return error="true" message="System message ${systemMessageId} has no SystemMessageRemote, not sending."/></if>
+            <if condition="!systemMessageRemote.sendUrl"><return error="true" message="No sendUrl on SystemMessageRemote ${systemMessageRemote.systemMessageRemoteId}, not sending."/></if>
+
+            <script><![CDATA[
+                import groovy.json.JsonSlurper
+
+                String filename = systemMessage.remoteMessageId ?: systemMessage.systemMessageId
+                //get the file text from the file path stored in messageText
+                fileText = ec.resource.getLocationReference(systemMessage.messageText).getText();
+                payloadMap = (Map) new JsonSlurper().parseText(fileText)
+            ]]></script>
+            <set field="inMap" from="[:]"/>
+            <set field="inMap.systemMessageRemoteId" from="systemMessageRemote.systemMessageRemoteId"/>
+            <set field="inMap.payload" from="payloadMap"/>
+            <service-call name="co.hotwax.netsuite.NetSuiteRestServices.create#NetSuiteLoopReturn"
+                          in-map="inMap" out-map="result"/>
+            <set field="remoteMessageId" from="filename"/>
+        </actions>
+    </service>
+</services>
