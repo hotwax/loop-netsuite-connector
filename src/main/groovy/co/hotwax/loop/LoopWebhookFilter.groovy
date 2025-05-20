@@ -33,6 +33,7 @@ import org.apache.commons.io.IOUtils
 import javax.servlet.*
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
+import java.sql.Timestamp
 
 @CompileStatic
 class LoopWebhookFilter implements Filter {
@@ -85,12 +86,18 @@ class LoopWebhookFilter implements Filter {
         String requestBody = IOUtils.toString(request.getReader());
         String url = request.getRequestURL().toString()
         String webhookPartyId = null;
+        String remoteIdType = null;
 
         if (requestBody.length() == 0) {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "The Request Body is empty for Loop webhook")
             return
         }
         if (url) {
+            if (url.contains("/production/")) {
+                remoteIdType = "production"
+            }  else {
+                remoteIdType = "sandbox"
+            }
             String[] urlParts = url.split("/");
             webhookPartyId = urlParts[urlParts.length - 1];
         }
@@ -103,7 +110,8 @@ class LoopWebhookFilter implements Filter {
 
         EntityValue systemMessageRemote = null;
         EntityValue systemMessageRemoteWebhook = ec.entityFacade.find("co.hotwax.netsuite.party.PartySystemMessageRemote")
-                .condition("partyId", webhookPartyId).condition("systemMessageTypeId", "LoopWebhook").useCache(true).disableAuthz().one();
+                .conditionDate("fromDate", "thruDate", new Timestamp(System.currentTimeMillis()))
+                .condition("remoteIdType", remoteIdType).condition("partyId", webhookPartyId).condition("systemMessageTypeId", "LoopWebhook").useCache(true).disableAuthz().one();
         if (systemMessageRemoteWebhook) {
             systemMessageRemote = ec.entityFacade.find("moqui.service.message.SystemMessageRemote")
                     .condition("systemMessageRemoteId", systemMessageRemoteWebhook.systemMessageRemoteId).useCache(true).disableAuthz().one();
@@ -119,16 +127,18 @@ class LoopWebhookFilter implements Filter {
 
         // If the hmac matched with the calculatedHmac, break the loop and return
         if (result.isValidWebhook) {
-            EntityValue systemMessageRemoteSFTP = ec.entityFacade.find("co.hotwax.netsuite.party.PartySystemMessageRemote")
-                    .condition("partyId", webhookPartyId).condition("systemMessageTypeId", "NetsuiteCredentials").useCache(true).disableAuthz().one();
-            if (systemMessageRemoteSFTP) {
-                request.setAttribute("systemMessageRemoteId", systemMessageRemoteSFTP.systemMessageRemoteId)
+            EntityValue systemMessageRemoteNetsuite = ec.entityFacade.find("co.hotwax.netsuite.party.PartySystemMessageRemote")
+                    .conditionDate("fromDate", "thruDate", new Timestamp(System.currentTimeMillis()))
+                    .condition("remoteIdType", remoteIdType).condition("partyId", webhookPartyId).condition("systemMessageTypeId", "NetsuiteCredentials").useCache(true).disableAuthz().one();
+            if (systemMessageRemoteNetsuite) {
+                request.setAttribute("systemMessageRemoteId", systemMessageRemoteNetsuite.systemMessageRemoteId)
             } else {
-                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "The SFTP ${webhookTrigger} is not configured for Loop")
+                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "The NetSuite Credentials ${webhookTrigger} is not configured for Loop")
                 return
             }
             request.setAttribute("webhookTrigger", webhookTrigger)
             request.setAttribute("webhookPartyId", webhookPartyId);
+            request.setAttribute("remoteIdType", remoteIdType);
             return;
         }
         logger.warn("The webhook ${webhookTrigger} HMAC header did not match with the computed HMAC for Loop")

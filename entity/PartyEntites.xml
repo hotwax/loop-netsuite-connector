@@ -186,6 +186,7 @@ along with this software (see the LICENSE.md file). If not, see
   <entity entity-name="PartySystemMessageRemote" package="co.hotwax.netsuite.party">
     <field name="partyId" type="id" is-pk="true"/>
     <field name="systemMessageRemoteId" type="id" is-pk="true"/>
+    <field name="remoteIdType" type="text-short"/>
     <field name="fromDate" type="date-time" is-pk="true"/>
     <field name="thruDate" type="date-time"/>
     <field name="systemMessageTypeId" type="id" is-pk="true"/>

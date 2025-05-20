@@ -21,8 +21,10 @@ under the License.
 
     <resource name="webhook" require-authentication="anonymous-all">
         <resource name="payload" require-authentication="anonymous-all">
-            <id name="partyId">
-                <method type="post"><service name="co.hotwax.loop.webhook.LoopWebhookServices.receive#WebhookPayload"/></method>
+            <id name="remoteIdType">
+                <id name="webhookPartyId">
+                  <method type="post"><service name="co.hotwax.loop.webhook.LoopWebhookServices.receive#WebhookPayload"/></method>
+                </id>
             </id>
         </resource>
     </resource>
