@@ -95,6 +95,11 @@
          sendPath="/home/${sftpUsername}/netsuite/moqui-loop-return/close/LoopCloseReturn-${systemMessageId}-${dateTime}.json"
          sendServiceName="co.hotwax.loop.common.SystemMessageServices.send#SystemMessageFileSftp"/>
 
+ <!--Enum data for M2M setup algorithm types -->
+ <moqui.basic.Enumeration enumId="ES256" description="ES 256" enumTypeId="SystemMessageAuthType"/>
+ <moqui.basic.Enumeration enumId="PS256" description="RSA-PSS" enumTypeId="SystemMessageAuthType"/>
+ <moqui.basic.Enumeration enumId="ES512" description="ES 512" enumTypeId="SystemMessageAuthType"/>
+
  <!-- SystemMessageType data to call loop process return API-->
  <moqui.service.message.SystemMessageType systemMessageTypeId="ProcessLoopReturn"
          description="Fetch loop return CSV file from SFTP server and call process loop return API."

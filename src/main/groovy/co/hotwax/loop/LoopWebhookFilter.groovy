@@ -120,7 +120,7 @@ class LoopWebhookFilter implements Filter {
         // If the hmac matched with the calculatedHmac, break the loop and return
         if (result.isValidWebhook) {
             EntityValue systemMessageRemoteSFTP = ec.entityFacade.find("co.hotwax.netsuite.party.PartySystemMessageRemote")
-                    .condition("partyId", webhookPartyId).condition("systemMessageTypeId", "LoopSFTP").useCache(true).disableAuthz().one();
+                    .condition("partyId", webhookPartyId).condition("systemMessageTypeId", "NetsuiteCredentials").useCache(true).disableAuthz().one();
             if (systemMessageRemoteSFTP) {
                 request.setAttribute("systemMessageRemoteId", systemMessageRemoteSFTP.systemMessageRemoteId)
             } else {

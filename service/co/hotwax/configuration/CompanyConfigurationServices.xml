@@ -135,6 +135,7 @@
                              requirePasswordChange:requirePasswordChange,
                              organizationPartyId:organizationPartyId]"
                           />
+            <return type="success" message="Your account has been successfully registered with ${organizationName}. Your Organization ID is ${organizationPartyId}."/>
         </actions>
     </service>
 
@@ -174,8 +175,10 @@
             </if>
             <!-- Create SystemMessageRemote entry -->
             <set field="systemMessageTypeId" from="'LoopWebhook'"/>
+            <set field="sendUrl" value="https://api.loopreturns.com/api/v1"/>
             <service-call name="create#SystemMessageRemote"
                           in-map="[
+                             sendUrl:sendUrl,
                              privateKey:privateKey,
                              sendSharedSecret:sendSharedSecret,
                              remoteIdType:accountType,
@@ -204,7 +207,7 @@
                             fromDate:fromDate,
                             systemMessageTypeId:systemMessageTypeId
                           ]"/>
-            <set field="statusMessage" from="'LOOP Account successfully created and linked to the logged-in user.'"/>
+            <return type="success" message="Your loop account has been successfully registered. Your system message remote is ${systemMessageRemoteId}."/>
         </actions>
     </service>
 
@@ -246,8 +249,9 @@
                               systemMessageTypeId:systemMessageTypeId,
                               receiveUrl:tokenUrl,
                               sharedSecret:sharedSecret,
-                              remotePublicKey:sshKeyValue,
-                              sendSharedSecret:sendSharedSecret]"
+                              privateKey:sshKeyValue,
+                              sendSharedSecret:sendSharedSecret,
+                              messageAuthEnumId:'ES256']"
                           out-map="messageOut"/>
 
             <set field="systemMessageRemoteId" from="messageOut.systemMessageRemoteId"/>
@@ -286,7 +290,7 @@
                             systemMessageTypeId:systemMessageTypeId
                           ]"/>
             <!-- Final Success Message -->
-            <set field="statusMessage" from="'NetSuite connection successfully created and linked to the user party.'"/>
+            <return type="success" message="Your netsuite account has been successfully registered. Your system message remote is ${systemMessageRemoteId}."/>
         </actions>
     </service>
 </services>
