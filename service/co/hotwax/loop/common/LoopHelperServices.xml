@@ -24,7 +24,7 @@ under the License.
         <in-parameters>
             <parameter name="systemMessageRemoteId" required="true"/>
             <parameter name="requestType" required="true"/>
-            <parameter name="contentType" required="true"/>
+            <parameter name="contentType"/>
             <parameter name="requestBody" type="Map"/>
             <parameter name="endPoint"/>
         </in-parameters>
@@ -55,7 +55,10 @@ under the License.
                 restClient.uri(loopUrl)
 
                 restClient.addHeader("X-Authorization", token)
-                restClient.contentType(contentType)
+
+                if (contentType != null) {
+                    restClient.contentType(contentType)
+                }
 
                 if (requestBody != null) {
                     restClient.jsonObject(requestBody)
