@@ -117,6 +117,24 @@ under the License.
                 callBackUrl = org.moqui.impl.context.WebFacadeImpl.getWebappRootUrl('webroot', null, true, false, ec)  + callBackUrl
             </script>
 
+            <!-- verify webhook subscription exists -->
+
+            <service-call name="co.hotwax.loop.webhook.LoopWebhookServices.get#WebhookSubscriptions" in-map="[systemMessageRemoteId:systemMessageRemoteId]" out-map="context"/>
+            <if condition="webhookList">
+                <iterate list="webhookList" entry= "webhook">
+                    <set field="webhookTopic" from="webhook.topic"/>
+                    <set field="webhookTrigger" from="webhook.trigger"/>
+                    <set field="webhookStatus" from="webhook.status"/>
+                    <set field="webhookUrl" from="webhook.url"/>
+                    
+                    <if condition="webhookStatus == 'active'">
+                        <if condition="webhookTopic == topic &amp;&amp; webhookTrigger == trigger &amp;&amp; webhookUrl == callBackUrl">
+                            <return message="Webhook already exists for topic [${webhookTopic}] and trigger [${webhookTrigger}]"/>
+                        </if>
+                    </if>
+                </iterate>
+            </if>
+
             <set field="endPoint" from="'/webhooks'"/>
             <set field="requestBody" from="[:]"/>
 
@@ -214,6 +232,24 @@ under the License.
             <service-call name="org.moqui.impl.SystemMessageServices.queue#SystemMessage"
                           in-map="[systemMessageTypeId:systemMessageType.systemMessageTypeId, systemMessageRemoteId:systemMessageRemoteId,
                     messageText:jsonFilePathRef, senderId: webhookPartyId, docType: remoteIdType]" async="true"/>
+        </actions>
+    </service>
+
+    <service verb="get" noun="WebhookSubscriptions" authenticate="anonymous-all">
+        <description>Get a list of all subscribed webhooks filtered by query parameters.</description>
+        <in-parameters>
+            <parameter name="systemMessageRemoteId" required="true"/>
+        </in-parameters>
+        <out-parameters>
+            <parameter name="webhookList"/>
+        </out-parameters>
+        <actions>
+            <set field="endPoint" from="'/webhooks'"/>
+
+            <service-call name="co.hotwax.loop.common.LoopHelperServices.send#LoopRequest" in-map="[systemMessageRemoteId:systemMessageRemoteId,
+                        requestType:'GET', endPoint: endPoint]" out-map="getWebhookSubscriptionsResponse"/>
+
+            <set field="webhookList" from="getWebhookSubscriptionsResponse.response.webhooks"/>
         </actions>
     </service>
 </services>
