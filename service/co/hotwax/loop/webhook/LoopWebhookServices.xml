@@ -23,10 +23,12 @@ under the License.
         </description>
         <in-parameters>
             <parameter name="partyId" required="true"/>
+            <parameter name="accountType" required="true"/>
         </in-parameters>
         <actions>
             <entity-find entity-name="co.hotwax.netsuite.party.PartySystemMessageRemote" list="partySystemMessageRemoteList">
                 <econdition field-name="partyId" operator="equals" from="partyId"/>
+                <econdition field-name="remoteIdType" operator="equals" from="accountType"/>
                 <econdition field-name="systemMessageTypeId" operator="equals" from="'LoopWebhook'"/>
             </entity-find>
             <if condition="partySystemMessageRemoteList">
@@ -39,6 +41,8 @@ under the License.
                 <set field="serviceCtx" from="[:]"/>
                 <set field="serviceCtx.systemMessageRemoteId" from="systemMessageRemoteId"/>
                 <set field="serviceCtx.systemMessageTypeId" from="systemMessageType.systemMessageTypeId"/>
+                <set field="serviceCtx.partyId" from="partyId"/>
+                <set field="serviceCtx.remoteIdType" from="accountType"/>
                 <service-call name="co.hotwax.loop.webhook.LoopWebhookServices.queue#WebhookSubscriptionSystemMessage" in-map="serviceCtx"/>
             </iterate>
         </actions>
@@ -51,6 +55,8 @@ under the License.
         <in-parameters>
             <parameter name="systemMessageTypeId" required="true"/>
             <parameter name="systemMessageRemoteId" required="true"/>
+            <parameter name="remoteIdType" required="true"/>
+            <parameter name="partyId" required="true"/>
         </in-parameters>
         <actions>
             <entity-find-one entity-name="moqui.service.message.SystemMessageType" value-field="systemMessageType"/>
@@ -64,7 +70,7 @@ under the License.
                 </iterate>
             </if>
             <set field="messageText" from="org.moqui.impl.context.ContextJavaUtil.jacksonMapper.writeValueAsString(messageParams)"/>
-            <service-call name="org.moqui.impl.SystemMessageServices.queue#SystemMessage" in-map="[systemMessageTypeId:systemMessageTypeId, systemMessageRemoteId:systemMessageRemoteId, messageText:messageText, sendNow:true]"
+            <service-call name="org.moqui.impl.SystemMessageServices.queue#SystemMessage" in-map="[systemMessageTypeId:systemMessageTypeId, systemMessageRemoteId:systemMessageRemoteId, messageText:messageText, sendNow:true, senderId: partyId, docType: remoteIdType]"
                           out-map="context"/>
         </actions>
     </service>
@@ -104,9 +110,10 @@ under the License.
             </entity-find>
             <if condition="partySystemMessageRemoteList">
                 <set field="partyId" from="partySystemMessageRemoteList[0].partyId" type="String"/>
+                <set field="remoteIdType" from="partySystemMessageRemoteList[0].remoteIdType" type="String"/>
             </if>
             <script>
-                callBackUrl = ec.resourceFacade.expand('/rest/s1/loop/webhook/payload/${partyId}', null, ["partyId": partyId])
+                callBackUrl = ec.resourceFacade.expand('/rest/s1/loop/webhook/payload/${remoteIdType}/${webhookPartyId}', null, ["webhookPartyId": partyId, "remoteIdType": remoteIdType], false)
                 callBackUrl = org.moqui.impl.context.WebFacadeImpl.getWebappRootUrl('webroot', null, true, false, ec)  + callBackUrl
             </script>
 
@@ -164,6 +171,7 @@ under the License.
             <parameter name="webhookTrigger" required="true"/>
             <parameter name="webhookPartyId" required="true"/>
             <parameter name="systemMessageRemoteId" required="true"/>
+            <parameter name="remoteIdType"/>
         </in-parameters>
         <actions>
             <entity-find entity-name="moqui.basic.Enumeration" list="enums" cache="true">
@@ -205,7 +213,7 @@ under the License.
 
             <service-call name="org.moqui.impl.SystemMessageServices.queue#SystemMessage"
                           in-map="[systemMessageTypeId:systemMessageType.systemMessageTypeId, systemMessageRemoteId:systemMessageRemoteId,
-                    messageText:jsonFilePathRef]" async="true"/>
+                    messageText:jsonFilePathRef, senderId: webhookPartyId, docType: remoteIdType]" async="true"/>
         </actions>
     </service>
 </services>
