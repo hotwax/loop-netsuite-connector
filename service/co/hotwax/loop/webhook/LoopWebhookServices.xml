@@ -41,6 +41,8 @@ under the License.
                 <set field="serviceCtx" from="[:]"/>
                 <set field="serviceCtx.systemMessageRemoteId" from="systemMessageRemoteId"/>
                 <set field="serviceCtx.systemMessageTypeId" from="systemMessageType.systemMessageTypeId"/>
+                <set field="serviceCtx.partyId" from="partyId"/>
+                <set field="serviceCtx.remoteIdType" from="accountType"/>
                 <service-call name="co.hotwax.loop.webhook.LoopWebhookServices.queue#WebhookSubscriptionSystemMessage" in-map="serviceCtx"/>
             </iterate>
         </actions>
@@ -53,6 +55,8 @@ under the License.
         <in-parameters>
             <parameter name="systemMessageTypeId" required="true"/>
             <parameter name="systemMessageRemoteId" required="true"/>
+            <parameter name="remoteIdType" required="true"/>
+            <parameter name="partyId" required="true"/>
         </in-parameters>
         <actions>
             <entity-find-one entity-name="moqui.service.message.SystemMessageType" value-field="systemMessageType"/>
@@ -66,7 +70,7 @@ under the License.
                 </iterate>
             </if>
             <set field="messageText" from="org.moqui.impl.context.ContextJavaUtil.jacksonMapper.writeValueAsString(messageParams)"/>
-            <service-call name="org.moqui.impl.SystemMessageServices.queue#SystemMessage" in-map="[systemMessageTypeId:systemMessageTypeId, systemMessageRemoteId:systemMessageRemoteId, messageText:messageText, sendNow:true]"
+            <service-call name="org.moqui.impl.SystemMessageServices.queue#SystemMessage" in-map="[systemMessageTypeId:systemMessageTypeId, systemMessageRemoteId:systemMessageRemoteId, messageText:messageText, sendNow:true, senderId: partyId, docType: remoteIdType]"
                           out-map="context"/>
         </actions>
     </service>
