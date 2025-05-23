@@ -229,6 +229,14 @@
         <actions>
             <set field="sshKeyValue" value="${sshKey.replaceAll('\\s+', '')}"/>
             <set field="systemMessageTypeId" from="'NetsuiteCredentials'"/>
+            <if condition="remoteId.contains('_')">
+                <then>
+                    <set field="accountId" from="remoteId.replace('_', '-')"/>
+                </then>
+                <else>
+                    <set field="accountId" from="remoteId"/>
+                </else>
+            </if>
             <set field="tokenUrl" from="'https://' + accountId + '.suitetalk.api.netsuite.com/services/rest/auth/oauth2/v1/token'"/>
 
             <!-- Create SystemMessage entry -->
