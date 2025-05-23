@@ -93,10 +93,10 @@ class LoopWebhookFilter implements Filter {
             return
         }
         if (url) {
-            if (url.contains("/production/")) {
-                remoteIdType = "production"
+            if (url.contains("/PRODUCTION/")) {
+                remoteIdType = "PRODUCTION"
             }  else {
-                remoteIdType = "sandbox"
+                remoteIdType = "SANDBOX"
             }
             String[] urlParts = url.split("/");
             webhookPartyId = urlParts[urlParts.length - 1];

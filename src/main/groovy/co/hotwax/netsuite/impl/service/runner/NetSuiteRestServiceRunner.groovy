@@ -61,27 +61,16 @@ class NetSuiteRestServiceRunner implements ServiceRunner {
         }
 
         RestClient rc = eci.serviceFacade.rest().method(method)
-        String netSuiteBaseUrl = co.hotwax.netsuite.util.NetSuiteUtil.getNetSuiteRestletInstanceUrl(eci.ecfi, systemMessageRemoteId);
         String token = co.hotwax.netsuite.util.NetSuiteUtil.generateAcessToken(eci.ecfi, systemMessageRemoteId);
 
         rc.addHeader("Authorization", "Bearer " + token);
-        StringBuffer uri;
-
-        uri = new StringBuffer(netSuiteBaseUrl).append(scriptEndPoint);
 
         if (RestClient.GET.is(rc.getMethod())) {
             String parmsStr = RestClient.parametersMapToString(parameters)
-            if (parmsStr != null && !parmsStr.isEmpty()) {
-                if (uri.contains("?")) {
-                    uri.append("&")
-                } else {
-                    uri.append("?");
-                }
-                uri.append(parmsStr)
-            }
-            rc.uri(uri.toString())
+            if (parmsStr != null && !parmsStr.isEmpty()) scriptEndPoint = scriptEndPoint + "?" + parmsStr
+            rc.uri(scriptEndPoint)
         } else {
-            rc.uri(uri.toString())
+            rc.uri(scriptEndPoint)
             // NOTE: another option for parameters might be addBodyParameters(parameters), but a JSON body in the request is more common except for GET
             if (parameters != null && !parameters.isEmpty()) rc.jsonObject(parameters)
         }

@@ -34,8 +34,8 @@ NetSuite accountId      => SystemMessageRemote.remoteId
         <field name="accountType">
           <default-field title="Account Type">
             <radio>
-              <option key="sandbox" text="Sandbox"/>
-              <option key="producion" text="Production"/>
+              <option key="SANDBOX" text="Sandbox"/>
+              <option key="PRODUCTION" text="Production"/>
             </radio>
           </default-field>
         </field>

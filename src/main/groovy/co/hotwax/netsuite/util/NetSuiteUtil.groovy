@@ -39,7 +39,7 @@ public class NetSuiteUtil {
                     ec.getLogger().error("Unable to find system message remote record with id : " + systemMessageRemoteId);
                     return ec.message.addError("Unable to find system message remote record with id : ${systemMessageRemoteId}.")
                 }
-                String tokenEndpoint =  systemMessageRemote.getString("receiveUrl");
+                String tokenEndpoint =  systemMessageRemote.getString("sendUrl");
                 String certificateId = systemMessageRemote.getString("sendSharedSecret");
                 String consumerKey = systemMessageRemote.getString("sharedSecret");
                 String privateKeyStr = systemMessageRemote.getString("privateKey");

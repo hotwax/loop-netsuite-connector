@@ -227,28 +227,18 @@
             <parameter name="systemMessageRemoteId"/>
         </out-parameters>
         <actions>
-            <if condition="remoteId.contains('_')">
-                <then>
-                    <set field="accountId" from="remoteId.replace('_', '-')"/>
-                </then>
-                <else>
-                    <set field="accountId" from="remoteId"/>
-                </else>
-            </if>
             <set field="sshKeyValue" value="${sshKey.replaceAll('\\s+', '')}"/>
             <set field="systemMessageTypeId" from="'NetsuiteCredentials'"/>
             <set field="tokenUrl" from="'https://' + accountId + '.suitetalk.api.netsuite.com/services/rest/auth/oauth2/v1/token'"/>
-            <set field="sendUrl" from="'https://' + accountId + '.restlets.api.netsuite.com/app/site/hosting/restlet.nl'"/>
 
             <!-- Create SystemMessage entry -->
             <service-call name="create#SystemMessageRemote"
                           in-map="[
-                              remoteId:accountId,
-                              sendUrl:sendUrl,
+                              remoteId:remoteId,
+                              sendUrl:tokenUrl,
                               remoteIdType:accountType,
                               description:'NetSuite connection credentials',
                               systemMessageTypeId:systemMessageTypeId,
-                              receiveUrl:tokenUrl,
                               sharedSecret:sharedSecret,
                               privateKey:sshKeyValue,
                               sendSharedSecret:sendSharedSecret,
