@@ -79,4 +79,24 @@ under the License.
             <set field="remoteMessageId" from="filename"/>
         </actions>
     </service>
+
+    <!--ToDO: Need to add authorization to call the API from NetSuite-->
+    <service verb="receive" noun="BundlePayload">
+        <description>Receive NetSuite Bundle Payload information and store it in NetSuiteConfig entity</description>
+        <actions>
+            <set field="bundleMap" from="ec.web.getRequestParameters()"/>
+            <set field="netSuiteLoopAPIList" from="bundleMap.netSuiteLoopAPIList" type="List"/>
+            <iterate list="netSuiteLoopAPIList" entry="netSuiteLoopAPI">
+                <service-call name="create#co.hotwax.netsuite.NetsuiteConfig"
+                              in-map="[
+                            accountId: bundleMap.companyId,
+                            companyName: bundleMap.companyName,
+                            accountType: bundleMap.companyAccountType,
+                            scriptType: netSuiteLoopAPI.scriptType,
+                            scriptName: netSuiteLoopAPI.scriptName,
+                            scriptEndPoint: netSuiteLoopAPI.scriptURL,
+                          ]"/>
+            </iterate>
+        </actions>
+    </service>
 </services>

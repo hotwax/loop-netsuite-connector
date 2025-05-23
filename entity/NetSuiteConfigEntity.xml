@@ -14,7 +14,7 @@ along with this software (see the LICENSE.md file). If not, see
 -->
 <entities xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
           xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/entity-definition-3.xsd">
-    <entity entity-name="NetSuiteConfig" package="co.hotwax.netsuite" use="configuration">
+    <entity entity-name="NetsuiteConfig" package="co.hotwax.netsuite" use="configuration">
         <description>
             Entity to define any additional parameters required to process netsuite
             restlet api calls and store bundle install user informations.
@@ -22,7 +22,7 @@ along with this software (see the LICENSE.md file). If not, see
         <field name="accountId" type="text-short" is-pk="true"/>
         <field name="companyName" type="text-medium"/>
         <field name="accountType" type="text-short"/>
-        <field name="scriptType" type="text-medium"/>
+        <field name="scriptType" type="text-medium" is-pk="true"/>
         <field name="scriptName" type="text-medium"/>
         <field name="scriptEndPoint" type="text-long"/>
     </entity>
