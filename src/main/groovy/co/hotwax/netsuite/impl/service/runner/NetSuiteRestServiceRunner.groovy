@@ -54,7 +54,7 @@ class NetSuiteRestServiceRunner implements ServiceRunner {
             throw new IllegalArgumentException("SystemMessageRemote required to call remote netsuite service ${systemMessageRemoteId}")
         }
 
-        EntityValue netSuiteConfig = eci.ecfi.entityFacade.find("co.hotwax.netsuite.NetSuiteConfig").condition("accountId", systemMessageRemote.getString("remoteId")).condition("accountType", systemMessageRemote.getString("remoteIdType")).condition("scriptName", "netsuite.restlet.create.return").useCache(true).disableAuthz().one();
+        EntityValue netSuiteConfig = eci.ecfi.entityFacade.find("co.hotwax.netsuite.NetsuiteConfig").condition("accountId", systemMessageRemote.getString("remoteId")).condition("accountType", systemMessageRemote.getString("remoteIdType")).condition("scriptName", "netsuite.restlet.create.return").useCache(true).disableAuthz().one();
         String scriptEndPoint = netSuiteConfig.getString("scriptEndPoint");
         if (!scriptEndPoint) {
             throw new IllegalArgumentException("scriptEndPoint required to call remote netsuite service ${systemMessageRemoteId}")
