@@ -33,7 +33,9 @@
          parentTypeId="LocalFeedFile"
          receivePath="${contentRoot}/Netsuite/LoopReturns/${partyId}/create/loopCreateReturnFeed-${dateTime}.json"
          sendPath=""
-         sendServiceName="co.hotwax.netsuite.NetSuiteRestServices.send#SystemMessageFileNetSuite"/>
+         sendServiceName="co.hotwax.netsuite.NetSuiteRestServices.send#SystemMessageFileNetSuite">
+  <parameters parameterName="scriptType" parameterValue="netsuite.restlet.create.return" systemMessageRemoteId=""/>
+ </moqui.service.message.SystemMessageType>
 
  <!-- SystemMessageType record for loop return.updated webhook -->
  <moqui.service.message.SystemMessageType systemMessageTypeId="LoopReturnsUpdate"
@@ -54,7 +56,9 @@
          parentTypeId="LocalFeedFile"
          receivePath="${contentRoot}/Netsuite/LoopReturns/${partyId}/update/loopUpdateReturnFeed-${dateTime}.json"
          sendPath=""
-         sendServiceName="co.hotwax.netsuite.NetSuiteRestServices.send#SystemMessageFileNetSuite"/>
+         sendServiceName="co.hotwax.netsuite.NetSuiteRestServices.send#SystemMessageFileNetSuite">
+ <parameters parameterName="scriptType" parameterValue="netsuite.restlet.update.return" systemMessageRemoteId=""/>
+ </moqui.service.message.SystemMessageType>
 
  <!-- SystemMessageType record for loop return.closed webhook -->
  <moqui.service.message.SystemMessageType systemMessageTypeId="LoopReturnsClose"
@@ -75,7 +79,9 @@
          parentTypeId="LocalFeedFile"
          receivePath="${contentRoot}/Netsuite/LoopReturns/${partyId}/close/loopCloseReturnFeed-${dateTime}.json"
          sendPath=""
-         sendServiceName="co.hotwax.netsuite.NetSuiteRestServices.send#SystemMessageFileNetSuite"/>
+         sendServiceName="co.hotwax.netsuite.NetSuiteRestServices.send#SystemMessageFileNetSuite">
+ <parameters parameterName="scriptType" parameterValue="netsuite.restlet.closed.return" systemMessageRemoteId=""/>
+ </moqui.service.message.SystemMessageType>
 
  <!--Enum data for M2M setup algorithm types -->
  <moqui.basic.Enumeration enumId="ES256" description="ES 256" enumTypeId="SystemMessageAuthType"/>

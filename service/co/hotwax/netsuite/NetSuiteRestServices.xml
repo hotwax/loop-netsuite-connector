@@ -18,11 +18,12 @@ under the License.
 
 <services xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://moqui.org/xsd/service-definition-3.xsd">
 
-    <service verb="create" noun="NetSuiteLoopReturn"  type="netsuite-rest-connector" location="${restletEndPoint}" method="post" authenticate="false">
-        <description>Create RMA in NetSuite</description>
+    <service verb="call" noun="NetSuiteLoopReturnAPI"  type="netsuite-rest-connector" location="${restletEndPoint}" method="post" authenticate="false">
+        <description>Call NetSuite Restlet API to process RMA in NetSuite</description>
         <in-parameters>
             <parameter name="systemMessageRemoteId" required="true"/>
             <parameter name="payload" type="Map" required="true"/>
+            <parameter name="restletEndPoint"/>
         </in-parameters>
     </service>
 
@@ -63,6 +64,19 @@ under the License.
             <if condition="systemMessageRemote == null"><return error="true" message="System message ${systemMessageId} has no SystemMessageRemote, not sending."/></if>
             <if condition="!systemMessageRemote.sendUrl"><return error="true" message="No sendUrl on SystemMessageRemote ${systemMessageRemote.systemMessageRemoteId}, not sending."/></if>
 
+            <entity-find-one entity-name="moqui.service.message.SystemMessageTypeParameter" value-field="systemMessageTypeParameter" cache="true">
+                <field-map field-name="systemMessageTypeId" from="systemMessageType.systemMessageTypeId"/>
+                <field-map field-name="parameterName" value="scriptType"/>
+            </entity-find-one>
+            <if condition="systemMessageTypeParameter == null"><return error="true" message="No NetSuite Restlet script type found on SystemMessageType ${systemMessageType.systemMessageTypeId}."/></if>
+
+            <entity-find-one entity-name="co.hotwax.netsuite.NetsuiteConfig" value-field="netsuiteConfig" cache="true">
+                <field-map field-name="accountId" from="systemMessageRemote.remoteId"/>
+                <field-map field-name="accountType" from="systemMessageRemote.remoteIdType"/>
+                <field-map field-name="scriptType" from="systemMessageTypeParameter.parameterValue"/>
+            </entity-find-one>
+            <if condition="netsuiteConfig == null"><return error="true" message="No NetSuiteConfig found for SystemMessageRemote ${systemMessageRemote.systemMessageRemoteId}, not sending."/></if>
+
             <script><![CDATA[
                 import groovy.json.JsonSlurper
 
@@ -74,7 +88,8 @@ under the License.
             <set field="inMap" from="[:]"/>
             <set field="inMap.systemMessageRemoteId" from="systemMessageRemote.systemMessageRemoteId"/>
             <set field="inMap.payload" from="payloadMap"/>
-            <service-call name="co.hotwax.netsuite.NetSuiteRestServices.create#NetSuiteLoopReturn"
+            <set field="inMap.restletEndPoint" from="netsuiteConfig.scriptEndPoint"/>
+            <service-call name="co.hotwax.netsuite.NetSuiteRestServices.call#NetSuiteLoopReturnAPI"
                           in-map="inMap" out-map="result"/>
             <set field="remoteMessageId" from="filename"/>
         </actions>
