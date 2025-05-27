@@ -6,4 +6,5 @@
   <moqui.service.message.SystemMessageType systemMessageTypeId="LoopReturnsUpdate" parentTypeId="LoopWebhook" description="Loop Returns Create Webhook"/>
   <moqui.service.message.SystemMessageType systemMessageTypeId="LoopSFTP" description="Loop Sftp credentials"/>
   <moqui.service.message.SystemMessageType systemMessageTypeId="NetsuiteCredentials" description="NetSuite Credentials"/>
+  <moqui.service.message.SystemMessageType systemMessageTypeId="NetsuiteCredentialsVerify" description="NetSuite Credentials Verification"/>
 </entity-facade-xml>
