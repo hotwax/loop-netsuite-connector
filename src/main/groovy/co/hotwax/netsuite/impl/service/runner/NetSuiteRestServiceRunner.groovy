@@ -49,15 +49,11 @@ class NetSuiteRestServiceRunner implements ServiceRunner {
             else method = "POST"
         }
 
-        EntityValue systemMessageRemote = eci.ecfi.entityFacade.find("moqui.service.message.SystemMessageRemote").condition("systemMessageRemoteId", systemMessageRemoteId).useCache(true).disableAuthz().one();
-        if (systemMessageRemote == null) {
-            throw new IllegalArgumentException("SystemMessageRemote required to call remote netsuite service ${systemMessageRemoteId}")
-        }
-
-        EntityValue netSuiteConfig = eci.ecfi.entityFacade.find("co.hotwax.netsuite.NetsuiteConfig").condition("accountId", systemMessageRemote.getString("remoteId")).condition("accountType", systemMessageRemote.getString("remoteIdType")).condition("scriptType", "netsuite.restlet.create.return").useCache(true).disableAuthz().one();
-        String scriptEndPoint = netSuiteConfig.getString("scriptEndPoint");
-        if (!scriptEndPoint) {
-            throw new IllegalArgumentException("scriptEndPoint required to call remote netsuite service ${systemMessageRemoteId}")
+        if (location.contains('${')) {
+            // TODO: consider somehow removing parameters used in location from the parameters Map,
+            //     thinking of something like a ContextStack feature to watch for field names (keys) used,
+            //     and then remove those from parameters Map
+            location = eci.resourceFacade.expand(location, null, parameters, false)
         }
 
         RestClient rc = eci.serviceFacade.rest().method(method)
@@ -67,7 +63,7 @@ class NetSuiteRestServiceRunner implements ServiceRunner {
         rc.addHeader("Authorization", "Bearer " + token);
         StringBuffer uri;
 
-        uri = new StringBuffer(netSuiteBaseUrl).append(scriptEndPoint);
+        uri = new StringBuffer(netSuiteBaseUrl).append(location);
 
         if (RestClient.GET.is(rc.getMethod())) {
             String parmsStr = RestClient.parametersMapToString(parameters)
