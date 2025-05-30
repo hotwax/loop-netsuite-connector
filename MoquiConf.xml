@@ -1,13 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <moqui-conf xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
             xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/moqui-conf-2.1.xsd">
-    <default-property name="entity_ds_database" value="moqui"/>
-    <default-property name="entity_ds_db_conf" value="mysql8"/>
-    <default-property name="entity_ds_user" value="root"/>
-    <default-property name="entity_ds_password" value="123456"/>
-    <default-property name="hotwax_feed_default_prefix" value="HOTWAX"/>
-    <default-property name="default_date_time_format" value="yyyy-MM-dd'T'HH:mm:ssXXX"/>
-
     <cache-list warm-on-start="false">
         <cache name="netsuite.access.token" expire-time-idle="3000" value-type="String"/>
     </cache-list>
