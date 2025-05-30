@@ -2,11 +2,10 @@
 <screen
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-1.4.xsd"
-    default-menu-title="Create User Account"
-    default-menu-index="1"
-    require-authentication="anonymous-all">
+    default-menu-index="1">
 
   <!-- Transition to create a new user account -->
+  <transition name="UserAccountDetail"><default-response url="../UserAccountDetail"/></transition>
   <transition name="createUserAccount">
     <service-call name="co.hotwax.configuration.CompanyConfigurationServices.create#OrganizationWithContact" in-map="context"/>
     <default-response url="."/>
@@ -14,7 +13,7 @@
   <actions>
     <entity-find entity-name="moqui.security.UserAccountAndGroup" list="userAccountList" distinct="true">
       <search-form-inputs default-order-by="username"/>
-      <econdition field-name="userId" value="${ec.user.userId}"/>
+      <econdition field-name="partyId" operator="not-equals" value=""/>
       <select-field field-name="userId"/>
       <select-field field-name="emailAddress"/>
       <select-field field-name="userFullName"/>
@@ -77,26 +76,32 @@
     </form-single>
     </container-dialog>
     <form-list name="UserAccountList" list="userAccountList" skip-form="true" header-dialog="true">
-        <field name="userId">
-          <header-field title="ID" show-order-by="true"/>
-          <default-field><display/></default-field>
-        </field>
-        <field name="username">
-          <header-field show-order-by="true"/>
-          <default-field><display/></default-field>
-        </field>
-        <field name="emailAddress">
-          <header-field show-order-by="true"/>
-          <default-field><display/></default-field>
-        </field>
-        <field name="userFullName">
-          <header-field show-order-by="true"/>
-          <default-field><display/></default-field>
-        </field>
-        <field name="partyId">
-          <header-field show-order-by="true"/>
-          <default-field><display/></default-field>
-        </field>
+      <field name="userId">
+        <header-field title="User ID" show-order-by="true">
+          <text-find size="10" hide-options="true"/>
+        </header-field>
+        <default-field>
+          <link text="${userId}" url="UserAccountDetail" link-type="anchor">
+            <parameter name="userId" from="userId"/>
+          </link>
+        </default-field>
+      </field>
+      <field name="username">
+        <header-field show-order-by="true"/>
+        <default-field><display/></default-field>
+      </field>
+      <field name="emailAddress">
+        <header-field show-order-by="true"/>
+        <default-field><display/></default-field>
+      </field>
+      <field name="userFullName">
+        <header-field show-order-by="true"/>
+        <default-field><display/></default-field>
+      </field>
+      <field name="partyId">
+        <header-field show-order-by="true"/>
+        <default-field><display/></default-field>
+      </field>
     </form-list>
   </widgets>
 </screen>

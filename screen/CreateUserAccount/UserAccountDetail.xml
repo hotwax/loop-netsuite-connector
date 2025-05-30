@@ -1,0 +1,263 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+This software is in the public domain under CC0 1.0 Universal plus a
+Grant of Patent License.
+
+To the extent possible under law, the author(s) have dedicated all
+copyright and related and neighboring rights to this software to the
+public domain worldwide. This software is distributed without any
+warranty.
+
+You should have received a copy of the CC0 Public Domain Dedication
+along with this software (see the LICENSE.md file). If not, see
+<http://creativecommons.org/publicdomain/zero/1.0/>.
+-->
+<screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-3.xsd"
+        default-menu-index="1">
+
+    <parameter name="userId" required="true" from="userId ?: userId_0"/>
+
+    <transition name="updateUserAccount"><service-call name="org.moqui.impl.UserServices.update#UserAccount"/>
+        <default-response url="."/></transition>
+    <transition name="updatePassword"><service-call name="org.moqui.impl.UserServices.update#Password"/>
+        <default-response url="."/></transition>
+    <transition name="enableUserAccount"><service-call name="org.moqui.impl.UserServices.enable#UserAccount"/>
+        <default-response url="."/></transition>
+    <transition name="disableUserAccount"><service-call name="org.moqui.impl.UserServices.disable#UserAccount"/>
+        <default-response url="."/></transition>
+    <transition name="resetPassword"><service-call name="org.moqui.impl.UserServices.reset#Password"/>
+        <default-response url="."/></transition>
+    <!-- Transition to create a new Netsuite connection -->
+    <transition name="createNetsuiteConnection">
+        <service-call name="co.hotwax.configuration.CompanyConfigurationServices.create#NetsuiteSystemMessageRemote" in-map="context"/>
+        <default-response url="."/>
+    </transition>
+    <transition name="deleteNetsuiteConnection">
+        <service-call name="co.hotwax.configuration.CompanyConfigurationServices.delete#NetsuiteSystemMessageRemote" in-map="context"/>
+        <default-response url="."/>
+    </transition>
+    <transition name="verifyNetsuiteConnection">
+        <service-call name="co.hotwax.netsuite.NetSuiteRestServices.verify#NetSuiteAcessToken" in-map="context"/>
+        <default-response url="."/>
+    </transition>
+    <transition name="createLoopConnection">
+        <service-call name="co.hotwax.configuration.CompanyConfigurationServices.create#LoopSystemMessageRemote" in-map="context"/>
+        <default-response url="."/>
+    </transition>
+    <transition name="deleteLoopConnection">
+        <service-call name="co.hotwax.configuration.CompanyConfigurationServices.delete#LoopSystemMessageRemote" in-map="context"/>
+        <default-response url="."/>
+    </transition>
+    <transition name="subscribeLoopWebhook">
+        <service-call name="co.hotwax.loop.webhook.LoopWebhookServices.create#PartyWebhookSubscriptionSystemMessage" in-map="context"/>
+        <default-response url="."/>
+    </transition>
+
+    <actions>
+        <entity-find-one entity-name="moqui.security.UserAccount" value-field="userAccount"/>
+        <set field="partyId" from="userAccount.partyId" type="String"/>
+
+        <!-- Get Netsuite connections -->
+        <entity-find entity-name="co.hotwax.netsuite.party.PartySystemMessageRemote" list="partyNetSystemMessageRemoteList">
+            <econdition field-name="partyId" operator="equals" from="partyId"/>
+            <econdition field-name="systemMessageTypeId" operator="equals" value="NetsuiteCredentials"/>
+            <date-filter/>
+        </entity-find>
+
+        <set field="netsuiteRemoteList" from="[]"/>
+        <iterate list="partyNetSystemMessageRemoteList" entry="partyNetSystemMessageRemote">
+            <entity-find-one entity-name="moqui.service.message.SystemMessageRemote" value-field="netsuiteRemote">
+                <field-map field-name="systemMessageRemoteId" from="partyNetSystemMessageRemote.systemMessageRemoteId"/>
+            </entity-find-one>
+            <script>
+                netsuiteRemoteList.add([systemMessageRemoteId:netsuiteRemote.systemMessageRemoteId, accountType:netsuiteRemote.remoteIdType,
+                    remoteId:netsuiteRemote.remoteId, certificateId:netsuiteRemote.sendSharedSecret, consumerKey:netsuiteRemote.sharedSecret, privateKey:netsuiteRemote.privateKey])
+            </script>
+        </iterate>
+
+        <!--Get Loop connections-->
+        <entity-find entity-name="co.hotwax.netsuite.party.PartySystemMessageRemote" list="partyLoopSystemMessageRemoteList">
+            <econdition field-name="partyId" operator="equals" from="userAccount.partyId"/>
+            <econdition field-name="systemMessageTypeId" operator="equals" value="LoopWebhook"/>
+            <date-filter/>
+        </entity-find>
+        <set field="loopRemoteList" from="[]"/>
+        <iterate list="partyLoopSystemMessageRemoteList" entry="partyLoopSystemMessageRemote">
+            <entity-find-one entity-name="moqui.service.message.SystemMessageRemote" value-field="loopRemote">
+                <field-map field-name="systemMessageRemoteId" from="partyLoopSystemMessageRemote.systemMessageRemoteId"/>
+            </entity-find-one>
+            <script>
+                loopRemoteList.add([systemMessageRemoteId:loopRemote.systemMessageRemoteId, accountType:loopRemote.remoteIdType,
+                webhookSecret:loopRemote.sendSharedSecret, privateKey:loopRemote.privateKey])
+            </script>
+        </iterate>
+
+    </actions>
+    <widgets>
+        <container-row>
+            <row-col lg="5">
+                <container-dialog id="UpdatePassword" button-text="Change Password">
+                    <form-single name="UpdatePasswordForm" transition="updatePassword">
+                        <field name="userId"><default-field><hidden/></default-field></field>
+                        <field name="oldPassword"><default-field><hidden default-value="ignored"/></default-field></field>
+                        <field name="newPassword"><default-field><password size="20"/></default-field></field>
+                        <field name="newPasswordVerify"><default-field><password size="20"/></default-field></field>
+                        <field name="submitButton"><default-field title="Update"><submit/></default-field></field>
+                    </form-single>
+                </container-dialog>
+
+                <link url="enableUserAccount" text="Enable Account" parameter-map="[userId:userId]" condition="userAccount.disabled == 'Y'"/>
+                <link url="disableUserAccount" text="Disable Account" parameter-map="[userId:userId]" condition="userAccount.disabled != 'Y'"/>
+                <link url="resetPassword" text="Reset Password" parameter-map="[userId:userAccount.userId]" condition="userAccount.emailAddress"
+                      confirmation="Generate reset password and send by email to ${userAccount.emailAddress}?"/>
+
+                <form-single name="UserAccountForm" map="userAccount" transition="updateUserAccount">
+                    <field name="userId"><default-field><display/></default-field></field>
+                    <field name="username"><default-field><text-line size="20"/></default-field></field>
+                    <field name="emailAddress"><default-field title="Email"><text-line size="50"/></default-field></field>
+                    <field name="userFullName"><default-field title="Full Name"><text-line size="40"/></default-field></field>
+
+                    <field name="passwordSetDate"><default-field><display/></default-field></field>
+                    <field name="requirePasswordChange"><default-field>
+                        <drop-down allow-empty="true"><option key="Y"/><option key="N"/></drop-down></default-field></field>
+                    <field name="successiveFailedLogins"><default-field title="Failed Logins"><display/></default-field></field>
+                    <field name="disabled"><default-field tooltip="Set along with Disabled Date after failed login attempts, auto enabled after configured time if Disabled Date set">
+                        <display text="${disabled ?: 'N'}"/></default-field></field>
+                    <field name="submitButton"><default-field title="Update"><submit/></default-field></field>
+                </form-single>
+            </row-col>
+            <row-col lg="7">
+                <container-box><box-header title="NetSuite Credentials"/><box-toolbar>
+                    <container-dialog id="AddNetSuiteCredentials" button-text="Add NetSuite Credentials">
+                        <form-single name="CreateNetsuiteConnection" transition="createNetsuiteConnection">
+                            <field name="partyId"><default-field><hidden/></default-field></field>
+                            <field name="userId"><default-field><hidden/></default-field></field>
+                            <field name="remoteId" required="true">
+                                <default-field title="NetSuite Account Id">
+                                    <text-line size="20"/>
+                                </default-field>
+                            </field>
+                            <field name="accountType">
+                                <default-field title="Account Type">
+                                    <radio>
+                                        <option key="sandbox" text="Sandbox"/>
+                                        <option key="production" text="Production"/>
+                                    </radio>
+                                </default-field>
+                            </field>
+                            <field name="sshKey" required="true">
+                                <default-field title="Open SSH Private Key">
+                                    <text-line/>
+                                </default-field>
+                            </field>
+                            <field name="sharedSecret" required="true">
+                                <default-field title="NetSuite Consumer Key">
+                                    <text-line/>
+                                </default-field>
+                            </field>
+                            <field name="sendSharedSecret" required="true">
+                                <default-field title="NetSuite Certificate Id">
+                                    <text-line/>
+                                </default-field>
+                            </field>
+                            <field name="submitButton">
+                                <default-field title="Create">
+                                    <submit/>
+                                </default-field>
+                            </field>
+                        </form-single>
+                    </container-dialog>
+                </box-toolbar><box-body-nopad>
+                    <form-list name="NetsuiteRemoteList" list="netsuiteRemoteList" transition="verifyNetsuiteConnection">
+                        <field name="partyId"><default-field><hidden/></default-field></field>
+                        <field name="userId"><default-field><hidden/></default-field></field>
+                        <field name="systemMessageRemoteId">
+                            <header-field show-order-by="true"/>
+                            <default-field><display/></default-field>
+                        </field>
+                        <field name="remoteId">
+                            <header-field show-order-by="true"/>
+                            <default-field><display/></default-field>
+                        </field>
+                        <field name="accountType">
+                            <header-field show-order-by="true"/>
+                            <default-field><display/></default-field>
+                        </field>
+                        <field name="certificateId">
+                            <header-field show-order-by="true"/>
+                            <default-field><display/></default-field>
+                        </field>
+                        <field name="submitButton"><default-field title="Verify"><submit/></default-field></field>
+                        <field name="deleteButton">
+                            <default-field title="">
+                                <link url="deleteNetsuiteConnection" text=" " icon="fa fa-trash" confirmation="Do you really want to remove this NetSuite connection?"/>
+                            </default-field>
+                        </field>
+                    </form-list>
+                </box-body-nopad></container-box>
+                <container-box><box-header title="Loop Credentials"/><box-toolbar>
+                    <container-dialog id="AddLoopCredentials" button-text="Add Loop Credentials">
+                        <form-single name="CreateUserLoopAccount" transition="createLoopConnection">
+                            <field name="partyId"><default-field><hidden/></default-field></field>
+                            <field name="userId"><default-field><hidden/></default-field></field>
+                            <field name="accountType">
+                                <default-field title="Account Type">
+                                    <radio>
+                                        <option key="sandbox" text="Sandbox"/>
+                                        <option key="producion" text="Production"/>
+                                    </radio>
+                                </default-field>
+                            </field>
+                            <field name="privateKey" required="true">
+                                <default-field title="Access Key">
+                                    <text-line/>
+                                </default-field>
+                            </field>
+                            <field name="sendSharedSecret" required="true">
+                                <default-field title="Webhook Secret">
+                                    <text-line/>
+                                </default-field>
+                            </field>
+                            <field name="submitButton">
+                                <default-field title="Create">
+                                    <submit/>
+                                </default-field>
+                            </field>
+                        </form-single>
+                    </container-dialog>
+                </box-toolbar><box-body-nopad>
+                    <form-list name="LoopRemoteList" list="loopRemoteList" transition="subscribeLoopWebhook">
+                        <field name="partyId"><default-field><hidden/></default-field></field>
+                        <field name="userId"><default-field><hidden/></default-field></field>
+                        <field name="systemMessageRemoteId">
+                            <header-field show-order-by="true"/>
+                            <default-field><display/></default-field>
+                        </field>
+                        <field name="accountType">
+                            <header-field show-order-by="true"/>
+                            <default-field><display/></default-field>
+                        </field>
+                        <field name="privateKey">
+                            <header-field show-order-by="true"/>
+                            <default-field><display/></default-field>
+                        </field>
+                        <field name="webhookSecret">
+                            <header-field show-order-by="true"/>
+                            <default-field><display/></default-field>
+                        </field>
+                        <field name="submitButton">
+                            <default-field title="Subscribe Webhook"><submit/>
+                            </default-field>
+                        </field>
+                        <field name="deleteButton">
+                            <default-field title="">
+                                <link url="deleteLoopConnection" text=" " icon="fa fa-trash" confirmation="Do you really want to remove this Loop connection?"/>
+                            </default-field>
+                        </field>
+                    </form-list>
+                </box-body-nopad></container-box>
+            </row-col>
+        </container-row>
+    </widgets>
+</screen>

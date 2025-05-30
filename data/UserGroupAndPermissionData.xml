@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<entity-facade-xml type="ext-seed">
+    <enums enumId="UgtServiceJob" description="ServiceJob Actions Group" enumTypeId="UserGroupType"/>
+    <userGroups userGroupId="NETSUITE" description="NetSuite Job Actions" groupTypeEnumId="UgtServiceJob"/>
+
+    <userGroupPermissions userGroupId="NETSUITE" fromDate="0" userPermissionId="SJ_RUN_NOW"/>
+    <userGroupPermissions userGroupId="NETSUITE" fromDate="0" userPermissionId="SJ_STATUS_UPDATE"/>
+
+    <artifactGroups artifactGroupId="NETSUITE_API" description="NetSuite API (via root resource)">
+        <artifacts artifactTypeEnumId="AT_REST_PATH" inheritAuthz="Y" artifactName="/netsuite"/>
+        <!-- Full permissions for the ADMIN user group -->
+        <authz artifactAuthzId="NETSUITE_API_ADMIN" userGroupId="ADMIN" authzTypeEnumId="AUTHZT_ALWAYS" authzActionEnumId="AUTHZA_ALL"/>
+    </artifactGroups>
+
+    <artifactGroups artifactGroupId="USER_SETUP_APP" description="User Setup App">
+        <artifacts artifactName="component://loop-netsuite-connector/screen/CreateUserAccount.xml" artifactTypeEnumId="AT_XML_SCREEN" inheritAuthz="Y"/>
+        <!-- Full permissions for the ADMIN user group -->
+        <authz artifactAuthzId="USER_SETUP_APP_ADMIN" userGroupId="ADMIN" authzTypeEnumId="AUTHZT_ALWAYS" authzActionEnumId="AUTHZA_ALL"/>
+    </artifactGroups>
+</entity-facade-xml>
