@@ -1,6 +1,13 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <moqui-conf xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
             xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/moqui-conf-2.1.xsd">
+    <default-property name="entity_ds_database" value="moqui"/>
+    <default-property name="entity_ds_db_conf" value="mysql8"/>
+    <default-property name="entity_ds_user" value="root"/>
+    <default-property name="entity_ds_password" value="123456"/>
+    <default-property name="hotwax_feed_default_prefix" value="HOTWAX"/>
+    <default-property name="default_date_time_format" value="yyyy-MM-dd'T'HH:mm:ssXXX"/>
+
     <cache-list warm-on-start="false">
         <cache name="netsuite.access.token" expire-time-idle="3000" value-type="String"/>
     </cache-list>
@@ -9,12 +16,8 @@
     </service-facade>
     <screen-facade>
         <screen location="component://webroot/screen/webroot/apps.xml">
-            <subscreens-item name="netsuiteLoopConnectorCreateUser" menu-title="Create New User" menu-index="95"
-                       location="component://loop-netsuite-connector/screen/CreateNewUser.xml"/>
-            <subscreens-item name="netsuiteLoopConnectorCreateNetsuiteConnection" menu-title="Create Netsuite Connection" menu-index="96"
-                         location="component://loop-netsuite-connector/screen/NetsuiteConnection.xml"/>
-            <subscreens-item name="netsuiteLoopConnectorCreateLoopConnection" menu-title="Create Loop Connection" menu-index="97"
-                       location="component://loop-netsuite-connector/screen/LoopConnection.xml"/>
+            <subscreens-item name="CreateUserAccount" menu-title="Create User Account" menu-index="95"
+                       location="component://loop-netsuite-connector/screen/CreateUserAccount.xml"/>
         </screen>
     </screen-facade>
     <webapp-list>
