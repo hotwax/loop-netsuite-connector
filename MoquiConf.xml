@@ -9,12 +9,8 @@
     </service-facade>
     <screen-facade>
         <screen location="component://webroot/screen/webroot/apps.xml">
-            <subscreens-item name="netsuiteLoopConnectorCreateUser" menu-title="Create New User" menu-index="95"
-                       location="component://loop-netsuite-connector/screen/CreateNewUser.xml"/>
-            <subscreens-item name="netsuiteLoopConnectorCreateNetsuiteConnection" menu-title="Create Netsuite Connection" menu-index="96"
-                         location="component://loop-netsuite-connector/screen/NetsuiteConnection.xml"/>
-            <subscreens-item name="netsuiteLoopConnectorCreateLoopConnection" menu-title="Create Loop Connection" menu-index="97"
-                       location="component://loop-netsuite-connector/screen/LoopConnection.xml"/>
+            <subscreens-item name="CreateUserAccount" menu-title="Create User Account" menu-index="95"
+                       location="component://loop-netsuite-connector/screen/CreateUserAccount.xml"/>
         </screen>
     </screen-facade>
     <webapp-list>
