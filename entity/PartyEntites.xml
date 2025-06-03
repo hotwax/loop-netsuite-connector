@@ -190,6 +190,7 @@ along with this software (see the LICENSE.md file). If not, see
     <field name="fromDate" type="date-time" is-pk="true"/>
     <field name="thruDate" type="date-time"/>
     <field name="systemMessageTypeId" type="id" is-pk="true"/>
+    <field name="verified" type="text-indicator" default="'N'"/>
     <relationship type="one" related="co.hotwax.netsuite.party.Party" short-alias="party"/>
   </entity>
 

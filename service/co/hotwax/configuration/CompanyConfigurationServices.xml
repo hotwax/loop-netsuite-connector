@@ -72,9 +72,22 @@
 
             <!-- Create User Account -->
             <service-call name="org.moqui.impl.UserServices.create#UserAccount"
-                          in-map="[username:username, userFullName:userFullName, newPassword:newPassword, newPasswordVerify:newPasswordVerify, emailAddress:emailAddress, requirePasswordChange:requirePasswordChange, partyId:organizationPartyId]"
+                          in-map="[username:username, userFullName:userFullName, newPassword:newPassword, newPasswordVerify:newPasswordVerify, emailAddress:emailAddress, requirePasswordChange:requirePasswordChange, partyId:personPartyId]"
                           out-map="userOut"/>
             <set field="userId" from="userOut.userId"/>
+
+            <!-- Assign UserGroup to view scereen and call organization API's -->
+            <service-call name="create#moqui.security.UserGroupMember" in-map="[userId:userId, userGroupId:'ALL_TENANT_AUTH']"/>
+
+            <!-- Create Integration UserLogin Account for registered user to call API from netsuite  -->
+
+            <!-- Create Integration User Account -->
+            <service-call name="org.moqui.impl.UserServices.create#UserAccount"
+                          in-map="[username:username + '_Integration', userFullName:userFullName + '_Integration', newPassword:newPassword + '_Netsuite@786', newPasswordVerify:newPasswordVerify + '_Netsuite@786', partyId:personPartyId]"
+                          out-map="userOut"/>
+            <set field="integrationUserId" from="userOut.userId"/>
+
+            <service-call name="create#moqui.security.UserGroupMember" in-map="[userId:integrationUserId, userGroupId:'NETSUITE_INTEGRATION']"/>
 
             <!-- Create Telecom Contact Mechanism -->
             <service-call name="create#co.hotwax.netsuite.party.contact.ContactMech"

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<services xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/service-definition-3.xsd">
+
+    <service verb="get" noun="UserProfileList">
+        <out-parameters>
+            <parameter name="organizationDetailList" type="List"/>
+        </out-parameters>
+        <actions>
+            <entity-find entity-name="co.hotwax.netsuite.party.PartyRelationship" list="partyRelationshipList" distinct="true">
+                <econdition field-name="fromRoleTypeId" operator="equals" value="Organization"/>
+                <econdition field-name="toRoleTypeId" operator="equals" value="Contact"/>
+                <econdition field-name="relationshipTypeEnumId" operator="equals" value="PrtContact"/>
+            </entity-find>
+
+            <set field="organizationDetailList" from="[]"/>
+            <iterate list="partyRelationshipList" entry="partyRelationship">
+                <set field="organizationPartyId" from="partyRelationship.fromPartyId" type="String"/>
+                <set field="personPartyId" from="partyRelationship.toPartyId" type="String"/>
+
+                <entity-find-one entity-name="co.hotwax.netsuite.party.Organization" value-field="organization">
+                    <field-map field-name="partyId" from="organizationPartyId"/>
+                </entity-find-one>
+                <entity-find-one entity-name="moqui.security.UserAccount" value-field="userAccount">
+                    <field-map field-name="partyId" from="personPartyId"/>
+                </entity-find-one>
+                <script>
+                    organizationDetailList.add([organizationPartyId:organizationPartyId, personPartyId:personPartyId,
+                    organizationName:organization.organizationName, userFullName:userAccount.userFullName, emailAddress:userAccount.emailAddress, userId:userAccount.userId, username:userAccount.username])
+                </script>
+            </iterate>
+        </actions>
+    </service>
+</services>
