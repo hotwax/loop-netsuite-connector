@@ -25,15 +25,5 @@ under the License.
                 <service name="co.hotwax.configuration.UserProfileServices.get#UserProfileList"/>
             </method>
         </resource>
-        <!--
-        <resource name="getAvailableTimeZones">
-            <method type="get"><service name="co.hotwax.common.CommonServices.get#AvailableTimeZones"/></method>
-        </resource>
-        <resource name="preferences">
-            <method type="get"><entity name="moqui.security.UserPreference" operation="list"/></method>
-            <method type="post"><entity name="moqui.security.UserPreference" operation="create"/></method>
-            <method type="put"><entity name="moqui.security.UserPreference" operation="store"/></method>
-        </resource>
-        -->
     </resource>
 </resource>
