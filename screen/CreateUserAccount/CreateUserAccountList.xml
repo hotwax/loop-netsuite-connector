@@ -11,14 +11,10 @@
     <default-response url="."/>
   </transition>
   <actions>
-    <entity-find entity-name="moqui.security.UserAccountAndGroup" list="userAccountList" distinct="true">
-      <search-form-inputs default-order-by="username"/>
-      <econdition field-name="partyId" operator="not-equals" value=""/>
-      <select-field field-name="userId"/>
-      <select-field field-name="emailAddress"/>
-      <select-field field-name="userFullName"/>
-      <select-field field-name="partyId"/>
-    </entity-find>
+    <service-call name="co.hotwax.configuration.UserProfileServices.get#UserProfileList"
+                  out-map="context"/>
+
+    <set field="organizationDetailList" from="context.organizationDetailList"/>
   </actions>
 
   <!-- Show form directly on the screen -->
@@ -75,7 +71,7 @@
       </field>
     </form-single>
     </container-dialog>
-    <form-list name="UserAccountList" list="userAccountList" skip-form="true" header-dialog="true">
+    <form-list name="OrganizationDetailList" list="organizationDetailList" skip-form="true" header-dialog="true">
       <field name="userId">
         <header-field title="User ID" show-order-by="true">
           <text-find size="10" hide-options="true"/>
@@ -98,7 +94,15 @@
         <header-field show-order-by="true"/>
         <default-field><display/></default-field>
       </field>
-      <field name="partyId">
+      <field name="personPartyId">
+        <header-field show-order-by="true"/>
+        <default-field><display/></default-field>
+      </field>
+      <field name="organizationName">
+        <header-field show-order-by="true"/>
+        <default-field><display/></default-field>
+      </field>
+      <field name="organizationPartyId">
         <header-field show-order-by="true"/>
         <default-field><display/></default-field>
       </field>

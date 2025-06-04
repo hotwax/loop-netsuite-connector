@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<services xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/service-definition-3.xsd">
+
+    <service verb="get" noun="UserProfileList">
+        <out-parameters>
+            <parameter name="organizationDetailList" type="List"/>
+        </out-parameters>
+        <actions>
+            <set field="userId" from="ec.user.UserAccount.userId"/>
+
+            <entity-find entity-name="co.hotwax.netsuite.party.PartyRelationship" list="partyRelationshipList" distinct="true">
+                <econdition field-name="fromRoleTypeId" operator="equals" value="Organization"/>
+                <econdition field-name="toRoleTypeId" operator="equals" value="Contact"/>
+                <econdition field-name="relationshipTypeEnumId" operator="equals" value="PrtContact"/>
+            </entity-find>
+
+            <set field="organizationDetailList" from="[]"/>
+            <iterate list="partyRelationshipList" entry="partyRelationship">
+                <set field="organizationPartyId" from="partyRelationship.fromPartyId" type="String"/>
+                <set field="personPartyId" from="partyRelationship.toPartyId" type="String"/>
+
+                <entity-find-one entity-name="co.hotwax.netsuite.party.Organization" value-field="organization">
+                    <field-map field-name="partyId" from="organizationPartyId"/>
+                </entity-find-one>
+                <entity-find-one entity-name="moqui.security.UserAccount" value-field="userAccount">
+                    <field-map field-name="partyId" from="personPartyId"/>
+                </entity-find-one>
+                <script>
+                    organizationDetailList.add([organizationPartyId:organizationPartyId, personPartyId:personPartyId,
+                    organizationName:organization.organizationName, userFullName:userAccount.userFullName, emailAddress:userAccount.emailAddress, userId:userAccount.userId, username:userAccount.username])
+                </script>
+            </iterate>
+        </actions>
+    </service>
+
+    <service verb="get" noun="OrganizationPartyIds">
+        <description>
+            Returns the organization party ids for associated with UserAccount party
+        </description>
+        <in-parameters>
+            <parameter name="personPartyId"/>
+        </in-parameters>
+        <out-parameters>
+            <parameter name="partyId" type="set"/>
+        </out-parameters>
+        <actions>
+            <if condition="personPartyId"><then>
+                <set field="loggedInPartyId" from="personPartyId" type="String"/>
+                </then><else>
+                    <set field="loggedInPartyId" from="ec.user.userAccount.partyId"/>
+                </else>
+            </if>
+
+            <if condition="loggedInPartyId == null"><return error="true" message="Logged in user has no party ${loggedInPartyId}"/></if>
+
+            <entity-find entity-name="co.hotwax.netsuite.party.PartyRelationship" list="partyRelationshipList" distinct="true">
+                <econdition field-name="toPartyId" operator="equals" from="loggedInPartyId"/>
+                <econdition field-name="fromRoleTypeId" operator="equals" value="Organization"/>
+                <econdition field-name="toRoleTypeId" operator="equals" value="Contact"/>
+                <econdition field-name="relationshipTypeEnumId" operator="equals" value="PrtContact"/>
+            </entity-find>
+
+            <if condition="partyRelationshipList">
+                <set field="partyId" from="partyRelationshipList[0].fromPartyId" type="String"/>
+            </if>
+            <if condition="partyId == null"><return error="true" message="Organization not found for Logged in user ${loggedInPartyId}"/></if>
+        </actions>
+    </service>
+
+    <service verb="get" noun="NetsuiteDetails">
+        <in-parameters>
+            <parameter name="partyId"/>
+        </in-parameters>
+        <out-parameters>
+            <parameter name="netsuiteRemoteList" type="List"/>
+        </out-parameters>
+        <actions>
+            <service-call name="co.hotwax.configuration.UserProfileServices.get#OrganizationPartyIds"
+                          in-map="[personPartyId:partyId]" out-map="context"/>
+            <set field="organizationPartyId" from="context.partyId" type="String"/>
+
+            <!-- Get Netsuite connections -->
+            <entity-find entity-name="co.hotwax.netsuite.party.PartySystemMessageRemote" list="partyNetSystemMessageRemoteList">
+                <econdition field-name="partyId" operator="equals" from="organizationPartyId"/>
+                <econdition field-name="systemMessageTypeId" operator="equals" value="NetsuiteCredentials"/>
+                <date-filter/>
+            </entity-find>
+
+            <set field="netsuiteRemoteList" from="[]"/>
+            <iterate list="partyNetSystemMessageRemoteList" entry="partyNetSystemMessageRemote">
+                <entity-find-one entity-name="moqui.service.message.SystemMessageRemote" value-field="netsuiteRemote">
+                    <field-map field-name="systemMessageRemoteId" from="partyNetSystemMessageRemote.systemMessageRemoteId"/>
+                </entity-find-one>
+                <script>
+                    netsuiteRemoteList.add([systemMessageRemoteId:netsuiteRemote.systemMessageRemoteId, accountType:netsuiteRemote.remoteIdType,
+                    remoteId:netsuiteRemote.remoteId, certificateId:netsuiteRemote.sendSharedSecret, consumerKey:netsuiteRemote.sharedSecret, privateKey:netsuiteRemote.privateKey])
+                </script>
+            </iterate>
+        </actions>
+    </service>
+
+    <service verb="get" noun="LoopDetails">
+        <in-parameters>
+            <parameter name="partyId"/>
+        </in-parameters>
+        <out-parameters>
+            <parameter name="loopRemoteList" type="List"/>
+        </out-parameters>
+        <actions>
+            <service-call name="co.hotwax.configuration.UserProfileServices.get#OrganizationPartyIds"
+                          in-map="[personPartyId:partyId]" out-map="context"/>
+            <set field="organizationPartyId" from="context.partyId" type="String"/>
+
+            <!-- Get Netsuite connections -->
+            <entity-find entity-name="co.hotwax.netsuite.party.PartySystemMessageRemote" list="partyLoopSystemMessageRemoteList">
+                <econdition field-name="partyId" operator="equals" from="organizationPartyId"/>
+                <econdition field-name="systemMessageTypeId" operator="equals" value="LoopWebhook"/>
+                <date-filter/>
+            </entity-find>
+
+            <set field="loopRemoteList" from="[]"/>
+
+            <iterate list="partyLoopSystemMessageRemoteList" entry="partyLoopSystemMessageRemote">
+                <entity-find-one entity-name="moqui.service.message.SystemMessageRemote" value-field="loopRemote">
+                    <field-map field-name="systemMessageRemoteId" from="partyLoopSystemMessageRemote.systemMessageRemoteId"/>
+                </entity-find-one>
+                <script>
+                    loopRemoteList.add([systemMessageRemoteId:loopRemote.systemMessageRemoteId, accountType:loopRemote.remoteIdType,
+                    webhookSecret:loopRemote.sendSharedSecret, privateKey:loopRemote.privateKey])
+                </script>
+            </iterate>
+        </actions>
+    </service>
+</services>
