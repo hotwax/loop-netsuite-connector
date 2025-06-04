@@ -55,26 +55,15 @@ along with this software (see the LICENSE.md file). If not, see
     </transition>
 
     <actions>
-        <entity-find-one entity-name="moqui.security.UserAccount" value-field="userAccount"/>
+        <entity-find-one entity-name="moqui.security.UserAccount" value-field="userAccount">
+            <field-map field-name="userId" from="userId"/>
+        </entity-find-one>
         <set field="partyId" from="userAccount.partyId" type="String"/>
 
-        <!-- Get Netsuite connections -->
-        <entity-find entity-name="co.hotwax.netsuite.party.PartySystemMessageRemote" list="partyNetSystemMessageRemoteList">
-            <econdition field-name="partyId" operator="equals" from="partyId"/>
-            <econdition field-name="systemMessageTypeId" operator="equals" value="NetsuiteCredentials"/>
-            <date-filter/>
-        </entity-find>
+        <service-call name="co.hotwax.configuration.UserProfileServices.get#NetsuiteDetails"
+                      in-map="[partyId:partyId]" out-map="context"/>
 
-        <set field="netsuiteRemoteList" from="[]"/>
-        <iterate list="partyNetSystemMessageRemoteList" entry="partyNetSystemMessageRemote">
-            <entity-find-one entity-name="moqui.service.message.SystemMessageRemote" value-field="netsuiteRemote">
-                <field-map field-name="systemMessageRemoteId" from="partyNetSystemMessageRemote.systemMessageRemoteId"/>
-            </entity-find-one>
-            <script>
-                netsuiteRemoteList.add([systemMessageRemoteId:netsuiteRemote.systemMessageRemoteId, accountType:netsuiteRemote.remoteIdType,
-                    remoteId:netsuiteRemote.remoteId, certificateId:netsuiteRemote.sendSharedSecret, consumerKey:netsuiteRemote.sharedSecret, privateKey:netsuiteRemote.privateKey])
-            </script>
-        </iterate>
+        <set field="netsuiteRemoteList" from="context.netsuiteRemoteList"/>
 
         <!--Get Loop connections-->
         <entity-find entity-name="co.hotwax.netsuite.party.PartySystemMessageRemote" list="partyLoopSystemMessageRemoteList">

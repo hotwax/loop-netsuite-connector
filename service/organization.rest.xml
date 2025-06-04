@@ -25,5 +25,13 @@ under the License.
                 <service name="co.hotwax.configuration.UserProfileServices.get#UserProfileList"/>
             </method>
         </resource>
+        <resource name="netsuiteDetails">
+            <method type="get">
+                <service name="co.hotwax.configuration.UserProfileServices.get#NetsuiteDetails"/>
+            </method>
+            <method type="post">
+                <service name="co.hotwax.configuration.CompanyConfigurationServices.create#NetsuiteSystemMessageRemote"/>
+            </method>
+        </resource>
     </resource>
 </resource>

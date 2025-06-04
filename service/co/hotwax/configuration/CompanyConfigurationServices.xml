@@ -201,7 +201,7 @@
             Creates a new SystemMessageRemote entry to store NetSuite connection details.
         </description>
         <in-parameters>
-            <parameter name="partyId" required="true"/>
+            <parameter name="partyId"/>
             <parameter name="remoteId" required="true"/>
             <parameter name="accountType" required="true"/>
             <parameter name="sshKey" required="true"/>
@@ -212,6 +212,11 @@
             <parameter name="systemMessageRemoteId"/>
         </out-parameters>
         <actions>
+            <!-- Get OrganizationPartyId from logged in user -->
+            <service-call name="co.hotwax.configuration.UserProfileServices.get#OrganizationPartyIds"
+                          in-map="[personPartyId:partyId]" out-map="context"/>
+            <set field="organizationPartyId" from="context.partyId" type="String"/>
+
             <if condition="remoteId.contains('_')">
                 <then>
                     <set field="accountId" from="remoteId.replace('_', '-')"/>
@@ -249,7 +254,7 @@
             <set field="fromDate" from="ec.user.nowTimestamp"/>
             <service-call name="create#PartySystemMessageRemote"
                           in-map="[
-                            partyId:partyId,
+                            partyId:organizationPartyId,
                             systemMessageRemoteId:systemMessageRemoteId,
                             remoteIdType:accountType,
                             fromDate:fromDate,

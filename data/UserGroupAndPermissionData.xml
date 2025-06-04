@@ -20,7 +20,7 @@
         <filters entityFilterId="ORG_FILTER" entityName="co.hotwax.netsuite.party.PartyRelationship"
                  filterMap="[toPartyId:ec.user.userAccount.partyId]"/>
         <filters entityFilterId="ORG_RMT_FILTER" entityName="co.hotwax.netsuite.party.PartySystemMessageRemote"
-                 filterMap="[partyId:ec.user.userAccount.partyId]"/>
+                 filterMap="[partyId:ec.service.sync().name('co.hotwax.configuration.UserProfileServices.get#OrganizationPartyIds').call().get('partyId')]"/>
     </moqui.security.EntityFilterSet>
 
     <artifactGroups artifactGroupId="ORG_APP" description="Organization App">
