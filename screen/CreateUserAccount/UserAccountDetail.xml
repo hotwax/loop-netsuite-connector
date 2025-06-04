@@ -66,22 +66,10 @@ along with this software (see the LICENSE.md file). If not, see
         <set field="netsuiteRemoteList" from="context.netsuiteRemoteList"/>
 
         <!--Get Loop connections-->
-        <entity-find entity-name="co.hotwax.netsuite.party.PartySystemMessageRemote" list="partyLoopSystemMessageRemoteList">
-            <econdition field-name="partyId" operator="equals" from="userAccount.partyId"/>
-            <econdition field-name="systemMessageTypeId" operator="equals" value="LoopWebhook"/>
-            <date-filter/>
-        </entity-find>
-        <set field="loopRemoteList" from="[]"/>
-        <iterate list="partyLoopSystemMessageRemoteList" entry="partyLoopSystemMessageRemote">
-            <entity-find-one entity-name="moqui.service.message.SystemMessageRemote" value-field="loopRemote">
-                <field-map field-name="systemMessageRemoteId" from="partyLoopSystemMessageRemote.systemMessageRemoteId"/>
-            </entity-find-one>
-            <script>
-                loopRemoteList.add([systemMessageRemoteId:loopRemote.systemMessageRemoteId, accountType:loopRemote.remoteIdType,
-                webhookSecret:loopRemote.sendSharedSecret, privateKey:loopRemote.privateKey])
-            </script>
-        </iterate>
+        <service-call name="co.hotwax.configuration.UserProfileServices.get#LoopDetails"
+                      in-map="[partyId:partyId]" out-map="context"/>
 
+        <set field="loopRemoteList" from="context.loopRemoteList"/>
     </actions>
     <widgets>
         <container-row>

@@ -157,7 +157,7 @@
             Creates a new SystemMessage entry and associates it with the currently logged-in user.
         </description>
         <in-parameters>
-            <parameter name="partyId" required="true"/>
+            <parameter name="partyId"/>
             <parameter name="privateKey" required="true"/>
             <parameter name="sendSharedSecret" required="true"/>
             <parameter name="accountType" required="true"/>
@@ -166,6 +166,11 @@
             <parameter name="systemMessageRemoteId"/>
         </out-parameters>
         <actions>
+            <!-- Get OrganizationPartyId from logged in user -->
+            <service-call name="co.hotwax.configuration.UserProfileServices.get#OrganizationPartyIds"
+                          in-map="[personPartyId:partyId]" out-map="context"/>
+            <set field="organizationPartyId" from="context.partyId" type="String"/>
+
             <!-- Create SystemMessageRemote entry -->
             <set field="systemMessageTypeId" from="'LoopWebhook'"/>
             <set field="sendUrl" value="https://api.loopreturns.com/api/v1"/>
@@ -186,7 +191,7 @@
             <set field="fromDate" from="ec.user.nowTimestamp"/>
             <service-call name="create#PartySystemMessageRemote"
                           in-map="[
-                            partyId:partyId,
+                            partyId:organizationPartyId,
                             systemMessageRemoteId:systemMessageRemoteId,
                             remoteIdType:accountType,
                             fromDate:fromDate,
@@ -216,6 +221,8 @@
             <service-call name="co.hotwax.configuration.UserProfileServices.get#OrganizationPartyIds"
                           in-map="[personPartyId:partyId]" out-map="context"/>
             <set field="organizationPartyId" from="context.partyId" type="String"/>
+
+            <log level="info" message="OrganizationPartyId: ${organizationPartyId}"/>
 
             <if condition="remoteId.contains('_')">
                 <then>
@@ -267,13 +274,18 @@
 
     <service verb="delete" noun="NetsuiteSystemMessageRemote" authenticate="anonymous-all">
         <in-parameters>
-            <parameter name="partyId" required="true"/>
+            <parameter name="partyId"/>
             <parameter name="systemMessageRemoteId" required="true"/>
             <parameter name="accountType" required="true"/>
         </in-parameters>
         <actions>
+            <!-- Get OrganizationPartyId from logged in user -->
+            <service-call name="co.hotwax.configuration.UserProfileServices.get#OrganizationPartyIds"
+                          in-map="[personPartyId:partyId]" out-map="context"/>
+            <set field="organizationPartyId" from="context.partyId" type="String"/>
+
             <entity-find entity-name="co.hotwax.netsuite.party.PartySystemMessageRemote" list="partyNetSystemMessageRemoteList">
-                <econdition field-name="partyId" operator="equals" from="partyId"/>
+                <econdition field-name="partyId" operator="equals" from="organizationPartyId"/>
                 <econdition field-name="systemMessageRemoteId" operator="equals" from="systemMessageRemoteId"/>
                 <econdition field-name="remoteIdType" operator="equals" from="accountType"/>
                 <econdition field-name="systemMessageTypeId" operator="equals" value="NetsuiteCredentials"/>
@@ -299,13 +311,18 @@
 
     <service verb="delete" noun="LoopSystemMessageRemote" authenticate="anonymous-all">
         <in-parameters>
-            <parameter name="partyId" required="true"/>
+            <parameter name="partyId"/>
             <parameter name="systemMessageRemoteId" required="true"/>
             <parameter name="accountType" required="true"/>
         </in-parameters>
         <actions>
+            <!-- Get OrganizationPartyId from logged in user -->
+            <service-call name="co.hotwax.configuration.UserProfileServices.get#OrganizationPartyIds"
+                          in-map="[personPartyId:partyId]" out-map="context"/>
+            <set field="organizationPartyId" from="context.partyId" type="String"/>
+
             <entity-find entity-name="co.hotwax.netsuite.party.PartySystemMessageRemote" list="partyLoopSystemMessageRemoteList">
-                <econdition field-name="partyId" operator="equals" from="partyId"/>
+                <econdition field-name="partyId" operator="equals" from="organizationPartyId"/>
                 <econdition field-name="systemMessageRemoteId" operator="equals" from="systemMessageRemoteId"/>
                 <econdition field-name="remoteIdType" operator="equals" from="accountType"/>
                 <econdition field-name="systemMessageTypeId" operator="equals" value="LoopWebhook"/>

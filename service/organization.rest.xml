@@ -32,6 +32,20 @@ under the License.
             <method type="post">
                 <service name="co.hotwax.configuration.CompanyConfigurationServices.create#NetsuiteSystemMessageRemote"/>
             </method>
+            <method type="delete">
+                <service name="co.hotwax.configuration.CompanyConfigurationServices.delete#NetsuiteSystemMessageRemote"/>
+            </method>
+        </resource>
+        <resource name="loopDetails">
+            <method type="get">
+                <service name="co.hotwax.configuration.UserProfileServices.get#LoopDetails"/>
+            </method>
+            <method type="post">
+                <service name="co.hotwax.configuration.CompanyConfigurationServices.create#LoopSystemMessageRemote"/>
+            </method>
+            <method type="delete">
+                <service name="co.hotwax.configuration.CompanyConfigurationServices.delete#LoopSystemMessageRemote"/>
+            </method>
         </resource>
     </resource>
 </resource>
