@@ -78,7 +78,6 @@ along with this software (see the LICENSE.md file). If not, see
         <!-- Get login API keys -->
         <service-call name="co.hotwax.configuration.UserProfileServices.get#UserLoginAPIKey" in-map="context" out-map="resultMap"/>
         <set field="loginKey" from="resultMap.loginKey"/>
-        <log level="info" message="loginKey: ${loginKey}"/>
     </actions>
     <widgets>
         <container-row>
@@ -170,24 +169,17 @@ along with this software (see the LICENSE.md file). If not, see
                             <header-field show-order-by="true"/>
                             <default-field><display/></default-field>
                         </field>
-                        <field name="certificateId">
-                            <header-field show-order-by="true"/>
-                            <default-field><display/></default-field>
+                        <field name="apiKey">
+                            <conditional-field condition="loginKey == null">
+                                <link url="createUserLoginAPIKey" text="" icon="fa fa-key"/>
+                            </conditional-field>
+                            <default-field><label text="${loginKey}" style=""/></default-field>
                         </field>
                         <field name="submitButton"><default-field title="Verify"><submit/></default-field></field>
-                        <field name="apiKeyButton">
-                            <default-field title="">
-                                <link url="createUserLoginAPIKey" text="" icon="fa fa-key"/>
-                            </default-field>
-                        </field>
                         <field name="deleteButton">
                             <default-field title="">
                                 <link url="deleteNetsuiteConnection" text=" " icon="fa fa-trash" confirmation="Do you really want to remove this NetSuite connection?"/>
                             </default-field>
-                        </field>
-                        <field name="loginKey">
-                            <header-field show-order-by="true"/>
-                            <default-field><display/></default-field>
                         </field>
                     </form-list>
                 </box-body-nopad></container-box>
