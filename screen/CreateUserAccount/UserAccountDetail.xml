@@ -53,6 +53,10 @@ along with this software (see the LICENSE.md file). If not, see
         <service-call name="co.hotwax.loop.webhook.LoopWebhookServices.create#PartyWebhookSubscriptionSystemMessage" in-map="context"/>
         <default-response url="."/>
     </transition>
+    <transition name="createUserLoginAPIKey">
+        <service-call name="co.hotwax.configuration.UserProfileServices.create#UserLoginAPIKey" in-map="context"/>
+        <default-response url="."/>
+    </transition>
 
     <actions>
         <entity-find-one entity-name="moqui.security.UserAccount" value-field="userAccount">
@@ -70,10 +74,15 @@ along with this software (see the LICENSE.md file). If not, see
                       in-map="[partyId:partyId]" out-map="context"/>
 
         <set field="loopRemoteList" from="context.loopRemoteList"/>
+
+        <!-- Get login API keys -->
+        <service-call name="co.hotwax.configuration.UserProfileServices.get#UserLoginAPIKey" in-map="context" out-map="resultMap"/>
+        <set field="loginKey" from="resultMap.loginKey"/>
+        <log level="info" message="loginKey: ${loginKey}"/>
     </actions>
     <widgets>
         <container-row>
-            <row-col lg="5">
+            <row-col lg="2">
                 <container-dialog id="UpdatePassword" button-text="Change Password">
                     <form-single name="UpdatePasswordForm" transition="updatePassword">
                         <field name="userId"><default-field><hidden/></default-field></field>
@@ -104,7 +113,7 @@ along with this software (see the LICENSE.md file). If not, see
                     <field name="submitButton"><default-field title="Update"><submit/></default-field></field>
                 </form-single>
             </row-col>
-            <row-col lg="7">
+            <row-col lg="10">
                 <container-box><box-header title="NetSuite Credentials"/><box-toolbar>
                     <container-dialog id="AddNetSuiteCredentials" button-text="Add NetSuite Credentials">
                         <form-single name="CreateNetsuiteConnection" transition="createNetsuiteConnection">
@@ -166,10 +175,19 @@ along with this software (see the LICENSE.md file). If not, see
                             <default-field><display/></default-field>
                         </field>
                         <field name="submitButton"><default-field title="Verify"><submit/></default-field></field>
+                        <field name="apiKeyButton">
+                            <default-field title="">
+                                <link url="createUserLoginAPIKey" text="" icon="fa fa-key"/>
+                            </default-field>
+                        </field>
                         <field name="deleteButton">
                             <default-field title="">
                                 <link url="deleteNetsuiteConnection" text=" " icon="fa fa-trash" confirmation="Do you really want to remove this NetSuite connection?"/>
                             </default-field>
+                        </field>
+                        <field name="loginKey">
+                            <header-field show-order-by="true"/>
+                            <default-field><display/></default-field>
                         </field>
                     </form-list>
                 </box-body-nopad></container-box>
