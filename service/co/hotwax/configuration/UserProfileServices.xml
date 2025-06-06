@@ -94,7 +94,7 @@
                 </entity-find-one>
                 <script>
                     netsuiteRemoteList.add([systemMessageRemoteId:netsuiteRemote.systemMessageRemoteId, accountType:netsuiteRemote.remoteIdType,
-                    remoteId:netsuiteRemote.remoteId, certificateId:netsuiteRemote.sendSharedSecret, consumerKey:netsuiteRemote.sharedSecret, privateKey:netsuiteRemote.privateKey])
+                    remoteId:netsuiteRemote.remoteId, certificateId:netsuiteRemote.sendSharedSecret, consumerKey:netsuiteRemote.sharedSecret, privateKey:netsuiteRemote.privateKey, verified:partyNetSystemMessageRemote.verified])
                 </script>
             </iterate>
         </actions>

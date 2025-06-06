@@ -30,6 +30,7 @@ under the License.
                 <econdition field-name="partyId" operator="equals" from="partyId"/>
                 <econdition field-name="remoteIdType" operator="equals" from="accountType"/>
                 <econdition field-name="systemMessageTypeId" operator="equals" from="'LoopWebhook'"/>
+                <date-filter/>
             </entity-find>
             <if condition="partySystemMessageRemoteList">
                 <set field="systemMessageRemoteId" from="partySystemMessageRemoteList[0].systemMessageRemoteId" type="String"/>

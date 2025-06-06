@@ -154,7 +154,7 @@ along with this software (see the LICENSE.md file). If not, see
                         </form-single>
                     </container-dialog>
                 </box-toolbar><box-body-nopad>
-                    <form-list name="NetsuiteRemoteList" list="netsuiteRemoteList" transition="verifyNetsuiteConnection">
+                    <form-list name="NetsuiteRemoteList" list="netsuiteRemoteList">
                         <field name="partyId"><default-field><hidden/></default-field></field>
                         <field name="userId"><default-field><hidden/></default-field></field>
                         <field name="systemMessageRemoteId">
@@ -173,9 +173,14 @@ along with this software (see the LICENSE.md file). If not, see
                             <conditional-field condition="loginKey == null">
                                 <link url="createUserLoginAPIKey" text="" icon="fa fa-key"/>
                             </conditional-field>
-                            <default-field><label text="${loginKey}" style=""/></default-field>
+                            <default-field><label text="${loginKey}" type="strong" style=""/></default-field>
                         </field>
-                        <field name="submitButton"><default-field title="Verify"><submit/></default-field></field>
+                        <field name="">
+                            <conditional-field condition="verified != 'Y'">
+                                <link url="verifyNetsuiteConnection" text="Verify"/>
+                            </conditional-field>
+                            <default-field><label text="Verified" type="strong" style="text-info"/></default-field>
+                        </field>
                         <field name="deleteButton">
                             <default-field title="">
                                 <link url="deleteNetsuiteConnection" text=" " icon="fa fa-trash" confirmation="Do you really want to remove this NetSuite connection?"/>
