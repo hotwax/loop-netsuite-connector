@@ -18,6 +18,7 @@
 
     <co.hotwax.netsuite.party.RoleType description="Contact" roleTypeId="Contact"/>
     <co.hotwax.netsuite.party.RoleType description="Organization" roleTypeId="Organization"/>
+    <co.hotwax.netsuite.party.RoleType description="Contact Integration" roleTypeId="ContactIntegration"/>
 
     <ContactMechPurpose contactMechPurposeId="PostalPrimary" contactMechTypeEnumId="CmtPostalAddress"
                         description="Postal - Primary"/>
