@@ -152,16 +152,12 @@
 
             <if condition="loggedInPartyId == null"><return error="true" message="Logged in user has no party ${loggedInPartyId}"/></if>
 
-            <entity-find entity-name="co.hotwax.netsuite.party.PartyRelationship" list="partyRelationshipList" distinct="true">
-                <econdition field-name="fromPartyId" operator="equals" from="loggedInPartyId"/>
-                <econdition field-name="fromRoleTypeId" operator="equals" value="Contact"/>
-                <econdition field-name="toRoleTypeId" operator="equals" value="ContactIntegration"/>
-                <econdition field-name="relationshipTypeEnumId" operator="equals" value="PrtContact"/>
-            </entity-find>
+            <entity-find-one entity-name="co.hotwax.netsuite.party.Party" value-field="party">
+                <field-map field-name="ownerPartyId" from="loggedInPartyId"/>
+                <field-map field-name="partyTypeEnumId" value="PtyPerson"/>
+            </entity-find-one>
+            <set field="partyId" from="party.partyId"/>
 
-            <if condition="partyRelationshipList">
-                <set field="partyId" from="partyRelationshipList[0].toPartyId" type="String"/>
-            </if>
             <if condition="partyId == null"><return error="true" message="Integration party not found for Logged in user ${loggedInPartyId}"/></if>
 
             <entity-find-one entity-name="moqui.security.UserAccount" value-field="userAccount">
@@ -170,6 +166,14 @@
 
             <set field="userId" from="userAccount.userId" type="String"/>
             <if condition="userId == null"><return error="true" message="Integration user not found for Logged in user ${loggedInPartyId}"/></if>
+
+            <entity-find-one entity-name="moqui.security.UserLoginKey" value-field="userLoginKey">
+                <econdition field-name="userId" operator="equals" from="userId"/>
+                <date-filter/>
+            </entity-find-one>
+            <if condition="userLoginKey">
+                <return error="true" message="User login api key already exists for user ${loggedInPartyId}"/>
+            </if>
             <script><![CDATA[
                 import org.moqui.util.StringUtilities
                 import org.moqui.entity.EntityCondition
@@ -214,16 +218,12 @@
 
             <if condition="loggedInPartyId == null"><return error="true" message="Logged in user has no party ${loggedInPartyId}"/></if>
 
-            <entity-find entity-name="co.hotwax.netsuite.party.PartyRelationship" list="partyRelationshipList" distinct="true">
-                <econdition field-name="fromPartyId" operator="equals" from="loggedInPartyId"/>
-                <econdition field-name="fromRoleTypeId" operator="equals" value="Contact"/>
-                <econdition field-name="toRoleTypeId" operator="equals" value="ContactIntegration"/>
-                <econdition field-name="relationshipTypeEnumId" operator="equals" value="PrtContact"/>
-            </entity-find>
+            <entity-find-one entity-name="co.hotwax.netsuite.party.Party" value-field="party">
+                <field-map field-name="ownerPartyId" from="loggedInPartyId"/>
+                <field-map field-name="partyTypeEnumId" value="PtyPerson"/>
+            </entity-find-one>
+            <set field="partyId" from="party.partyId"/>
 
-            <if condition="partyRelationshipList">
-                <set field="partyId" from="partyRelationshipList[0].toPartyId" type="String"/>
-            </if>
             <if condition="partyId == null"><return error="true" message="Integration party not found for Logged in user ${loggedInPartyId}"/></if>
 
             <entity-find-one entity-name="moqui.security.UserAccount" value-field="userAccount">

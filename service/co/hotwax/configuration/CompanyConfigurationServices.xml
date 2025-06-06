@@ -81,6 +81,7 @@
 
             <!-- Assign UserGroup to view scereen and call organization API's -->
             <service-call name="create#moqui.security.UserGroupMember" in-map="[userId:userId, userGroupId:'ALL_TENANT_AUTH']"/>
+            <service-call name="create#moqui.security.UserGroupMember" in-map="[userId:userId, userGroupId:'ORGANIZATION_API']"/>
 
             <!-- Create Integration UserLogin Account for registered user to call API from netsuite  -->
 
@@ -95,10 +96,6 @@
 
             <service-call name="create#co.hotwax.netsuite.party.PartyRole"
                           in-map="[partyId:integrationPartyId, roleTypeId:'ContactIntegration']"/>
-
-            <!-- Link Integration party to contact for the Organization -->
-            <service-call name="create#co.hotwax.netsuite.party.PartyRelationship"
-                          in-map="[fromPartyId:personPartyId, fromRoleTypeId:'Contact', toPartyId:integrationPartyId, toRoleTypeId:'ContactIntegration', relationshipTypeEnumId:'PrtContact', fromDate:fromDate]"/>
 
             <!-- Create Integration User Account -->
             <service-call name="org.moqui.impl.UserServices.create#UserAccount"
