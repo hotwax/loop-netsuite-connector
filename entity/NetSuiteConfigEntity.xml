@@ -26,4 +26,15 @@ along with this software (see the LICENSE.md file). If not, see
         <field name="scriptName" type="text-medium"/>
         <field name="scriptEndPoint" type="text-long"/>
     </entity>
+
+    <entity entity-name="IntegrationTypeMapping" package="co.hotwax.netsuite" use="configuration">
+        <field name="integrationMappingId" type="id" is-pk="true"/>
+        <field name="integrationTypeId" type="id"/>
+        <field name="mappingKey" type="text-short"/>
+        <field name="mappingValue" type="text-short"/>
+        <field name="description" type="text-long"/>
+        <relationship type="one" title="IntegrationTypeMappingType" related="moqui.basic.Enumeration" short-alias="type">
+            <key-map field-name="integrationTypeId"/>
+        </relationship>
+    </entity>
 </entities>

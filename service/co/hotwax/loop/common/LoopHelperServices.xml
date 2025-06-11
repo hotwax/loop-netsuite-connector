@@ -17,7 +17,7 @@ under the License.
 -->
 
 <services xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://moqui.org/xsd/service-definition-3.xsd">
-    <service verb="send" noun="LoopRequest" authenticate="anonymous-all">
+    <service verb="send" noun="LoopRequest">
         <description>
             This is a generic service which will be used to make all types of Loop REST API calls.
         </description>

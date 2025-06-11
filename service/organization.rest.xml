@@ -60,5 +60,16 @@ under the License.
                 <service name="co.hotwax.configuration.CompanyConfigurationServices.delete#LoopSystemMessageRemote"/>
             </method>
         </resource>
+        <resource name="integrationTypeMappings">
+            <method type="get">
+                <service name="co.hotwax.configuration.UserProfileServices.get#IntegrationTypeMappingDetails"/>
+            </method>
+            <method type="post">
+                <service name="co.hotwax.configuration.CompanyConfigurationServices.create#NetSuiteReturnIntegrationMapping"/>
+            </method>
+            <method type="delete">
+                <service name="co.hotwax.configuration.CompanyConfigurationServices.delete#NetSuiteReturnIntegrationMapping"/>
+            </method>
+        </resource>
     </resource>
 </resource>

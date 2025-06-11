@@ -2,7 +2,7 @@
 <services xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
           xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/service-definition-3.xsd">
 
-    <service verb="create" noun="OrganizationParty" authenticate="anonymous-all">
+    <service verb="create" noun="OrganizationParty">
         <description>Creates an Organization party and its associated role.</description>
         <in-parameters>
             <parameter name="organizationName" required="true"/>
@@ -24,7 +24,7 @@
         </actions>
     </service>
 
-    <service verb="create" noun="ContactPerson" authenticate="anonymous-all">
+    <service verb="create" noun="ContactPerson">
         <description>Creates a Contact Person and associates with an existing Organization party.</description>
         <in-parameters>
             <parameter name="userFullName" required="true"/>
@@ -123,7 +123,7 @@
         </actions>
     </service>
 
-    <service verb="create" noun="OrganizationWithContact" authenticate="anonymous-all">
+    <service verb="create" noun="OrganizationWithContact">
         <description>
             Creates a Person party with userFullName and email,
             creates an Organization with organizationName,
@@ -217,7 +217,7 @@
         </actions>
     </service>
 
-    <service verb="create" noun="NetsuiteSystemMessageRemote" authenticate="anonymous-all">
+    <service verb="create" noun="NetsuiteSystemMessageRemote">
         <description>
             Creates a new SystemMessageRemote entry to store NetSuite connection details.
         </description>
@@ -288,7 +288,7 @@
         </actions>
     </service>
 
-    <service verb="delete" noun="NetsuiteSystemMessageRemote" authenticate="anonymous-all">
+    <service verb="delete" noun="NetsuiteSystemMessageRemote">
         <in-parameters>
             <parameter name="partyId"/>
             <parameter name="systemMessageRemoteId" required="true"/>
@@ -325,7 +325,7 @@
         </actions>
     </service>
 
-    <service verb="delete" noun="LoopSystemMessageRemote" authenticate="anonymous-all">
+    <service verb="delete" noun="LoopSystemMessageRemote">
         <in-parameters>
             <parameter name="partyId"/>
             <parameter name="systemMessageRemoteId" required="true"/>
@@ -359,6 +359,153 @@
             </iterate>
             <!-- Final Success Message -->
             <return type="success" message="Your loop account has been successfully deleted."/>
+        </actions>
+    </service>
+
+    <service verb="create" noun="NetSuiteReturnIntegrationMapping">
+        <description>
+            Creates NetSuite Return Integration Type Mapping Records.
+        </description>
+        <in-parameters>
+            <parameter name="partyId"/>
+            <parameter name="locationId" required="true"/>
+            <parameter name="discountItem"/>
+            <parameter name="giftCardItem"/>
+            <parameter name="varianceItem"/>
+            <parameter name="giftCardPaymentMethod"/>
+            <parameter name="taxCode"/>
+            <parameter name="loopExchangeItem"/>
+            <parameter name="defaultPaymentMethod"/>
+        </in-parameters>
+        <actions>
+            <!-- Get OrganizationPartyId from logged in user -->
+            <service-call name="co.hotwax.configuration.UserProfileServices.get#OrganizationPartyIds"
+                          in-map="[personPartyId:partyId]" out-map="context"/>
+            <set field="organizationPartyId" from="context.partyId" type="String"/>
+            <set field="fromDate" from="ec.user.nowTimestamp"/>
+            <set field="integrationTypeList" from="[]"/>
+
+            <if condition="locationId != null">
+                <script>
+                    integrationTypeList.add([integrationTypeId:'NETSUITE_WH_LOCATION', mappingKey:'wh_facility_id',
+                    mappingValue:locationId, description:'NetSuite Warehouse Location Internal Id'])
+                </script>
+            </if>
+
+            <if condition="discountItem != null">
+                <script>
+                    integrationTypeList.add([integrationTypeId:'NETSUITE_DISCOUNT_ITEM', mappingKey:'discount_item_id',
+                    mappingValue:discountItem, description:'NetSuite Discount Item Internal Id'])
+                </script>
+            </if>
+
+            <if condition="giftCardItem != null">
+                <script>
+                    integrationTypeList.add([integrationTypeId:'NETSUITE_GC_ITEM', mappingKey:'gift_card_item_id',
+                    mappingValue:giftCardItem, description:'NetSuite GiftCard Item Internal Id'])
+                </script>
+            </if>
+
+            <if condition="varianceItem != null">
+                <script>
+                    integrationTypeList.add([integrationTypeId:'NETSUITE_VARIANCE_ITEM', mappingKey:'variance_item_id',
+                    mappingValue:varianceItem, description:'NetSuite Variance Item Internal Id'])
+                </script>
+            </if>
+
+            <if condition="taxCode != null">
+                <script>
+                    integrationTypeList.add([integrationTypeId:'NETSUITE_TAX_CODE', mappingKey:'tax_code',
+                    mappingValue:taxCode, description:'NetSuite Tax Code Internal Id'])
+                </script>
+            </if>
+
+            <if condition="giftCardPaymentMethod != null">
+                <script>
+                    integrationTypeList.add([integrationTypeId:'NETSUITE_GC_PAYMENT', mappingKey:'giftcard_payment_method_id',
+                    mappingValue:giftCardPaymentMethod, description:'NetSuite GC Payment Method Internal Id'])
+                </script>
+            </if>
+
+            <if condition="loopExchangeItem != null">
+                <script>
+                    integrationTypeList.add([integrationTypeId:'NETSUITE_LOOP_EXCHANGE', mappingKey:'exchange_item_id',
+                    mappingValue:loopExchangeItem, description:'NetSuite Loop Exchange Item Internal Id'])
+                </script>
+            </if>
+
+            <if condition="defaultPaymentMethod != null">
+                <script>
+                    integrationTypeList.add([integrationTypeId:'NETSUITE_DEFAULT_PAYMENT', mappingKey:'default_payment_method_id',
+                    mappingValue:defaultPaymentMethod, description:'NetSuite Default Payment Item Internal Id'])
+                </script>
+            </if>
+
+            <iterate list="integrationTypeList" entry="integrationTypeMap">
+                <service-call name="create#IntegrationTypeMapping"
+                              in-map="[
+                                integrationTypeId:integrationTypeMap.integrationTypeId,
+                                mappingKey:integrationTypeMap.mappingKey,
+                                mappingValue:integrationTypeMap.mappingValue,
+                                description:integrationTypeMap.description
+                              ]"
+                              out-map="resultMap"/>
+
+                <set field="integrationMappingId" from="resultMap.integrationMappingId"/>
+                <if condition="integrationMappingId == null">
+                    <return error="true" message="Failed to create netsuite RMA integration type mapping. No valid ID returned."/>
+                </if>
+
+                <service-call name="create#PartyIntegrationTypeMapping"
+                              in-map="[
+                                partyId:organizationPartyId,
+                                integrationTypeId:integrationTypeMap.integrationTypeId,
+                                integrationMappingId:integrationMappingId,
+                                fromDate:fromDate
+                              ]"/>
+            </iterate>
+
+            <!-- Final Success Message -->
+            <return type="success" message="Your integration type mapping record has been created successfully."/>
+        </actions>
+    </service>
+
+    <service verb="delete" noun="NetSuiteReturnIntegrationMapping">
+        <in-parameters>
+            <parameter name="partyId"/>
+            <parameter name="integrationMappingId" required="true"/>
+            <parameter name="integrationTypeId" required="true"/>
+        </in-parameters>
+        <actions>
+            <!-- Get OrganizationPartyId from logged in user -->
+            <service-call name="co.hotwax.configuration.UserProfileServices.get#OrganizationPartyIds"
+                          in-map="[personPartyId:partyId]" out-map="context"/>
+            <set field="organizationPartyId" from="context.partyId" type="String"/>
+
+            <service-call name="delete#co.hotwax.netsuite.IntegrationTypeMapping"
+                          in-map="[
+                            integrationMappingId:integrationMappingId,
+                            integrationTypeId:integrationTypeId
+                          ]"/>
+            <!-- Get Party Integration Type Mappings -->
+            <entity-find-one entity-name="co.hotwax.netsuite.party.PartyIntegrationTypeMapping" value-field="partyIntegrationTypeMapping">
+                <econdition field-name="partyId" operator="equals" from="organizationPartyId"/>
+                <econdition field-name="integrationMappingId" operator="equals" from="integrationMappingId"/>
+                <econdition field-name="integrationTypeId" operator="equals" from="integrationTypeId"/>
+                <date-filter/>
+            </entity-find-one>
+
+            <if condition="partyIntegrationTypeMapping != null">
+                <service-call name="delete#co.hotwax.netsuite.party.PartyIntegrationTypeMapping"
+                              in-map="[
+                            partyId:organizationPartyId,
+                            integrationMappingId:partyIntegrationTypeMapping.integrationMappingId,
+                            integrationTypeId:partyIntegrationTypeMapping.integrationTypeId,
+                            fromDate:partyIntegrationTypeMapping.fromDate
+                          ]"/>
+            </if>
+            <!-- Final Success Message -->
+            <return type="success" message="Your integration type mapping record has been successfully deleted."/>
         </actions>
     </service>
 </services>

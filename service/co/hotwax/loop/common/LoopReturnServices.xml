@@ -17,7 +17,7 @@ under the License.
 -->
 
 <services xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://moqui.org/xsd/service-definition-3.xsd">
-    <service verb="create" noun="PartyProcessLoopReturnServiceJob" authenticate="anonymous-all">
+    <service verb="create" noun="PartyProcessLoopReturnServiceJob">
         <description>
             This service will create a Process Loop Return Service Job for organization party.
         </description>
