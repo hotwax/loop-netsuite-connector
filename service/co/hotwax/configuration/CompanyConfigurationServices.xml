@@ -383,198 +383,88 @@
                           in-map="[personPartyId:partyId]" out-map="context"/>
             <set field="organizationPartyId" from="context.partyId" type="String"/>
             <set field="fromDate" from="ec.user.nowTimestamp"/>
+            <set field="integrationTypeList" from="[]"/>
 
             <if condition="locationId != null">
-                <service-call name="create#IntegrationTypeMapping"
-                              in-map="[
-                                integrationTypeId:'NETSUITE_WH_LOCATION',
-                                mappingKey:'wh_facility_id',
-                                mappingValue:locationId,
-                                description:'NetSuite Warehouse Location Internal Id'
-                              ]"
-                              out-map="locationTypeMappingResult"/>
-
-                <set field="locationIntegrationMappingId" from="locationTypeMappingResult.integrationMappingId"/>
-                <if condition="locationIntegrationMappingId == null">
-                    <return error="true" message="Failed to create IntegrationTypeMapping for NetSuite Warehouse Location. No valid ID returned."/>
-                </if>
-
-                <service-call name="create#PartyIntegrationTypeMapping"
-                              in-map="[
-                                partyId:organizationPartyId,
-                                integrationTypeId:'NETSUITE_WH_LOCATION',
-                                integrationMappingId:locationIntegrationMappingId,
-                                fromDate:fromDate
-                              ]"/>
+                <script>
+                    integrationTypeList.add([integrationTypeId:'NETSUITE_WH_LOCATION', mappingKey:'wh_facility_id',
+                    mappingValue:locationId, description:'NetSuite Warehouse Location Internal Id'])
+                </script>
             </if>
 
             <if condition="discountItem != null">
-                <service-call name="create#IntegrationTypeMapping"
-                              in-map="[
-                                integrationTypeId:'NETSUITE_DISCOUNT_ITEM',
-                                mappingKey:'discount_item_id',
-                                mappingValue:discountItem,
-                                description:'NetSuite Discount Item Internal Id'
-                              ]"
-                              out-map="discountTypeMappingResult"/>
-
-                <set field="discountItemIntegrationMappingId" from="discountTypeMappingResult.integrationMappingId"/>
-                <if condition="discountItemIntegrationMappingId == null">
-                    <return error="true" message="Failed to create IntegrationTypeMapping for NetSuite Discount Item. No valid ID returned."/>
-                </if>
-
-                <service-call name="create#PartyIntegrationTypeMapping"
-                              in-map="[
-                                partyId:organizationPartyId,
-                                integrationTypeId:'NETSUITE_DISCOUNT_ITEM',
-                                integrationMappingId:discountItemIntegrationMappingId,
-                                fromDate:fromDate
-                              ]"/>
+                <script>
+                    integrationTypeList.add([integrationTypeId:'NETSUITE_DISCOUNT_ITEM', mappingKey:'discount_item_id',
+                    mappingValue:discountItem, description:'NetSuite Discount Item Internal Id'])
+                </script>
             </if>
 
             <if condition="giftCardItem != null">
-                <service-call name="create#IntegrationTypeMapping"
-                              in-map="[
-                                integrationTypeId:'NETSUITE_GC_ITEM',
-                                mappingKey:'gift_card_item_id',
-                                mappingValue:giftCardItem,
-                                description:'NetSuite GiftCard Item Internal Id'
-                              ]"
-                              out-map="gcItemTypeMappingResult"/>
-
-                <set field="gcItemIntegrationMappingId" from="gcItemTypeMappingResult.integrationMappingId"/>
-                <if condition="gcItemIntegrationMappingId == null">
-                    <return error="true" message="Failed to create IntegrationTypeMapping for NetSuite GiftCard Item. No valid ID returned."/>
-                </if>
-
-                <service-call name="create#PartyIntegrationTypeMapping"
-                              in-map="[
-                                partyId:organizationPartyId,
-                                integrationTypeId:'NETSUITE_GC_ITEM',
-                                integrationMappingId:gcItemIntegrationMappingId,
-                                fromDate:fromDate
-                              ]"/>
+                <script>
+                    integrationTypeList.add([integrationTypeId:'NETSUITE_GC_ITEM', mappingKey:'gift_card_item_id',
+                    mappingValue:giftCardItem, description:'NetSuite GiftCard Item Internal Id'])
+                </script>
             </if>
 
             <if condition="varianceItem != null">
-                <service-call name="create#IntegrationTypeMapping"
-                              in-map="[
-                                integrationTypeId:'NETSUITE_VARIANCE_ITEM',
-                                mappingKey:'variance_item_id',
-                                mappingValue:varianceItem,
-                                description:'NetSuite Variance Item Internal Id'
-                              ]"
-                              out-map="varinceItemTypeMappingResult"/>
-
-                <set field="varianceItemIntegrationMappingId" from="varinceItemTypeMappingResult.integrationMappingId"/>
-                <if condition="varianceItemIntegrationMappingId == null">
-                    <return error="true" message="Failed to create IntegrationTypeMapping for NetSuite Variance Item. No valid ID returned."/>
-                </if>
-
-                <service-call name="create#PartyIntegrationTypeMapping"
-                              in-map="[
-                                partyId:organizationPartyId,
-                                integrationTypeId:'NETSUITE_VARIANCE_ITEM',
-                                integrationMappingId:varianceItemIntegrationMappingId,
-                                fromDate:fromDate
-                              ]"/>
+                <script>
+                    integrationTypeList.add([integrationTypeId:'NETSUITE_VARIANCE_ITEM', mappingKey:'variance_item_id',
+                    mappingValue:varianceItem, description:'NetSuite Variance Item Internal Id'])
+                </script>
             </if>
 
             <if condition="taxCode != null">
-                <service-call name="create#IntegrationTypeMapping"
-                              in-map="[
-                                integrationTypeId:'NETSUITE_TAX_CODE',
-                                mappingKey:'tax_code',
-                                mappingValue:taxCode,
-                                description:'NetSuite Tax Code Internal Id'
-                              ]"
-                              out-map="taxCodeTypeMappingResult"/>
-
-                <set field="taxCodeIntegrationMappingId" from="taxCodeTypeMappingResult.integrationMappingId"/>
-                <if condition="taxCodeIntegrationMappingId == null">
-                    <return error="true" message="Failed to create IntegrationTypeMapping for NetSuite Tax Code. No valid ID returned."/>
-                </if>
-
-                <service-call name="create#PartyIntegrationTypeMapping"
-                              in-map="[
-                                partyId:organizationPartyId,
-                                integrationTypeId:'NETSUITE_TAX_CODE',
-                                integrationMappingId:taxCodeIntegrationMappingId,
-                                fromDate:fromDate
-                              ]"/>
+                <script>
+                    integrationTypeList.add([integrationTypeId:'NETSUITE_TAX_CODE', mappingKey:'tax_code',
+                    mappingValue:taxCode, description:'NetSuite Tax Code Internal Id'])
+                </script>
             </if>
 
             <if condition="giftCardPaymentMethod != null">
-                <service-call name="create#IntegrationTypeMapping"
-                              in-map="[
-                                integrationTypeId:'NETSUITE_GC_PAYMENT',
-                                mappingKey:'giftcard_payment_method_id',
-                                mappingValue:giftCardPaymentMethod,
-                                description:'NetSuite GC Payment Method Internal Id'
-                              ]"
-                              out-map="gcPaymentTypeMappingResult"/>
-
-                <set field="gcPaymentIntegrationMappingId" from="gcPaymentTypeMappingResult.integrationMappingId"/>
-                <if condition="gcPaymentIntegrationMappingId == null">
-                    <return error="true" message="Failed to create IntegrationTypeMapping for NetSuite GC Payment Method. No valid ID returned."/>
-                </if>
-
-                <service-call name="create#PartyIntegrationTypeMapping"
-                              in-map="[
-                                partyId:organizationPartyId,
-                                integrationTypeId:'NETSUITE_GC_PAYMENT',
-                                integrationMappingId:gcPaymentIntegrationMappingId,
-                                fromDate:fromDate
-                              ]"/>
+                <script>
+                    integrationTypeList.add([integrationTypeId:'NETSUITE_GC_PAYMENT', mappingKey:'giftcard_payment_method_id',
+                    mappingValue:giftCardPaymentMethod, description:'NetSuite GC Payment Method Internal Id'])
+                </script>
             </if>
 
             <if condition="loopExchangeItem != null">
-                <service-call name="create#IntegrationTypeMapping"
-                              in-map="[
-                                integrationTypeId:'NETSUITE_LOOP_EXCHANGE',
-                                mappingKey:'exchange_item_id',
-                                mappingValue:loopExchangeItem,
-                                description:'NetSuite Loop Exchange Item Internal Id'
-                              ]"
-                              out-map="loopExchangeTypeMappingResult"/>
-
-                <set field="loopExchangeIntegrationMappingId" from="loopExchangeTypeMappingResult.integrationMappingId"/>
-                <if condition="loopExchangeIntegrationMappingId == null">
-                    <return error="true" message="Failed to create IntegrationTypeMapping for NetSuite Loop Exchange. No valid ID returned."/>
-                </if>
-
-                <service-call name="create#PartyIntegrationTypeMapping"
-                              in-map="[
-                                partyId:organizationPartyId,
-                                integrationTypeId:'NETSUITE_LOOP_EXCHANGE',
-                                integrationMappingId:loopExchangeIntegrationMappingId,
-                                fromDate:fromDate
-                              ]"/>
+                <script>
+                    integrationTypeList.add([integrationTypeId:'NETSUITE_LOOP_EXCHANGE', mappingKey:'exchange_item_id',
+                    mappingValue:loopExchangeItem, description:'NetSuite Loop Exchange Item Internal Id'])
+                </script>
             </if>
 
             <if condition="defaultPaymentMethod != null">
+                <script>
+                    integrationTypeList.add([integrationTypeId:'NETSUITE_DEFAULT_PAYMENT', mappingKey:'default_payment_method_id',
+                    mappingValue:defaultPaymentMethod, description:'NetSuite Default Payment Item Internal Id'])
+                </script>
+            </if>
+
+            <iterate list="integrationTypeList" entry="integrationTypeMap">
                 <service-call name="create#IntegrationTypeMapping"
                               in-map="[
-                                integrationTypeId:'NETSUITE_DEFAULT_PAYMENT',
-                                mappingKey:'default_payment_method_id',
-                                mappingValue:defaultPaymentMethod,
-                                description:'NetSuite Default Payment Item Internal Id'
+                                integrationTypeId:integrationTypeMap.integrationTypeId,
+                                mappingKey:integrationTypeMap.mappingKey,
+                                mappingValue:integrationTypeMap.mappingValue,
+                                description:integrationTypeMap.description
                               ]"
-                              out-map="defaultPaymentMappingResult"/>
+                              out-map="resultMap"/>
 
-                <set field="defaultPaymentIntegrationMappingId" from="defaultPaymentMappingResult.integrationMappingId"/>
-                <if condition="defaultPaymentIntegrationMappingId == null">
-                    <return error="true" message="Failed to create IntegrationTypeMapping for NetSuite Default Payment Item. No valid ID returned."/>
+                <set field="integrationMappingId" from="resultMap.integrationMappingId"/>
+                <if condition="integrationMappingId == null">
+                    <return error="true" message="Failed to create netsuite RMA integration type mapping. No valid ID returned."/>
                 </if>
 
                 <service-call name="create#PartyIntegrationTypeMapping"
                               in-map="[
                                 partyId:organizationPartyId,
-                                integrationTypeId:'NETSUITE_DEFAULT_PAYMENT',
-                                integrationMappingId:defaultPaymentIntegrationMappingId,
+                                integrationTypeId:integrationTypeMap.integrationTypeId,
+                                integrationMappingId:integrationMappingId,
                                 fromDate:fromDate
                               ]"/>
-            </if>
+            </iterate>
+
             <!-- Final Success Message -->
             <return type="success" message="Your integration type mapping record has been created successfully."/>
         </actions>
