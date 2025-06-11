@@ -199,6 +199,7 @@
             ]]></script>
         </actions>
     </service>
+
     <service verb="get" noun="UserLoginAPIKey">
         <in-parameters>
             <parameter name="partyId"/>
@@ -240,6 +241,40 @@
             <if condition="userLoginKey">
                 <set field="loginKey" from="userLoginKey.loginKey" type="String"/>
             </if>
+        </actions>
+    </service>
+
+    <service verb="get" noun="IntegrationTypeMappingDetails">
+        <in-parameters>
+            <parameter name="partyId"/>
+        </in-parameters>
+        <out-parameters>
+            <parameter name="integrationTypeMappingList" type="List"/>
+        </out-parameters>
+        <actions>
+            <service-call name="co.hotwax.configuration.UserProfileServices.get#OrganizationPartyIds"
+                          in-map="[personPartyId:partyId]" out-map="context"/>
+            <set field="organizationPartyId" from="context.partyId" type="String"/>
+
+            <!-- Get Party Integration Type Mappings -->
+            <entity-find entity-name="co.hotwax.netsuite.party.PartyIntegrationTypeMapping" list="partyIntegrationTypeMappingList">
+                <econdition field-name="partyId" operator="equals" from="organizationPartyId"/>
+                <date-filter/>
+            </entity-find>
+
+            <set field="integrationTypeMappingList" from="[]"/>
+            <iterate list="partyIntegrationTypeMappingList" entry="partyIntegrationTypeMapping">
+                <entity-find-one entity-name="co.hotwax.netsuite.IntegrationTypeMapping" value-field="integrationTypeMapping">
+                    <field-map field-name="integrationMappingId" from="partyIntegrationTypeMapping.integrationMappingId"/>
+                    <field-map field-name="integrationTypeId" from="partyIntegrationTypeMapping.integrationTypeId"/>
+                </entity-find-one>
+                <script>
+                    if (integrationTypeMapping != null) {
+                        integrationTypeMappingList.add([integrationMappingId:integrationTypeMapping.integrationMappingId, integrationTypeId:integrationTypeMapping.integrationTypeId,
+                        mappingKey:integrationTypeMapping.mappingKey, mappingValue:integrationTypeMapping.mappingValue])
+                    }
+                </script>
+            </iterate>
         </actions>
     </service>
 </services>
