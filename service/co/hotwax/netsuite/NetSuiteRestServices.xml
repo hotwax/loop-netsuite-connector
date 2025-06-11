@@ -30,7 +30,7 @@ under the License.
     <service verb="verify" noun="NetSuiteAcessToken">
         <description>Verify and store access token from NetSuite</description>
         <in-parameters>
-            <parameter name="systemMessageRemoteId"/>
+            <parameter name="systemMessageRemoteId" required="true"/>
             <parameter name="partyId"/>
         </in-parameters>
         <actions>
@@ -46,8 +46,28 @@ under the License.
             <if condition="token == null">
                 <return error="true" message="Unable to generate access token for system message remote : ${systemMessageRemoteId}"/>
                 <else>
-                    <service-call name="create#moqui.service.message.SystemMessage" out-map="context" transaction="force-new"
-                                  in-map="[systemMessageTypeId:'NetsuiteCredentialsVerify', statusId:'SmsgConsumed', messageText:token, senderId:partyId, systemMessageRemoteId:systemMessageRemoteId]"/>
+                    <service-call name="co.hotwax.configuration.UserProfileServices.get#OrganizationPartyIds"
+                                  in-map="[personPartyId:partyId]" out-map="context"/>
+                    <set field="organizationPartyId" from="context.partyId" type="String"/>
+
+                    <entity-find entity-name="co.hotwax.netsuite.party.PartySystemMessageRemote" list="partyNetSystemMessageRemoteList">
+                        <econdition field-name="partyId" operator="equals" from="organizationPartyId"/>
+                        <econdition field-name="systemMessageRemoteId" operator="equals" from="systemMessageRemoteId"/>
+                        <econdition field-name="systemMessageTypeId" operator="equals" value="NetsuiteCredentials"/>
+                        <date-filter/>
+                    </entity-find>
+
+                    <iterate list="partyNetSystemMessageRemoteList" entry="partyNetSystemMessageRemote">
+                        <service-call name="update#PartySystemMessageRemote"
+                                      in-map="[
+                            partyId:partyNetSystemMessageRemote.partyId,
+                            systemMessageRemoteId:partyNetSystemMessageRemote.systemMessageRemoteId,
+                            remoteIdType:partyNetSystemMessageRemote.remoteIdType,
+                            fromDate:partyNetSystemMessageRemote.fromDate,
+                            verified:'Y',
+                            systemMessageTypeId:partyNetSystemMessageRemote.systemMessageTypeId
+                          ]"/>
+                    </iterate>
                     <return type="success" message="NetSuite credentials verified for system message remote ${systemMessageRemoteId}"/>
                 </else>
             </if>
