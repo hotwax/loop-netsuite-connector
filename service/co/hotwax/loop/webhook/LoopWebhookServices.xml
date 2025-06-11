@@ -17,7 +17,7 @@ under the License.
 -->
 
 <services xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://moqui.org/xsd/service-definition-3.xsd">
-    <service verb="create" noun="PartyWebhookSubscriptionSystemMessage" authenticate="anonymous-all">
+    <service verb="create" noun="PartyWebhookSubscriptionSystemMessage">
         <description>
             Send service to invoke Queue Webhook Subscription API for the System Message.
         </description>
@@ -48,7 +48,7 @@ under the License.
         </actions>
     </service>
 
-    <service verb="queue" noun="WebhookSubscriptionSystemMessage" authenticate="anonymous-all">
+    <service verb="queue" noun="WebhookSubscriptionSystemMessage">
         <description>
             Service to initiate webhook subscription of a specific type by creating a system message.
         </description>
@@ -75,7 +75,7 @@ under the License.
         </actions>
     </service>
 
-    <service verb="send" noun="WebhookSubscriptionSystemMessage" authenticate="anonymous-all">
+    <service verb="send" noun="WebhookSubscriptionSystemMessage">
         <description>
             Send service to invoke Create Webhook Subscription API for the System Message.
         </description>
@@ -93,7 +93,7 @@ under the License.
         </actions>
     </service>
 
-    <service verb="create" noun="WebhookSubscription" authenticate="anonymous-all">
+    <service verb="create" noun="WebhookSubscription">
         <description>Subscribe to loop webhook topic with a callbackUrl (end point).</description>
         <in-parameters>
             <parameter name="systemMessageRemoteId" required="true"/>
@@ -150,7 +150,7 @@ under the License.
         </actions>
     </service>
 
-    <service verb="verify" noun="Hmac" authenticate="anonymous-all">
+    <service verb="verify" noun="Hmac">
         <description>Verify hmac for the received webhook payload.</description>
         <in-parameters>
             <parameter name="message" required="true"/>
@@ -182,7 +182,7 @@ under the License.
         </actions>
     </service>
 
-    <service verb="receive" noun="WebhookPayload" authenticate="anonymous-all">
+    <service verb="receive" noun="WebhookPayload">
         <description>Receive webhook payload in an incoming SystemMessage of the webhook topics SystemMessageType and put it to SFTP server.</description>
         <in-parameters>
             <parameter name="payload" type="Map" required="true"/>
@@ -235,7 +235,7 @@ under the License.
         </actions>
     </service>
 
-    <service verb="get" noun="WebhookSubscriptions" authenticate="anonymous-all">
+    <service verb="get" noun="WebhookSubscriptions">
         <description>Get a list of all subscribed webhooks filtered by query parameters.</description>
         <in-parameters>
             <parameter name="systemMessageRemoteId" required="true"/>

@@ -53,7 +53,14 @@ along with this software (see the LICENSE.md file). If not, see
         <service-call name="co.hotwax.loop.webhook.LoopWebhookServices.create#PartyWebhookSubscriptionSystemMessage" in-map="context"/>
         <default-response url="."/>
     </transition>
-
+    <transition name="createUserLoginAPIKey">
+        <service-call name="co.hotwax.configuration.UserProfileServices.create#UserLoginAPIKey" in-map="context"/>
+        <default-response url="."/>
+    </transition>
+    <transition name="addIntegrationMappings">
+        <service-call name="co.hotwax.configuration.CompanyConfigurationServices.create#NetSuiteReturnIntegrationMapping" in-map="context"/>
+        <default-response url="."/>
+    </transition>
     <actions>
         <entity-find-one entity-name="moqui.security.UserAccount" value-field="userAccount">
             <field-map field-name="userId" from="userId"/>
@@ -105,6 +112,67 @@ along with this software (see the LICENSE.md file). If not, see
                 </form-single>
             </row-col>
             <row-col lg="7">
+                <container-box><box-header title="Integration Mappings"/>
+                    <box-toolbar>
+                        <container-dialog id="AddIntegrationMappings" button-text="Add Integration Mappings">
+                            <form-single name="AddIntegrationMappings" transition="addIntegrationMappings">
+                                <field name="partyId"><default-field><hidden/></default-field></field>
+                                <field name="userId"><default-field><hidden/></default-field></field>
+                                <field name="locationId" required="true">
+                                    <default-field title="NetSuite Warehouse Location Id (Internal Id)">
+                                        <text-line size="20"/>
+                                    </default-field>
+                                </field>
+                                <field name="discountItem">
+                                    <default-field title="Discount Item (Internal Id)">
+                                        <text-line size="20"/>
+                                    </default-field>
+                                </field>
+                                <field name="giftCardItem">
+                                    <default-field title="GiftCard Item (Internal Id)">
+                                        <text-line size="20"/>
+                                    </default-field>
+                                </field>
+                                <field name="varianceItem">
+                                    <default-field title="Variance Item (Internal Id)">
+                                        <text-line size="20"/>
+                                    </default-field>
+                                </field>
+                                <field name="giftCardPaymentMethod">
+                                    <default-field title="GiftCard Payment Method (Internal Id)">
+                                        <text-line size="20"/>
+                                    </default-field>
+                                </field>
+                                <field name="taxCode">
+                                    <default-field title="TaxCode (Internal Id)">
+                                        <text-line size="20"/>
+                                    </default-field>
+                                </field>
+                                <field name="loopExchangeItem" required="true">
+                                    <default-field title="Loop Exchange Item (Internal Id)">
+                                        <text-line size="20"/>
+                                    </default-field>
+                                </field>
+                                <field name="defaultPaymentMethod" required="true">
+                                    <default-field title="Default Payment Method (Internal Id)">
+                                        <text-line size="20"/>
+                                    </default-field>
+                                </field>
+                                <field name="submitButton">
+                                    <default-field title="Create">
+                                        <submit/>
+                                    </default-field>
+                                </field>
+                            </form-single>
+                        </container-dialog>
+                    </box-toolbar>
+                    <box-body-nopad>
+                        <form-list name="IntegrationMappingList" list="integrationMappingList">
+
+                        </form-list>
+                    </box-body-nopad>
+                </container-box>
+
                 <container-box><box-header title="NetSuite Credentials"/><box-toolbar>
                     <container-dialog id="AddNetSuiteCredentials" button-text="Add NetSuite Credentials">
                         <form-single name="CreateNetsuiteConnection" transition="createNetsuiteConnection">
@@ -173,6 +241,7 @@ along with this software (see the LICENSE.md file). If not, see
                         </field>
                     </form-list>
                 </box-body-nopad></container-box>
+
                 <container-box><box-header title="Loop Credentials"/><box-toolbar>
                     <container-dialog id="AddLoopCredentials" button-text="Add Loop Credentials">
                         <form-single name="CreateUserLoopAccount" transition="createLoopConnection">

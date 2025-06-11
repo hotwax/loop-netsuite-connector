@@ -2,7 +2,7 @@
 <services xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
           xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/service-definition-3.xsd">
 
-    <service verb="create" noun="OrganizationParty" authenticate="anonymous-all">
+    <service verb="create" noun="OrganizationParty">
         <description>Creates an Organization party and its associated role.</description>
         <in-parameters>
             <parameter name="organizationName" required="true"/>
@@ -24,7 +24,7 @@
         </actions>
     </service>
 
-    <service verb="create" noun="ContactPerson" authenticate="anonymous-all">
+    <service verb="create" noun="ContactPerson">
         <description>Creates a Contact Person and associates with an existing Organization party.</description>
         <in-parameters>
             <parameter name="userFullName" required="true"/>
@@ -107,7 +107,7 @@
         </actions>
     </service>
 
-    <service verb="create" noun="OrganizationWithContact" authenticate="anonymous-all">
+    <service verb="create" noun="OrganizationWithContact">
         <description>
             Creates a Person party with userFullName and email,
             creates an Organization with organizationName,
@@ -201,7 +201,7 @@
         </actions>
     </service>
 
-    <service verb="create" noun="NetsuiteSystemMessageRemote" authenticate="anonymous-all">
+    <service verb="create" noun="NetsuiteSystemMessageRemote">
         <description>
             Creates a new SystemMessageRemote entry to store NetSuite connection details.
         </description>
@@ -272,7 +272,7 @@
         </actions>
     </service>
 
-    <service verb="delete" noun="NetsuiteSystemMessageRemote" authenticate="anonymous-all">
+    <service verb="delete" noun="NetsuiteSystemMessageRemote">
         <in-parameters>
             <parameter name="partyId"/>
             <parameter name="systemMessageRemoteId" required="true"/>
@@ -309,7 +309,7 @@
         </actions>
     </service>
 
-    <service verb="delete" noun="LoopSystemMessageRemote" authenticate="anonymous-all">
+    <service verb="delete" noun="LoopSystemMessageRemote">
         <in-parameters>
             <parameter name="partyId"/>
             <parameter name="systemMessageRemoteId" required="true"/>
@@ -343,6 +343,33 @@
             </iterate>
             <!-- Final Success Message -->
             <return type="success" message="Your loop account has been successfully deleted."/>
+        </actions>
+    </service>
+
+    <service verb="create" noun="NetSuiteReturnIntegrationMapping">
+        <description>
+            Creates NetSuite Return Integration Type Mapping Records.
+        </description>
+        <in-parameters>
+            <parameter name="partyId"/>
+            <parameter name="locationId" required="true"/>
+            <parameter name="discountItem"/>
+            <parameter name="giftCardItem"/>
+            <parameter name="varianceItem"/>
+            <parameter name="giftCardPaymentMethod"/>
+            <parameter name="taxCode"/>
+            <parameter name="loopExchangeItem"/>
+            <parameter name="defaultPaymentMethod"/>
+        </in-parameters>
+        <actions>
+            <!-- Get OrganizationPartyId from logged in user -->
+            <service-call name="co.hotwax.configuration.UserProfileServices.get#OrganizationPartyIds"
+                          in-map="[personPartyId:partyId]" out-map="context"/>
+            <set field="organizationPartyId" from="context.partyId" type="String"/>
+
+
+            <!-- Final Success Message -->
+            <return type="success" message="Your netsuite account has been successfully registered. Your system message remote is ${systemMessageRemoteId}."/>
         </actions>
     </service>
 </services>

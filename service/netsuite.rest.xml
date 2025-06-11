@@ -19,8 +19,8 @@ under the License.
 <resource xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://moqui.org/xsd/rest-api-3.xsd"
           name="netsuite" displayName="NetSuite API" version="1.0.0" description="NetSuite integration REST api">
 
-    <resource name="bundle" require-authentication="anonymous-all">
-        <resource name="payload" require-authentication="anonymous-all">
+    <resource name="bundle">
+        <resource name="payload">
             <method type="post"><service name="co.hotwax.netsuite.NetSuiteRestServices.receive#BundlePayload"/></method>
         </resource>
     </resource>

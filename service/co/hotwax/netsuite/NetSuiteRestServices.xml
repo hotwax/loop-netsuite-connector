@@ -18,7 +18,7 @@ under the License.
 
 <services xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://moqui.org/xsd/service-definition-3.xsd">
 
-    <service verb="call" noun="NetSuiteLoopReturnAPI"  type="netsuite-rest-connector" location="${restletEndPoint}" method="post" authenticate="false">
+    <service verb="call" noun="NetSuiteLoopReturnAPI"  type="netsuite-rest-connector" location="${restletEndPoint}" method="post">
         <description>Call NetSuite Restlet API to process RMA in NetSuite</description>
         <in-parameters>
             <parameter name="systemMessageRemoteId" required="true"/>
