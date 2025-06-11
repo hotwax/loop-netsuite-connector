@@ -2,10 +2,16 @@
 <entity-facade-xml type="ext-seed">
     <moqui.security.UserGroup userGroupId="NETSUITE_INTEGRATION" description="NetSuite Integration Users"/>
     <moqui.security.UserGroup userGroupId="ALL_TENANT_AUTH" description="All Tenant User"/>
+    <moqui.security.UserGroup userGroupId="ORGANIZATION_API" description="Organization User API"/>
 
     <artifactGroups artifactGroupId="NETSUITE_API" description="NetSuite API (via root resource)">
         <artifacts artifactTypeEnumId="AT_REST_PATH" inheritAuthz="Y" artifactName="/netsuite"/>
         <authz artifactAuthzId="NETSUITE_API_ADMIN" userGroupId="NETSUITE_INTEGRATION" authzTypeEnumId="AUTHZT_ALWAYS" authzActionEnumId="AUTHZA_ALL"/>
+    </artifactGroups>
+
+    <artifactGroups artifactGroupId="ORGANIZATION_API" description="Organization API (via root resource)">
+        <artifacts artifactTypeEnumId="AT_REST_PATH" inheritAuthz="Y" artifactName="/netsuite-loop-connector"/>
+        <authz artifactAuthzId="ORGANIZATION_API_ADMIN" userGroupId="ORGANIZATION_API" authzTypeEnumId="AUTHZT_ALWAYS" authzActionEnumId="AUTHZA_ALL"/>
     </artifactGroups>
 
     <artifactGroups artifactGroupId="USER_SETUP_APP" description="User Setup App">
@@ -26,7 +32,6 @@
     <artifactGroups artifactGroupId="ORG_APP" description="Organization App">
         <artifacts artifactName="component://loop-netsuite-connector/screen/CreateUserAccount.xml" artifactTypeEnumId="AT_XML_SCREEN" inheritAuthz="Y"/>
         <artifacts artifactName="/netsuite-loop-connector" artifactTypeEnumId="AT_REST_PATH" inheritAuthz="Y"/>
-        <authz artifactAuthzId="ORG_ALL_USER_AUTH" userGroupId="ALL_TENANT_AUTH" authzTypeEnumId="AUTHZT_ALWAYS" authzActionEnumId="AUTHZA_ALL"/>
     </artifactGroups>
 
     <moqui.security.ArtifactAuthz

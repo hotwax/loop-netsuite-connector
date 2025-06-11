@@ -36,6 +36,19 @@ under the License.
                 <service name="co.hotwax.configuration.CompanyConfigurationServices.delete#NetsuiteSystemMessageRemote"/>
             </method>
         </resource>
+        <resource name="apiKey">
+            <method type="post">
+                <service name="co.hotwax.configuration.UserProfileServices.create#UserLoginAPIKey"/>
+            </method>
+            <method type="get">
+                <service name="co.hotwax.configuration.UserProfileServices.get#UserLoginAPIKey"/>
+            </method>
+        </resource>
+        <resource name="verifyNetSuiteConnection">
+            <method type="post">
+                <service name="co.hotwax.netsuite.NetSuiteRestServices.verify#NetSuiteAcessToken"/>
+            </method>
+        </resource>
         <resource name="loopDetails">
             <method type="get">
                 <service name="co.hotwax.configuration.UserProfileServices.get#LoopDetails"/>
