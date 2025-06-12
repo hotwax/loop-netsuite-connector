@@ -105,6 +105,10 @@
 
             <service-call name="create#moqui.security.UserGroupMember" in-map="[userId:integrationUserId, userGroupId:'NETSUITE_INTEGRATION']"/>
 
+            <!-- Link integration user as a contact integration for the Organization -->
+            <service-call name="create#co.hotwax.netsuite.party.PartyRelationship"
+                          in-map="[fromPartyId:organizationPartyId, fromRoleTypeId:'Organization', toPartyId:integrationPartyId, toRoleTypeId:'ContactIntegration', relationshipTypeEnumId:'PrtContact', fromDate:fromDate]"/>
+
             <!-- Create Telecom Contact Mechanism -->
             <service-call name="create#co.hotwax.netsuite.party.contact.ContactMech"
                           in-map="[contactMechTypeEnumId:'CmtTelecomNumber']"

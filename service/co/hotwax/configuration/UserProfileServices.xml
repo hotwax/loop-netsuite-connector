@@ -137,26 +137,21 @@
         <in-parameters>
             <parameter name="partyId"/>
         </in-parameters>
-        <out-parameters>
-            <parameter name="loginKey" type="String"/>
-        </out-parameters>
         <actions>
-            <if condition="partyId">
-                <then>
-                    <set field="loggedInPartyId" from="partyId" type="String"/>
-                </then>
-                <else>
-                    <set field="loggedInPartyId" from="ec.user.userAccount.partyId"/>
-                </else>
+            <service-call name="co.hotwax.configuration.UserProfileServices.get#OrganizationPartyIds"
+                          in-map="[personPartyId:partyId]" out-map="context"/>
+            <set field="organizationPartyId" from="context.partyId" type="String"/>
+
+            <entity-find entity-name="co.hotwax.netsuite.party.PartyRelationship" list="partyRelationshipList" distinct="true">
+                <econdition field-name="fromPartyId" operator="equals" from="organizationPartyId"/>
+                <econdition field-name="fromRoleTypeId" operator="equals" value="Organization"/>
+                <econdition field-name="toRoleTypeId" operator="equals" value="ContactIntegration"/>
+                <econdition field-name="relationshipTypeEnumId" operator="equals" value="PrtContact"/>
+            </entity-find>
+
+            <if condition="partyRelationshipList">
+                <set field="partyId" from="partyRelationshipList[0].toPartyId" type="String"/>
             </if>
-
-            <if condition="loggedInPartyId == null"><return error="true" message="Logged in user has no party ${loggedInPartyId}"/></if>
-
-            <entity-find-one entity-name="co.hotwax.netsuite.party.Party" value-field="party">
-                <field-map field-name="ownerPartyId" from="loggedInPartyId"/>
-                <field-map field-name="partyTypeEnumId" value="PtyPerson"/>
-            </entity-find-one>
-            <set field="partyId" from="party.partyId"/>
 
             <if condition="partyId == null"><return error="true" message="Integration party not found for Logged in user ${loggedInPartyId}"/></if>
 
@@ -197,6 +192,8 @@
                 ec.entity.find("moqui.security.UserLoginKey").condition("userId", userId)
                     .condition("thruDate", EntityCondition.LESS_THAN, fromDate).disableAuthz().deleteAll()
             ]]></script>
+            <!-- Final Success Message -->
+            <return type="success" message="User Login Key has been created successfully."/>
         </actions>
     </service>
 
@@ -208,22 +205,20 @@
             <parameter name="loginKey" type="String"/>
         </out-parameters>
         <actions>
-            <if condition="partyId">
-                <then>
-                    <set field="loggedInPartyId" from="partyId" type="String"/>
-                </then>
-                <else>
-                    <set field="loggedInPartyId" from="ec.user.userAccount.partyId"/>
-                </else>
+            <service-call name="co.hotwax.configuration.UserProfileServices.get#OrganizationPartyIds"
+                          in-map="[personPartyId:partyId]" out-map="context"/>
+            <set field="organizationPartyId" from="context.partyId" type="String"/>
+
+            <entity-find entity-name="co.hotwax.netsuite.party.PartyRelationship" list="partyRelationshipList" distinct="true">
+                <econdition field-name="fromPartyId" operator="equals" from="organizationPartyId"/>
+                <econdition field-name="fromRoleTypeId" operator="equals" value="Organization"/>
+                <econdition field-name="toRoleTypeId" operator="equals" value="ContactIntegration"/>
+                <econdition field-name="relationshipTypeEnumId" operator="equals" value="PrtContact"/>
+            </entity-find>
+
+            <if condition="partyRelationshipList">
+                <set field="partyId" from="partyRelationshipList[0].toPartyId" type="String"/>
             </if>
-
-            <if condition="loggedInPartyId == null"><return error="true" message="Logged in user has no party ${loggedInPartyId}"/></if>
-
-            <entity-find-one entity-name="co.hotwax.netsuite.party.Party" value-field="party">
-                <field-map field-name="ownerPartyId" from="loggedInPartyId"/>
-                <field-map field-name="partyTypeEnumId" value="PtyPerson"/>
-            </entity-find-one>
-            <set field="partyId" from="party.partyId"/>
 
             <if condition="partyId == null"><return error="true" message="Integration party not found for Logged in user ${loggedInPartyId}"/></if>
 
