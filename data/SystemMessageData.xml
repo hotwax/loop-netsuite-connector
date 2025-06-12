@@ -2,10 +2,6 @@
 <entity-facade-xml type="seed">
 
  <moqui.service.message.SystemMessageType systemMessageTypeId="LoopWebhook" parentTypeId="" description="ParentSystemMessageType for Loop Webhook."/>
- <moqui.service.message.SystemMessageType systemMessageTypeId="LoopReturnsClosed" parentTypeId="LoopWebhook" description="Loop Returns Create Webhook"/>
- <moqui.service.message.SystemMessageType systemMessageTypeId="LoopReturnsCreate" parentTypeId="LoopWebhook" description="Loop Returns Create Webhook"/>
- <moqui.service.message.SystemMessageType systemMessageTypeId="LoopReturnsUpdate" parentTypeId="LoopWebhook" description="Loop Returns Create Webhook"/>
- <moqui.service.message.SystemMessageType systemMessageTypeId="LoopSFTP" description="Loop Sftp credentials"/>
  <moqui.service.message.SystemMessageType systemMessageTypeId="NetsuiteCredentials" description="NetSuite Credentials"/>
 
  <!-- Parent SystemMessageType record for incoming and outgoing local feed file system message types -->
