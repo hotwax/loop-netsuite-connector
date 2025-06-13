@@ -42,11 +42,10 @@
             <parameter name="partyId" type="set"/>
         </out-parameters>
         <actions>
-            <entity-find entity-name="co.hotwax.netsuite.party.PartyRelationship" list="partyRelationshipList" distinct="true">
-                <econdition field-name="fromRoleTypeId" operator="equals" value="Organization"/>
-                <econdition field-name="toRoleTypeId" operator="equals" value="Contact"/>
-                <econdition field-name="relationshipTypeEnumId" operator="equals" value="PrtContact"/>
-            </entity-find>
+            <set field="contactPersonPartyId" from="ec.user.UserAccount.partyId"/>
+            <script>
+                partyRelationshipList = ec.entity.find("co.hotwax.netsuite.party.PartyRelationship").condition([toPartyId: contactPersonPartyId, fromRoleTypeId: "Organization", toRoleTypeId: "Contact", relationshipTypeEnumId: "PrtContact"]).disableAuthz().list()
+            </script>
             <if condition="partyRelationshipList">
                 <set field="partyId" from="partyRelationshipList[0].fromPartyId"/>
             </if>
@@ -59,9 +58,6 @@
             <parameter name="netsuiteRemoteList" type="List"/>
         </out-parameters>
         <actions>
-            <service-call name="co.hotwax.configuration.UserProfileServices.get#OrganizationPartyIds" out-map="context"/>
-            <set field="organizationPartyId" from="context.partyId" type="String"/>
-
             <!-- Get Netsuite connections -->
             <entity-find entity-name="co.hotwax.netsuite.party.PartySystemMessageRemote" list="partyNetSystemMessageRemoteList">
                 <econdition field-name="systemMessageTypeId" operator="equals" value="NetsuiteCredentials"/>
@@ -86,9 +82,6 @@
             <parameter name="loopRemoteList" type="List"/>
         </out-parameters>
         <actions>
-            <service-call name="co.hotwax.configuration.UserProfileServices.get#OrganizationPartyIds" out-map="context"/>
-            <set field="organizationPartyId" from="context.partyId" type="String"/>
-
             <!-- Get Netsuite connections -->
             <entity-find entity-name="co.hotwax.netsuite.party.PartySystemMessageRemote" list="partyLoopSystemMessageRemoteList">
                 <econdition field-name="systemMessageTypeId" operator="equals" value="LoopWebhook"/>
@@ -131,21 +124,23 @@
                 <set field="partyId" from="partyRelationshipList[0].toPartyId" type="String"/>
             </if>
 
-            <if condition="partyId == null"><return error="true" message="Integration party not found for Logged in user ${loggedInPartyId}"/></if>
+            <if condition="partyId == null"><return error="true" message="Integration party not found for Logged in user ${organizationPartyId}"/></if>
 
             <entity-find-one entity-name="moqui.security.UserAccount" value-field="userAccount">
                 <field-map field-name="partyId" from="partyId"/>
             </entity-find-one>
 
-            <set field="userId" from="userAccount.userId" type="String"/>
-            <if condition="userId == null"><return error="true" message="Integration user not found for Logged in user ${loggedInPartyId}"/></if>
+            <if condition="userAccount">
+                <set field="userId" from="userAccount.userId" type="String"/>
+            </if>
+            <if condition="userId == null"><return error="true" message="Integration user not found for Logged in user ${organizationPartyId}"/></if>
 
             <entity-find-one entity-name="moqui.security.UserLoginKey" value-field="userLoginKey">
                 <econdition field-name="userId" operator="equals" from="userId"/>
                 <date-filter/>
             </entity-find-one>
             <if condition="userLoginKey">
-                <return error="true" message="User login api key already exists for user ${loggedInPartyId}"/>
+                <return error="true" message="User login api key already exists for user ${organizationPartyId}"/>
             </if>
             <script><![CDATA[
                 import org.moqui.util.StringUtilities
