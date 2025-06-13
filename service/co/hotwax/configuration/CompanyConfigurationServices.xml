@@ -185,7 +185,7 @@
             <parameter name="systemMessageRemoteId"/>
         </out-parameters>
         <actions>
-            <if condition="organizationPartyId == null">
+            <if condition="!organizationPartyId">
                 <!-- Get OrganizationPartyId from logged in user -->
                 <service-call name="co.hotwax.configuration.UserProfileServices.get#OrganizationPartyIds" out-map="context"/>
                 <set field="organizationPartyId" from="context.partyId" type="String"/>
@@ -237,7 +237,7 @@
             <parameter name="systemMessageRemoteId"/>
         </out-parameters>
         <actions>
-            <if condition="organizationPartyId == null">
+            <if condition="!organizationPartyId">
                 <!-- Get OrganizationPartyId from logged in user -->
                 <service-call name="co.hotwax.configuration.UserProfileServices.get#OrganizationPartyIds" out-map="context"/>
                 <set field="organizationPartyId" from="context.partyId" type="String"/>
@@ -298,7 +298,7 @@
             <parameter name="accountType" required="true"/>
         </in-parameters>
         <actions>
-            <if condition="organizationPartyId == null">
+            <if condition="!organizationPartyId">
                 <!-- Get OrganizationPartyId from logged in user -->
                 <service-call name="co.hotwax.configuration.UserProfileServices.get#OrganizationPartyIds" out-map="context"/>
                 <set field="organizationPartyId" from="context.partyId" type="String"/>
@@ -336,7 +336,7 @@
             <parameter name="accountType" required="true"/>
         </in-parameters>
         <actions>
-            <if condition="organizationPartyId == null">
+            <if condition="!organizationPartyId">
                 <!-- Get OrganizationPartyId from logged in user -->
                 <service-call name="co.hotwax.configuration.UserProfileServices.get#OrganizationPartyIds" out-map="context"/>
                 <set field="organizationPartyId" from="context.partyId" type="String"/>
@@ -383,7 +383,7 @@
             <parameter name="defaultPaymentMethod"/>
         </in-parameters>
         <actions>
-            <if condition="organizationPartyId == null">
+            <if condition="!organizationPartyId">
                 <!-- Get OrganizationPartyId from logged in user -->
                 <service-call name="co.hotwax.configuration.UserProfileServices.get#OrganizationPartyIds" out-map="context"/>
                 <set field="organizationPartyId" from="context.partyId" type="String"/>
@@ -483,7 +483,7 @@
             <parameter name="integrationTypeId" required="true"/>
         </in-parameters>
         <actions>
-            <if condition="organizationPartyId == null">
+            <if condition="!organizationPartyId">
                 <!-- Get OrganizationPartyId from logged in user -->
                 <service-call name="co.hotwax.configuration.UserProfileServices.get#OrganizationPartyIds" out-map="context"/>
                 <set field="organizationPartyId" from="context.partyId" type="String"/>

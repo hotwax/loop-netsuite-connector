@@ -27,7 +27,7 @@ under the License.
             <parameter name="systemMessageRemoteId" required="true"/>
         </in-parameters>
         <actions>
-            <if condition="organizationPartyId == null">
+            <if condition="!organizationPartyId">
                 <!-- Get OrganizationPartyId from logged in user -->
                 <service-call name="co.hotwax.configuration.UserProfileServices.get#OrganizationPartyIds" out-map="context"/>
                 <set field="organizationPartyId" from="context.partyId" type="String"/>
