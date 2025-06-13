@@ -38,51 +38,33 @@
         <description>
             Returns the organization party ids for associated with UserAccount party
         </description>
-        <in-parameters>
-            <parameter name="personPartyId"/>
-        </in-parameters>
         <out-parameters>
             <parameter name="partyId" type="set"/>
         </out-parameters>
         <actions>
-            <if condition="personPartyId"><then>
-                <set field="loggedInPartyId" from="personPartyId" type="String"/>
-                </then><else>
-                    <set field="loggedInPartyId" from="ec.user.userAccount.partyId"/>
-                </else>
-            </if>
-
-            <if condition="loggedInPartyId == null"><return error="true" message="Logged in user has no party ${loggedInPartyId}"/></if>
-
             <entity-find entity-name="co.hotwax.netsuite.party.PartyRelationship" list="partyRelationshipList" distinct="true">
-                <econdition field-name="toPartyId" operator="equals" from="loggedInPartyId"/>
                 <econdition field-name="fromRoleTypeId" operator="equals" value="Organization"/>
                 <econdition field-name="toRoleTypeId" operator="equals" value="Contact"/>
                 <econdition field-name="relationshipTypeEnumId" operator="equals" value="PrtContact"/>
             </entity-find>
 
             <if condition="partyRelationshipList">
-                <set field="partyId" from="partyRelationshipList[0].fromPartyId" type="String"/>
+                <set field="partyId" from="partyRelationshipList[0].fromPartyId"/>
             </if>
             <if condition="partyId == null"><return error="true" message="Organization not found for Logged in user ${loggedInPartyId}"/></if>
         </actions>
     </service>
 
     <service verb="get" noun="NetsuiteDetails">
-        <in-parameters>
-            <parameter name="partyId"/>
-        </in-parameters>
         <out-parameters>
             <parameter name="netsuiteRemoteList" type="List"/>
         </out-parameters>
         <actions>
-            <service-call name="co.hotwax.configuration.UserProfileServices.get#OrganizationPartyIds"
-                          in-map="[personPartyId:partyId]" out-map="context"/>
+            <service-call name="co.hotwax.configuration.UserProfileServices.get#OrganizationPartyIds" out-map="context"/>
             <set field="organizationPartyId" from="context.partyId" type="String"/>
 
             <!-- Get Netsuite connections -->
             <entity-find entity-name="co.hotwax.netsuite.party.PartySystemMessageRemote" list="partyNetSystemMessageRemoteList">
-                <econdition field-name="partyId" operator="equals" from="organizationPartyId"/>
                 <econdition field-name="systemMessageTypeId" operator="equals" value="NetsuiteCredentials"/>
                 <date-filter/>
             </entity-find>
@@ -101,20 +83,15 @@
     </service>
 
     <service verb="get" noun="LoopDetails">
-        <in-parameters>
-            <parameter name="partyId"/>
-        </in-parameters>
         <out-parameters>
             <parameter name="loopRemoteList" type="List"/>
         </out-parameters>
         <actions>
-            <service-call name="co.hotwax.configuration.UserProfileServices.get#OrganizationPartyIds"
-                          in-map="[personPartyId:partyId]" out-map="context"/>
+            <service-call name="co.hotwax.configuration.UserProfileServices.get#OrganizationPartyIds" out-map="context"/>
             <set field="organizationPartyId" from="context.partyId" type="String"/>
 
             <!-- Get Netsuite connections -->
             <entity-find entity-name="co.hotwax.netsuite.party.PartySystemMessageRemote" list="partyLoopSystemMessageRemoteList">
-                <econdition field-name="partyId" operator="equals" from="organizationPartyId"/>
                 <econdition field-name="systemMessageTypeId" operator="equals" value="LoopWebhook"/>
                 <date-filter/>
             </entity-find>
@@ -241,15 +218,17 @@
 
     <service verb="get" noun="IntegrationTypeMappingDetails">
         <in-parameters>
-            <parameter name="partyId"/>
+            <parameter name="organizationPartyId"/>
         </in-parameters>
         <out-parameters>
             <parameter name="integrationTypeMappingList" type="List"/>
         </out-parameters>
         <actions>
-            <service-call name="co.hotwax.configuration.UserProfileServices.get#OrganizationPartyIds"
-                          in-map="[personPartyId:partyId]" out-map="context"/>
-            <set field="organizationPartyId" from="context.partyId" type="String"/>
+            <if condition="organizationPartyId == null">
+                <!-- Get OrganizationPartyId from logged in user -->
+                <service-call name="co.hotwax.configuration.UserProfileServices.get#OrganizationPartyIds" out-map="context"/>
+                <set field="organizationPartyId" from="context.partyId" type="String"/>
+            </if>
 
             <!-- Get Party Integration Type Mappings -->
             <entity-find entity-name="co.hotwax.netsuite.party.PartyIntegrationTypeMapping" list="partyIntegrationTypeMappingList">
