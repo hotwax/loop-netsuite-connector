@@ -71,5 +71,10 @@ under the License.
                 <service name="co.hotwax.configuration.CompanyConfigurationServices.delete#NetSuiteReturnIntegrationMapping"/>
             </method>
         </resource>
+        <resource name="subscribeLoopWebhook">
+            <method type="post">
+                <service name="co.hotwax.loop.webhook.LoopWebhookServices.create#PartyWebhookSubscriptionSystemMessage"/>
+            </method>
+        </resource>
     </resource>
 </resource>

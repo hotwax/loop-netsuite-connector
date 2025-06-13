@@ -127,7 +127,7 @@
                 </entity-find-one>
                 <script>
                     loopRemoteList.add([systemMessageRemoteId:loopRemote.systemMessageRemoteId, accountType:loopRemote.remoteIdType,
-                    webhookSecret:loopRemote.sendSharedSecret, privateKey:loopRemote.privateKey])
+                    webhookSecret:loopRemote.sendSharedSecret, privateKey:loopRemote.privateKey, verified:partyLoopSystemMessageRemote.verified])
                 </script>
             </iterate>
         </actions>

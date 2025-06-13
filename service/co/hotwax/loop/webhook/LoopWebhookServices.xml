@@ -22,27 +22,22 @@ under the License.
             Send service to invoke Queue Webhook Subscription API for the System Message.
         </description>
         <in-parameters>
-            <parameter name="partyId" required="true"/>
+            <parameter name="partyId"/>
             <parameter name="accountType" required="true"/>
+            <parameter name="systemMessageRemoteId" required="true"/>
         </in-parameters>
         <actions>
-            <entity-find entity-name="co.hotwax.netsuite.party.PartySystemMessageRemote" list="partySystemMessageRemoteList">
-                <econdition field-name="partyId" operator="equals" from="partyId"/>
-                <econdition field-name="remoteIdType" operator="equals" from="accountType"/>
-                <econdition field-name="systemMessageTypeId" operator="equals" from="'LoopWebhook'"/>
-                <date-filter/>
-            </entity-find>
-            <if condition="partySystemMessageRemoteList">
-                <set field="systemMessageRemoteId" from="partySystemMessageRemoteList[0].systemMessageRemoteId" type="String"/>
-            </if>
+            <service-call name="co.hotwax.configuration.UserProfileServices.get#OrganizationPartyIds"
+                          in-map="[personPartyId:partyId]" out-map="context"/>
+            <set field="organizationPartyId" from="context.partyId" type="String"/>
             <entity-find entity-name="moqui.service.message.SystemMessageType" list="systemMessageTypeList">
-                <econdition field-name="parentTypeId" operator="equals" from="'LoopWebhook'"/>
+                <econdition field-name="parentTypeId" operator="equals" value="LoopWebhook"/>
             </entity-find>
             <iterate list="systemMessageTypeList" entry="systemMessageType">
                 <set field="serviceCtx" from="[:]"/>
                 <set field="serviceCtx.systemMessageRemoteId" from="systemMessageRemoteId"/>
                 <set field="serviceCtx.systemMessageTypeId" from="systemMessageType.systemMessageTypeId"/>
-                <set field="serviceCtx.partyId" from="partyId"/>
+                <set field="serviceCtx.partyId" from="organizationPartyId"/>
                 <set field="serviceCtx.remoteIdType" from="accountType"/>
                 <service-call name="co.hotwax.loop.webhook.LoopWebhookServices.queue#WebhookSubscriptionSystemMessage" in-map="serviceCtx"/>
             </iterate>
@@ -148,6 +143,18 @@ under the License.
                         requestType:'POST', contentType:'application/json', requestBody:requestBody, endPoint: endPoint]" out-map="webhookSubscriptionCreateResponse"/>
 
             <set field="webhookSubscriptionId" from="webhookSubscriptionCreateResponse.response.id"/>
+            <if condition="webhookSubscriptionId != null">
+                <set field="partyLoopSystemMessageRemote" from="partySystemMessageRemoteList[0]"/>
+                <service-call name="update#PartySystemMessageRemote"
+                              in-map="[
+                            partyId:partyLoopSystemMessageRemote.partyId,
+                            systemMessageRemoteId:partyLoopSystemMessageRemote.systemMessageRemoteId,
+                            remoteIdType:partyLoopSystemMessageRemote.remoteIdType,
+                            fromDate:partyLoopSystemMessageRemote.fromDate,
+                            verified:'Y',
+                            systemMessageTypeId:partyLoopSystemMessageRemote.systemMessageTypeId
+                          ]"/>
+            </if>
         </actions>
     </service>
 
