@@ -2,41 +2,33 @@
 <entity-facade-xml type="ext-seed">
     <moqui.security.UserGroup userGroupId="NETSUITE_INTEGRATION" description="NetSuite Integration Users"/>
     <moqui.security.UserGroup userGroupId="ALL_TENANT_AUTH" description="All Tenant User"/>
-    <moqui.security.UserGroup userGroupId="ORGANIZATION_API" description="Organization User API"/>
 
     <artifactGroups artifactGroupId="NETSUITE_API" description="NetSuite API (via root resource)">
         <artifacts artifactTypeEnumId="AT_REST_PATH" inheritAuthz="Y" artifactName="/netsuite"/>
         <authz artifactAuthzId="NETSUITE_API_ADMIN" userGroupId="NETSUITE_INTEGRATION" authzTypeEnumId="AUTHZT_ALWAYS" authzActionEnumId="AUTHZA_ALL"/>
     </artifactGroups>
 
-    <artifactGroups artifactGroupId="ORGANIZATION_API" description="Organization API (via root resource)">
-        <artifacts artifactTypeEnumId="AT_REST_PATH" inheritAuthz="Y" artifactName="/netsuite-loop-connector"/>
-        <authz artifactAuthzId="ORGANIZATION_API_ADMIN" userGroupId="ORGANIZATION_API" authzTypeEnumId="AUTHZT_ALWAYS" authzActionEnumId="AUTHZA_ALL"/>
-    </artifactGroups>
-
     <artifactGroups artifactGroupId="USER_SETUP_APP" description="User Setup App">
         <artifacts artifactName="component://loop-netsuite-connector/screen/CreateUserAccount.xml" artifactTypeEnumId="AT_XML_SCREEN" inheritAuthz="Y"/>
         <!-- Full permissions for the ADMIN user group -->
         <authz artifactAuthzId="USER_SETUP_APP_ADMIN" userGroupId="ADMIN" authzTypeEnumId="AUTHZT_ALWAYS" authzActionEnumId="AUTHZA_ALL"/>
-        <authz artifactAuthzId="USER_SETUP_APP_VIEW" userGroupId="ALL_TENANT_AUTH" authzTypeEnumId="AUTHZT_ALWAYS" authzActionEnumId="AUTHZA_VIEW"/>
     </artifactGroups>
 
     <!--EntityFilter Data-->
     <moqui.security.EntityFilterSet entityFilterSetId="ORG_ENTITY_FS" description="Organization entity filters">
         <filters entityFilterId="ORG_FILTER" entityName="co.hotwax.netsuite.party.PartyRelationship"
-                 filterMap="[toPartyId:ec.user.userAccount.partyId]"/>
+                 filterMap="[fromPartyId:ec.service.sync().name('co.hotwax.configuration.UserProfileServices.get#OrganizationPartyIds').call().get('partyId')]"/>
         <filters entityFilterId="ORG_RMT_FILTER" entityName="co.hotwax.netsuite.party.PartySystemMessageRemote"
                  filterMap="[partyId:ec.service.sync().name('co.hotwax.configuration.UserProfileServices.get#OrganizationPartyIds').call().get('partyId')]"/>
     </moqui.security.EntityFilterSet>
 
     <artifactGroups artifactGroupId="ORG_APP" description="Organization App">
-        <artifacts artifactName="component://loop-netsuite-connector/screen/CreateUserAccount.xml" artifactTypeEnumId="AT_XML_SCREEN" inheritAuthz="Y"/>
         <artifacts artifactName="/netsuite-loop-connector" artifactTypeEnumId="AT_REST_PATH" inheritAuthz="Y"/>
     </artifactGroups>
 
     <moqui.security.ArtifactAuthz
             artifactAuthzId="ORG_ALL_USER_AUTH" userGroupId="ALL_TENANT_AUTH" artifactGroupId="ORG_APP"
-            authzTypeEnumId="AUTHZT_ALWAYS" authzActionEnumId="AUTHZA_VIEW">
+            authzTypeEnumId="AUTHZT_ALWAYS" authzActionEnumId="AUTHZA_ALL">
         <filters entityFilterSetId="ORG_ENTITY_FS"/>
     </moqui.security.ArtifactAuthz>
 </entity-facade-xml>

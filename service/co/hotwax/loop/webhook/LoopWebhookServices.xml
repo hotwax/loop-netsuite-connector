@@ -22,14 +22,16 @@ under the License.
             Send service to invoke Queue Webhook Subscription API for the System Message.
         </description>
         <in-parameters>
-            <parameter name="partyId"/>
+            <parameter name="organizationPartyId"/>
             <parameter name="accountType" required="true"/>
             <parameter name="systemMessageRemoteId" required="true"/>
         </in-parameters>
         <actions>
-            <service-call name="co.hotwax.configuration.UserProfileServices.get#OrganizationPartyIds"
-                          in-map="[personPartyId:partyId]" out-map="context"/>
-            <set field="organizationPartyId" from="context.partyId" type="String"/>
+            <if condition="!organizationPartyId">
+                <!-- Get OrganizationPartyId from logged in user -->
+                <service-call name="co.hotwax.configuration.UserProfileServices.get#OrganizationPartyIds" out-map="context"/>
+                <set field="organizationPartyId" from="context.partyId" type="String"/>
+            </if>
             <entity-find entity-name="moqui.service.message.SystemMessageType" list="systemMessageTypeList">
                 <econdition field-name="parentTypeId" operator="equals" value="LoopWebhook"/>
             </entity-find>

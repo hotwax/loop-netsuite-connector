@@ -72,15 +72,21 @@
     </form-single>
     </container-dialog>
     <form-list name="OrganizationDetailList" list="organizationDetailList" skip-form="true" header-dialog="true">
-      <field name="userId">
-        <header-field title="User ID" show-order-by="true">
+      <field name="organizationPartyId">
+        <header-field show-order-by="true">
           <text-find size="10" hide-options="true"/>
         </header-field>
         <default-field>
-          <link text="${userId}" url="UserAccountDetail" link-type="anchor">
-            <parameter name="userId" from="userId"/>
-          </link>
+          <link text="${userId}" url="UserAccountDetail" link-type="anchor" parameter-map="[userId:userId, organizationPartyId:organizationPartyId]"/>
         </default-field>
+      </field>
+      <field name="organizationName">
+        <header-field show-order-by="true"/>
+        <default-field><display/></default-field>
+      </field>
+      <field name="userId">
+        <header-field title="User ID" show-order-by="true"/>
+        <default-field><display/></default-field>
       </field>
       <field name="username">
         <header-field show-order-by="true"/>
@@ -95,14 +101,6 @@
         <default-field><display/></default-field>
       </field>
       <field name="personPartyId">
-        <header-field show-order-by="true"/>
-        <default-field><display/></default-field>
-      </field>
-      <field name="organizationName">
-        <header-field show-order-by="true"/>
-        <default-field><display/></default-field>
-      </field>
-      <field name="organizationPartyId">
         <header-field show-order-by="true"/>
         <default-field><display/></default-field>
       </field>
