@@ -81,7 +81,6 @@
 
             <!-- Assign UserGroup to view scereen and call organization API's -->
             <service-call name="create#moqui.security.UserGroupMember" in-map="[userId:userId, userGroupId:'ALL_TENANT_AUTH']"/>
-            <service-call name="create#moqui.security.UserGroupMember" in-map="[userId:userId, userGroupId:'ORGANIZATION_API']"/>
 
             <!-- Create Integration UserLogin Account for registered user to call API from netsuite  -->
 
@@ -177,7 +176,7 @@
             Creates a new SystemMessage entry and associates it with the currently logged-in user.
         </description>
         <in-parameters>
-            <parameter name="partyId"/>
+            <parameter name="organizationPartyId"/>
             <parameter name="privateKey" required="true"/>
             <parameter name="sendSharedSecret" required="true"/>
             <parameter name="accountType" required="true"/>
@@ -186,10 +185,11 @@
             <parameter name="systemMessageRemoteId"/>
         </out-parameters>
         <actions>
-            <!-- Get OrganizationPartyId from logged in user -->
-            <service-call name="co.hotwax.configuration.UserProfileServices.get#OrganizationPartyIds"
-                          in-map="[personPartyId:partyId]" out-map="context"/>
-            <set field="organizationPartyId" from="context.partyId" type="String"/>
+            <if condition="!organizationPartyId">
+                <!-- Get OrganizationPartyId from logged in user -->
+                <service-call name="co.hotwax.configuration.UserProfileServices.get#OrganizationPartyIds" out-map="context"/>
+                <set field="organizationPartyId" from="context.partyId" type="String"/>
+            </if>
 
             <!-- Create SystemMessageRemote entry -->
             <set field="systemMessageTypeId" from="'LoopWebhook'"/>
@@ -226,7 +226,7 @@
             Creates a new SystemMessageRemote entry to store NetSuite connection details.
         </description>
         <in-parameters>
-            <parameter name="partyId"/>
+            <parameter name="organizationPartyId"/>
             <parameter name="remoteId" required="true"/>
             <parameter name="accountType" required="true"/>
             <parameter name="sshKey" required="true"/>
@@ -237,12 +237,11 @@
             <parameter name="systemMessageRemoteId"/>
         </out-parameters>
         <actions>
-            <!-- Get OrganizationPartyId from logged in user -->
-            <service-call name="co.hotwax.configuration.UserProfileServices.get#OrganizationPartyIds"
-                          in-map="[personPartyId:partyId]" out-map="context"/>
-            <set field="organizationPartyId" from="context.partyId" type="String"/>
-
-            <log level="info" message="OrganizationPartyId: ${organizationPartyId}"/>
+            <if condition="!organizationPartyId">
+                <!-- Get OrganizationPartyId from logged in user -->
+                <service-call name="co.hotwax.configuration.UserProfileServices.get#OrganizationPartyIds" out-map="context"/>
+                <set field="organizationPartyId" from="context.partyId" type="String"/>
+            </if>
 
             <if condition="remoteId.contains('_')">
                 <then>
@@ -294,15 +293,16 @@
 
     <service verb="delete" noun="NetsuiteSystemMessageRemote">
         <in-parameters>
-            <parameter name="partyId"/>
+            <parameter name="organizationPartyId"/>
             <parameter name="systemMessageRemoteId" required="true"/>
             <parameter name="accountType" required="true"/>
         </in-parameters>
         <actions>
-            <!-- Get OrganizationPartyId from logged in user -->
-            <service-call name="co.hotwax.configuration.UserProfileServices.get#OrganizationPartyIds"
-                          in-map="[personPartyId:partyId]" out-map="context"/>
-            <set field="organizationPartyId" from="context.partyId" type="String"/>
+            <if condition="!organizationPartyId">
+                <!-- Get OrganizationPartyId from logged in user -->
+                <service-call name="co.hotwax.configuration.UserProfileServices.get#OrganizationPartyIds" out-map="context"/>
+                <set field="organizationPartyId" from="context.partyId" type="String"/>
+            </if>
 
             <entity-find entity-name="co.hotwax.netsuite.party.PartySystemMessageRemote" list="partyNetSystemMessageRemoteList">
                 <econdition field-name="partyId" operator="equals" from="organizationPartyId"/>
@@ -331,15 +331,16 @@
 
     <service verb="delete" noun="LoopSystemMessageRemote">
         <in-parameters>
-            <parameter name="partyId"/>
+            <parameter name="organizationPartyId"/>
             <parameter name="systemMessageRemoteId" required="true"/>
             <parameter name="accountType" required="true"/>
         </in-parameters>
         <actions>
-            <!-- Get OrganizationPartyId from logged in user -->
-            <service-call name="co.hotwax.configuration.UserProfileServices.get#OrganizationPartyIds"
-                          in-map="[personPartyId:partyId]" out-map="context"/>
-            <set field="organizationPartyId" from="context.partyId" type="String"/>
+            <if condition="!organizationPartyId">
+                <!-- Get OrganizationPartyId from logged in user -->
+                <service-call name="co.hotwax.configuration.UserProfileServices.get#OrganizationPartyIds" out-map="context"/>
+                <set field="organizationPartyId" from="context.partyId" type="String"/>
+            </if>
 
             <entity-find entity-name="co.hotwax.netsuite.party.PartySystemMessageRemote" list="partyLoopSystemMessageRemoteList">
                 <econdition field-name="partyId" operator="equals" from="organizationPartyId"/>
@@ -371,7 +372,7 @@
             Creates NetSuite Return Integration Type Mapping Records.
         </description>
         <in-parameters>
-            <parameter name="partyId"/>
+            <parameter name="organizationPartyId"/>
             <parameter name="locationId" required="true"/>
             <parameter name="discountItem"/>
             <parameter name="giftCardItem"/>
@@ -382,10 +383,11 @@
             <parameter name="defaultPaymentMethod"/>
         </in-parameters>
         <actions>
-            <!-- Get OrganizationPartyId from logged in user -->
-            <service-call name="co.hotwax.configuration.UserProfileServices.get#OrganizationPartyIds"
-                          in-map="[personPartyId:partyId]" out-map="context"/>
-            <set field="organizationPartyId" from="context.partyId" type="String"/>
+            <if condition="!organizationPartyId">
+                <!-- Get OrganizationPartyId from logged in user -->
+                <service-call name="co.hotwax.configuration.UserProfileServices.get#OrganizationPartyIds" out-map="context"/>
+                <set field="organizationPartyId" from="context.partyId" type="String"/>
+            </if>
             <set field="fromDate" from="ec.user.nowTimestamp"/>
             <set field="integrationTypeList" from="[]"/>
 
@@ -476,15 +478,16 @@
 
     <service verb="delete" noun="NetSuiteReturnIntegrationMapping">
         <in-parameters>
-            <parameter name="partyId"/>
+            <parameter name="organizationPartyId"/>
             <parameter name="integrationMappingId" required="true"/>
             <parameter name="integrationTypeId" required="true"/>
         </in-parameters>
         <actions>
-            <!-- Get OrganizationPartyId from logged in user -->
-            <service-call name="co.hotwax.configuration.UserProfileServices.get#OrganizationPartyIds"
-                          in-map="[personPartyId:partyId]" out-map="context"/>
-            <set field="organizationPartyId" from="context.partyId" type="String"/>
+            <if condition="!organizationPartyId">
+                <!-- Get OrganizationPartyId from logged in user -->
+                <service-call name="co.hotwax.configuration.UserProfileServices.get#OrganizationPartyIds" out-map="context"/>
+                <set field="organizationPartyId" from="context.partyId" type="String"/>
+            </if>
 
             <service-call name="delete#co.hotwax.netsuite.IntegrationTypeMapping"
                           in-map="[

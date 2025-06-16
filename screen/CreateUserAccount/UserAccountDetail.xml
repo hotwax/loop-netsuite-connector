@@ -17,6 +17,7 @@ along with this software (see the LICENSE.md file). If not, see
         default-menu-index="1">
 
     <parameter name="userId" required="true" from="userId ?: userId_0"/>
+    <parameter name="organizationPartyId" required="true" from="organizationPartyId"/>
 
     <transition name="updateUserAccount"><service-call name="org.moqui.impl.UserServices.update#UserAccount"/>
         <default-response url="."/></transition>
@@ -70,26 +71,52 @@ along with this software (see the LICENSE.md file). If not, see
         <entity-find-one entity-name="moqui.security.UserAccount" value-field="userAccount">
             <field-map field-name="userId" from="userId"/>
         </entity-find-one>
-        <set field="partyId" from="userAccount.partyId" type="String"/>
 
-        <service-call name="co.hotwax.configuration.UserProfileServices.get#NetsuiteDetails"
-                      in-map="[partyId:partyId]" out-map="context"/>
+        <!-- Get netsuite connections -->
+        <set field="netsuiteRemoteList" from="[]"/>
 
-        <set field="netsuiteRemoteList" from="context.netsuiteRemoteList"/>
+        <entity-find entity-name="co.hotwax.netsuite.party.PartySystemMessageRemote" list="partyNetSystemMessageRemoteList">
+            <econdition field-name="partyId" operator="equals" from="organizationPartyId"/>
+            <econdition field-name="systemMessageTypeId" operator="equals" value="NetsuiteCredentials"/>
+            <date-filter/>
+        </entity-find>
+
+        <iterate list="partyNetSystemMessageRemoteList" entry="partyNetSystemMessageRemote">
+            <entity-find-one entity-name="moqui.service.message.SystemMessageRemote" value-field="netsuiteRemote">
+                <field-map field-name="systemMessageRemoteId" from="partyNetSystemMessageRemote.systemMessageRemoteId"/>
+            </entity-find-one>
+            <script>
+                netsuiteRemoteList.add([systemMessageRemoteId:netsuiteRemote.systemMessageRemoteId, accountType:netsuiteRemote.remoteIdType,
+                remoteId:netsuiteRemote.remoteId, certificateId:netsuiteRemote.sendSharedSecret, consumerKey:netsuiteRemote.sharedSecret, privateKey:netsuiteRemote.privateKey, verified:partyNetSystemMessageRemote.verified])
+            </script>
+        </iterate>
 
         <!--Get Loop connections-->
-        <service-call name="co.hotwax.configuration.UserProfileServices.get#LoopDetails"
-                      in-map="[partyId:partyId]" out-map="context"/>
+        <set field="loopRemoteList" from="[]"/>
 
-        <set field="loopRemoteList" from="context.loopRemoteList"/>
+        <entity-find entity-name="co.hotwax.netsuite.party.PartySystemMessageRemote" list="partyLoopSystemMessageRemoteList">
+            <econdition field-name="partyId" operator="equals" from="organizationPartyId"/>
+            <econdition field-name="systemMessageTypeId" operator="equals" value="LoopWebhook"/>
+            <date-filter/>
+        </entity-find>
+
+        <iterate list="partyLoopSystemMessageRemoteList" entry="partyLoopSystemMessageRemote">
+            <entity-find-one entity-name="moqui.service.message.SystemMessageRemote" value-field="loopRemote">
+                <field-map field-name="systemMessageRemoteId" from="partyLoopSystemMessageRemote.systemMessageRemoteId"/>
+            </entity-find-one>
+            <script>
+                loopRemoteList.add([systemMessageRemoteId:loopRemote.systemMessageRemoteId, accountType:loopRemote.remoteIdType,
+                webhookSecret:loopRemote.sendSharedSecret, privateKey:loopRemote.privateKey, verified:partyLoopSystemMessageRemote.verified])
+            </script>
+        </iterate>
 
         <!-- Get login API keys -->
-        <service-call name="co.hotwax.configuration.UserProfileServices.get#UserLoginAPIKey" in-map="context" out-map="resultMap"/>
+        <service-call name="co.hotwax.configuration.UserProfileServices.get#UserLoginAPIKey" in-map="[organizationPartyId:organizationPartyId]" out-map="resultMap"/>
         <set field="loginKey" from="resultMap.loginKey"/>
 
         <!--Get Integration Type Mappings -->
         <service-call name="co.hotwax.configuration.UserProfileServices.get#IntegrationTypeMappingDetails"
-                      in-map="[partyId:partyId]" out-map="context"/>
+                      in-map="[organizationPartyId:organizationPartyId]" out-map="context"/>
 
         <set field="integrationTypeMappingList" from="context.integrationTypeMappingList"/>
     </actions>
@@ -98,6 +125,7 @@ along with this software (see the LICENSE.md file). If not, see
             <row-col lg="2">
                 <container-dialog id="UpdatePassword" button-text="Change Password">
                     <form-single name="UpdatePasswordForm" transition="updatePassword">
+                        <field name="organizationPartyId"><default-field><hidden/></default-field></field>
                         <field name="userId"><default-field><hidden/></default-field></field>
                         <field name="oldPassword"><default-field><hidden default-value="ignored"/></default-field></field>
                         <field name="newPassword"><default-field><password size="20"/></default-field></field>
@@ -113,6 +141,7 @@ along with this software (see the LICENSE.md file). If not, see
 
                 <form-single name="UserAccountForm" map="userAccount" transition="updateUserAccount">
                     <field name="userId"><default-field><display/></default-field></field>
+                    <field name="organizationPartyId"><default-field><hidden/></default-field></field>
                     <field name="username"><default-field><text-line size="20"/></default-field></field>
                     <field name="emailAddress"><default-field title="Email"><text-line size="50"/></default-field></field>
                     <field name="userFullName"><default-field title="Full Name"><text-line size="40"/></default-field></field>
@@ -132,8 +161,8 @@ along with this software (see the LICENSE.md file). If not, see
                     <box-toolbar>
                         <container-dialog id="AddIntegrationMappings" button-text="Add Integration Mappings">
                             <form-single name="AddIntegrationMappings" transition="addIntegrationMappings">
-                                <field name="partyId"><default-field><hidden/></default-field></field>
                                 <field name="userId"><default-field><hidden/></default-field></field>
+                                <field name="organizationPartyId"><default-field><hidden/></default-field></field>
                                 <field name="locationId" required="true">
                                     <default-field title="NetSuite Warehouse Location Id (Internal Id)">
                                         <text-line size="20"/>
@@ -184,8 +213,8 @@ along with this software (see the LICENSE.md file). If not, see
                     </box-toolbar>
                     <box-body-nopad>
                         <form-list name="IntegrationMappingList" list="integrationTypeMappingList">
-                            <field name="partyId"><default-field><hidden/></default-field></field>
                             <field name="userId"><default-field><hidden/></default-field></field>
+                            <field name="organizationPartyId"><default-field><hidden/></default-field></field>
                             <field name="integrationMappingId">
                                 <header-field show-order-by="true"/>
                                 <default-field><display/></default-field>
@@ -214,8 +243,8 @@ along with this software (see the LICENSE.md file). If not, see
                 <container-box><box-header title="NetSuite Credentials"/><box-toolbar>
                     <container-dialog id="AddNetSuiteCredentials" button-text="Add NetSuite Credentials">
                         <form-single name="CreateNetsuiteConnection" transition="createNetsuiteConnection">
-                            <field name="partyId"><default-field><hidden/></default-field></field>
                             <field name="userId"><default-field><hidden/></default-field></field>
+                            <field name="organizationPartyId"><default-field><hidden/></default-field></field>
                             <field name="remoteId" required="true">
                                 <default-field title="NetSuite Account Id">
                                     <text-line size="20"/>
@@ -253,8 +282,8 @@ along with this software (see the LICENSE.md file). If not, see
                     </container-dialog>
                 </box-toolbar><box-body-nopad>
                     <form-list name="NetsuiteRemoteList" list="netsuiteRemoteList">
-                        <field name="partyId"><default-field><hidden/></default-field></field>
                         <field name="userId"><default-field><hidden/></default-field></field>
+                        <field name="organizationPartyId"><default-field><hidden/></default-field></field>
                         <field name="systemMessageRemoteId">
                             <header-field show-order-by="true"/>
                             <default-field><display/></default-field>
@@ -290,8 +319,8 @@ along with this software (see the LICENSE.md file). If not, see
                 <container-box><box-header title="Loop Credentials"/><box-toolbar>
                     <container-dialog id="AddLoopCredentials" button-text="Add Loop Credentials">
                         <form-single name="CreateUserLoopAccount" transition="createLoopConnection">
-                            <field name="partyId"><default-field><hidden/></default-field></field>
                             <field name="userId"><default-field><hidden/></default-field></field>
+                            <field name="organizationPartyId"><default-field><hidden/></default-field></field>
                             <field name="accountType">
                                 <default-field title="Account Type">
                                     <radio>
@@ -319,8 +348,8 @@ along with this software (see the LICENSE.md file). If not, see
                     </container-dialog>
                 </box-toolbar><box-body-nopad>
                     <form-list name="LoopRemoteList" list="loopRemoteList" transition="subscribeLoopWebhook">
-                        <field name="partyId"><default-field><hidden/></default-field></field>
                         <field name="userId"><default-field><hidden/></default-field></field>
+                        <field name="organizationPartyId"><default-field><hidden/></default-field></field>
                         <field name="systemMessageRemoteId">
                             <header-field show-order-by="true"/>
                             <default-field><display/></default-field>
