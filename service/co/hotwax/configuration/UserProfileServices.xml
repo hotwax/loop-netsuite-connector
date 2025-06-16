@@ -172,15 +172,17 @@
 
     <service verb="get" noun="UserLoginAPIKey">
         <in-parameters>
-            <parameter name="partyId"/>
+            <parameter name="organizationPartyId"/>
         </in-parameters>
         <out-parameters>
             <parameter name="loginKey" type="String"/>
         </out-parameters>
         <actions>
-            <service-call name="co.hotwax.configuration.UserProfileServices.get#OrganizationPartyIds"
-                          in-map="[personPartyId:partyId]" out-map="context"/>
-            <set field="organizationPartyId" from="context.partyId" type="String"/>
+            <if condition="!organizationPartyId">
+                <!-- Get OrganizationPartyId from logged in user -->
+                <service-call name="co.hotwax.configuration.UserProfileServices.get#OrganizationPartyIds" out-map="context"/>
+                <set field="organizationPartyId" from="context.partyId" type="String"/>
+            </if>
 
             <entity-find entity-name="co.hotwax.netsuite.party.PartyRelationship" list="partyRelationshipList" distinct="true">
                 <econdition field-name="fromPartyId" operator="equals" from="organizationPartyId"/>

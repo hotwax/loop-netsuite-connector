@@ -111,7 +111,7 @@ along with this software (see the LICENSE.md file). If not, see
         </iterate>
 
         <!-- Get login API keys -->
-        <service-call name="co.hotwax.configuration.UserProfileServices.get#UserLoginAPIKey" in-map="context" out-map="resultMap"/>
+        <service-call name="co.hotwax.configuration.UserProfileServices.get#UserLoginAPIKey" in-map="[organizationPartyId:organizationPartyId]" out-map="resultMap"/>
         <set field="loginKey" from="resultMap.loginKey"/>
 
         <!--Get Integration Type Mappings -->
