@@ -112,7 +112,7 @@ along with this software (see the LICENSE.md file). If not, see
 
         <!-- Get login API keys -->
         <service-call name="co.hotwax.configuration.UserProfileServices.get#UserLoginAPIKey" in-map="[organizationPartyId:organizationPartyId]" out-map="resultMap"/>
-        <set field="loginKey" from="resultMap.loginKey"/>
+        <set field="loginKeyMap" from="resultMap.loginKeyMap"/>
 
         <!--Get Integration Type Mappings -->
         <service-call name="co.hotwax.configuration.UserProfileServices.get#IntegrationTypeMappingDetails"
@@ -297,10 +297,10 @@ along with this software (see the LICENSE.md file). If not, see
                             <default-field><display/></default-field>
                         </field>
                         <field name="apiKey">
-                            <conditional-field condition="loginKey == null">
+                            <conditional-field condition="loginKeyMap.get(systemMessageRemoteId) == null">
                                 <link url="createUserLoginAPIKey" text="" icon="fa fa-key"/>
                             </conditional-field>
-                            <default-field><label text="${loginKey}" type="strong" style=""/></default-field>
+                            <default-field><label text="${loginKeyMap.get(systemMessageRemoteId)}" type="strong" style=""/></default-field>
                         </field>
                         <field name="">
                             <conditional-field condition="verified != 'Y'">
