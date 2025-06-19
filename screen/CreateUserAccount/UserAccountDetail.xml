@@ -297,10 +297,10 @@ along with this software (see the LICENSE.md file). If not, see
                             <default-field><display/></default-field>
                         </field>
                         <field name="apiKey">
-                            <conditional-field condition="loginKeyMap.get(systemMessageRemoteId) == null">
+                            <conditional-field condition="loginKeyMap.get(remoteId) == null">
                                 <link url="createUserLoginAPIKey" text="" icon="fa fa-key"/>
                             </conditional-field>
-                            <default-field><label text="${loginKeyMap.get(systemMessageRemoteId)}" type="strong" style=""/></default-field>
+                            <default-field><label text="${loginKeyMap.get(remoteId)}" type="strong" style=""/></default-field>
                         </field>
                         <field name="">
                             <conditional-field condition="verified != 'Y'">

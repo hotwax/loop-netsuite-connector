@@ -116,19 +116,16 @@
                 <set field="organizationPartyId" from="context.partyId" type="String"/>
             </if>
 
-            <entity-find entity-name="co.hotwax.netsuite.party.PartySystemMessageRemote" list="partyNetSystemMessageRemoteList">
-                <econdition field-name="systemMessageRemoteId" operator="equals" from="systemMessageRemoteId"/>
-                <econdition field-name="systemMessageTypeId" operator="equals" value="NetsuiteCredentials"/>
-                <econdition field-name="partyId" operator="equals" from="organizationPartyId"/>
-                <date-filter/>
-            </entity-find>
-
-            <if condition="partyNetSystemMessageRemoteList == null">
+            <entity-find-one entity-name="moqui.service.message.SystemMessageRemote" value-field="systemMessageRemote" cache="true">
+                <field-map field-name="systemMessageRemoteId" from="systemMessageRemoteId"/>
+            </entity-find-one>
+            <if condition="systemMessageRemote == null">
                 <return error="true" message="NetSuite Account not found for organization : ${organizationPartyId}"/>
             </if>
+            <set field="netSuiteRemoteId" from="systemMessageRemote.remoteId"/>
 
             <entity-find entity-name="moqui.security.UserAccount" list="userAccountList">
-                <econdition field-name="externalUserId" operator="equals" from="systemMessageRemoteId"/>
+                <econdition field-name="externalUserId" operator="equals" from="netSuiteRemoteId"/>
             </entity-find>
 
             <if condition="userAccountList">
@@ -136,7 +133,7 @@
             </if>
 
             <if condition="userAccount">
-                <return error="true" message="Integration user already exists for NetSuite Account : ${systemMessageRemoteId}"/>
+                <return error="true" message="Integration user already exists for NetSuite Account : ${netSuiteRemoteId}"/>
             </if>
 
             <!-- Create Integration UserLogin Account for registered user to call API from netsuite  -->
@@ -154,7 +151,7 @@
 
             <!-- Create Integration User Account -->
             <service-call name="org.moqui.impl.UserServices.create#UserAccount"
-                          in-map="[username:systemMessageRemoteId + '_Integration', newPassword:password, newPasswordVerify:password, partyId:integrationPartyId, externalUserId:systemMessageRemoteId]"
+                          in-map="[username:netSuiteRemoteId + '_Integration', newPassword:password, newPasswordVerify:password, partyId:integrationPartyId, externalUserId:netSuiteRemoteId]"
                           out-map="userOut"/>
             <set field="integrationUserId" from="userOut.userId"/>
 
@@ -174,7 +171,7 @@
             </if>
 
             <if condition="userLoginKey">
-                <return error="true" message="User login api key already exists for NetSuite Account : ${systemMessageRemoteId}"/>
+                <return error="true" message="User login api key already exists for NetSuite Account : ${netSuiteRemoteId}"/>
             </if>
             <script><![CDATA[
                 import org.moqui.util.StringUtilities
@@ -223,26 +220,33 @@
 
             <iterate list="partyNetSystemMessageRemoteList" entry="partyNetSystemMessageRemote">
                 <set field="systemMessageRemoteId" from="partyNetSystemMessageRemote.systemMessageRemoteId"/>
+                <entity-find-one entity-name="moqui.service.message.SystemMessageRemote" value-field="systemMessageRemote" cache="true">
+                    <field-map field-name="systemMessageRemoteId" from="systemMessageRemoteId"/>
+                </entity-find-one>
+                <if condition="systemMessageRemote">
+                    <set field="netSuiteRemoteId" from="systemMessageRemote.remoteId"/>
+                </if>
+
                 <entity-find entity-name="moqui.security.UserAccount" list="userAccountList">
-                    <econdition field-name="externalUserId" operator="equals" from="partyNetSystemMessageRemote.systemMessageRemoteId"/>
+                    <econdition field-name="externalUserId" operator="equals" from="netSuiteRemoteId"/>
                 </entity-find>
 
                 <if condition="userAccountList">
                     <set field="userId" from="userAccountList[0].userId"/>
-                </if>
-                <entity-find entity-name="moqui.security.UserLoginKey" list="userLoginKeyList">
-                    <econdition field-name="userId" operator="equals" from="userId"/>
-                    <date-filter/>
-                </entity-find>
+                    <entity-find entity-name="moqui.security.UserLoginKey" list="userLoginKeyList">
+                        <econdition field-name="userId" operator="equals" from="userId"/>
+                        <date-filter/>
+                    </entity-find>
 
-                <if condition="userLoginKeyList">
-                    <set field="userLoginKey" from="userLoginKeyList[0].loginKey"/>
+                    <if condition="userLoginKeyList">
+                        <set field="userLoginKey" from="userLoginKeyList[0].loginKey"/>
+                    </if>
+                    <script>
+                        if (userLoginKey) {
+                        loginKeyMap.put(netSuiteRemoteId, userLoginKey)
+                        }
+                    </script>
                 </if>
-                <script>
-                    if (userLoginKey) {
-                        loginKeyMap.put(systemMessageRemoteId, userLoginKey)
-                    }
-                </script>
             </iterate>
         </actions>
     </service>
