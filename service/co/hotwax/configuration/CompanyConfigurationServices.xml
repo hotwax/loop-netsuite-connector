@@ -82,32 +82,6 @@
             <!-- Assign UserGroup to view scereen and call organization API's -->
             <service-call name="create#moqui.security.UserGroupMember" in-map="[userId:userId, userGroupId:'ALL_TENANT_AUTH']"/>
 
-            <!-- Create Integration UserLogin Account for registered user to call API from netsuite  -->
-
-            <!-- Create Integration Party -->
-            <service-call name="create#co.hotwax.netsuite.party.Party"
-                          in-map="[partyTypeEnumId:'PtyPerson', disabled:'N', ownerPartyId:personPartyId]"
-                          out-map="integrationPartyOut"/>
-            <set field="integrationPartyId" from="integrationPartyOut.partyId"/>
-
-            <service-call name="create#co.hotwax.netsuite.party.Person"
-                          in-map="[partyId:integrationPartyId, firstName:firstName + '_Integration', lastName:lastName + '_Integration']"/>
-
-            <service-call name="create#co.hotwax.netsuite.party.PartyRole"
-                          in-map="[partyId:integrationPartyId, roleTypeId:'ContactIntegration']"/>
-
-            <!-- Create Integration User Account -->
-            <service-call name="org.moqui.impl.UserServices.create#UserAccount"
-                          in-map="[username:username + '_Integration', userFullName:userFullName + '_Integration', newPassword:newPassword + '_Netsuite@786', newPasswordVerify:newPasswordVerify + '_Netsuite@786', partyId:integrationPartyId]"
-                          out-map="userOut"/>
-            <set field="integrationUserId" from="userOut.userId"/>
-
-            <service-call name="create#moqui.security.UserGroupMember" in-map="[userId:integrationUserId, userGroupId:'NETSUITE_INTEGRATION']"/>
-
-            <!-- Link integration user as a contact integration for the Organization -->
-            <service-call name="create#co.hotwax.netsuite.party.PartyRelationship"
-                          in-map="[fromPartyId:organizationPartyId, fromRoleTypeId:'Organization', toPartyId:integrationPartyId, toRoleTypeId:'ContactIntegration', relationshipTypeEnumId:'PrtContact', fromDate:fromDate]"/>
-
             <!-- Create Telecom Contact Mechanism -->
             <service-call name="create#co.hotwax.netsuite.party.contact.ContactMech"
                           in-map="[contactMechTypeEnumId:'CmtTelecomNumber']"

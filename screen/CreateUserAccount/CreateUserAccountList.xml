@@ -77,7 +77,7 @@
           <text-find size="10" hide-options="true"/>
         </header-field>
         <default-field>
-          <link text="${userId}" url="UserAccountDetail" link-type="anchor" parameter-map="[userId:userId, organizationPartyId:organizationPartyId]"/>
+          <link text="${organizationPartyId}" url="UserAccountDetail" link-type="anchor" parameter-map="[userId:userId, organizationPartyId:organizationPartyId]"/>
         </default-field>
       </field>
       <field name="organizationName">
