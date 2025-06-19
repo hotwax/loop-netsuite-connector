@@ -19,6 +19,11 @@ under the License.
 <resource xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://moqui.org/xsd/rest-api-3.xsd"
           name="netsuite-loop-connector" displayName="NetSuite Loop Connector REST API" version="1.0.0" description="NetSuite Loop Connector REST API">
 
+    <resource name="registerOrganization" require-authentication="anonymous-all">
+        <method type="post">
+            <service name="co.hotwax.configuration.CompanyConfigurationServices.create#OrganizationWithContact"/>
+        </method>
+    </resource>
     <resource name="organizations">
         <resource name="profile">
             <method type="get">
