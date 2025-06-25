@@ -19,7 +19,7 @@
 
   <!-- Show form directly on the screen -->
   <widgets>
-    <container-dialog id="CreateUserAccountDialog" button-text="Create User Account">
+    <container-dialog id="CreateUserAccountDialog" button-text="Register Organization">
     <form-single name="CreateUserAccount" transition="createUserAccount">
       <field name="username">
         <default-field title="User Name">
