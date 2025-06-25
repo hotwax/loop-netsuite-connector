@@ -7,7 +7,7 @@
   <!-- Transition to create a new user account -->
   <transition name="UserAccountDetail"><default-response url="../UserAccountDetail"/></transition>
   <transition name="createUserAccount">
-    <service-call name="co.hotwax.configuration.CompanyConfigurationServices.create#OrganizationWithContact" in-map="context"/>
+    <service-call name="co.hotwax.configuration.CompanyConfigurationServices.register#Organization" in-map="context"/>
     <default-response url="."/>
   </transition>
   <actions>

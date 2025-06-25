@@ -2,7 +2,7 @@
 <services xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
           xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/service-definition-3.xsd">
 
-    <service verb="create" noun="OrganizationParty" authenticate="anonymous-all">
+    <service verb="create" noun="OrganizationParty">
         <description>Creates an Organization party and its associated role.</description>
         <in-parameters>
             <parameter name="organizationName" required="true"/>
@@ -24,7 +24,7 @@
         </actions>
     </service>
 
-    <service verb="create" noun="ContactPerson" authenticate="anonymous-all">
+    <service verb="create" noun="ContactPerson">
         <description>Creates a Contact Person and associates with an existing Organization party.</description>
         <in-parameters>
             <parameter name="userFullName" required="true"/>
@@ -126,7 +126,7 @@
         </actions>
     </service>
 
-    <service verb="create" noun="OrganizationWithContact" authenticate="anonymous-all">
+    <service verb="register" noun="Organization" authenticate="anonymous-all">
         <description>
             Creates a Person party with userFullName and email,
             creates an Organization with organizationName,
