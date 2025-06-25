@@ -5,7 +5,7 @@
     default-menu-index="1">
 
   <!-- Transition to create a new user account -->
-  <transition name="UserAccountDetail"><default-response url="../UserAccountDetail"/></transition>
+  <transition name="OrganizationDetail"><default-response url="../OrganizationDetail"/></transition>
   <transition name="createUserAccount">
     <service-call name="co.hotwax.configuration.CompanyConfigurationServices.register#Organization" in-map="context"/>
     <default-response url="."/>
@@ -77,7 +77,7 @@
           <text-find size="10" hide-options="true"/>
         </header-field>
         <default-field>
-          <link text="${userId}" url="UserAccountDetail" link-type="anchor" parameter-map="[userId:userId, organizationPartyId:organizationPartyId]"/>
+          <link text="${userId}" url="OrganizationDetail" link-type="anchor" parameter-map="[userId:userId, organizationPartyId:organizationPartyId]"/>
         </default-field>
       </field>
       <field name="organizationName">

@@ -17,8 +17,8 @@
     </webapp-list>
     <screen-facade>
         <screen location="component://webroot/screen/webroot/apps.xml">
-            <subscreens-item name="CreateUserAccount" menu-title="Create User Account" menu-index="95"
-                             location="component://loop-netsuite-connector/screen/CreateUserAccount.xml"/>
+            <subscreens-item name="LoopNetsuiteConnector" menu-title="Loop NetSuite Connector" menu-index="95"
+                             location="component://loop-netsuite-connector/screen/LoopNetsuiteConnector.xml"/>
         </screen>
     </screen-facade>
     <service-facade>
