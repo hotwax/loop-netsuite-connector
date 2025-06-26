@@ -9,7 +9,7 @@
     </artifactGroups>
 
     <artifactGroups artifactGroupId="USER_SETUP_APP" description="User Setup App">
-        <artifacts artifactName="component://loop-netsuite-connector/screen/CreateUserAccount.xml" artifactTypeEnumId="AT_XML_SCREEN" inheritAuthz="Y"/>
+        <artifacts artifactName="component://loop-netsuite-connector/screen/LoopNetsuiteConnector.xml" artifactTypeEnumId="AT_XML_SCREEN" inheritAuthz="Y"/>
         <!-- Full permissions for the ADMIN user group -->
         <authz artifactAuthzId="USER_SETUP_APP_ADMIN" userGroupId="ADMIN" authzTypeEnumId="AUTHZT_ALWAYS" authzActionEnumId="AUTHZA_ALL"/>
     </artifactGroups>
