@@ -233,13 +233,10 @@
                     </entity-find>
 
                     <if condition="userLoginKeyList">
-                        <set field="userLoginKey" from="userLoginKeyList[0].loginKey"/>
+                        <script>
+                            loginKeyMap.put(netSuiteRemoteId, userLoginKeyList[0].loginKey)
+                        </script>
                     </if>
-                    <script>
-                        if (userLoginKey) {
-                            loginKeyMap.put(netSuiteRemoteId, userLoginKey)
-                        }
-                    </script>
                 </if>
             </iterate>
         </actions>
