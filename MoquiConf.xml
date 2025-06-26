@@ -4,21 +4,24 @@
     <cache-list warm-on-start="false">
         <cache name="netsuite.access.token" expire-time-idle="3000" value-type="String"/>
     </cache-list>
-    <service-facade>
-        <service-type name="netsuite-rest-connector" runner-class="co.hotwax.netsuite.impl.service.runner.NetSuiteRestServiceRunner"/>
-    </service-facade>
-    <screen-facade>
-        <screen location="component://webroot/screen/webroot/apps.xml">
-            <subscreens-item name="CreateUserAccount" menu-title="Create User Account" menu-index="95"
-                       location="component://loop-netsuite-connector/screen/CreateUserAccount.xml"/>
-        </screen>
-    </screen-facade>
+
+    <server-stats stats-skip-condition="pathInfo?.startsWith('/rpc') || pathInfo?.startsWith('/rest') || pathInfo?.startsWith('/status')" visit-enabled="false" visitor-enabled="false"/>
+
     <webapp-list>
-        <webapp name="webroot">
+        <webapp name="webroot" require-session-token="false">
             <!-- Loop Webhook Request Filter  -->
             <filter name="LoopWebhookFilter" class="co.hotwax.loop.LoopWebhookFilter" async-supported="true">
                 <url-pattern>/rest/s1/loop/webhook/*</url-pattern>
             </filter>
         </webapp>
     </webapp-list>
+    <screen-facade>
+        <screen location="component://webroot/screen/webroot/apps.xml">
+            <subscreens-item name="LoopNetsuiteConnector" menu-title="Loop NetSuite Connector" menu-index="95"
+                             location="component://loop-netsuite-connector/screen/LoopNetsuiteConnector.xml"/>
+        </screen>
+    </screen-facade>
+    <service-facade>
+        <service-type name="netsuite-rest-connector" runner-class="co.hotwax.netsuite.impl.service.runner.NetSuiteRestServiceRunner"/>
+    </service-facade>
 </moqui-conf>
