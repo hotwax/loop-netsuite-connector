@@ -105,43 +105,69 @@
     <service verb="create" noun="UserLoginAPIKey">
         <in-parameters>
             <parameter name="organizationPartyId"/>
+            <parameter name="systemMessageRemoteId" required="true"/>
         </in-parameters>
         <actions>
+            <set field="fromDate" from="ec.user.nowTimestamp"/>
+
             <if condition="!organizationPartyId">
                 <!-- Get OrganizationPartyId from logged in user -->
                 <service-call name="co.hotwax.configuration.UserProfileServices.get#OrganizationPartyIds" out-map="context"/>
                 <set field="organizationPartyId" from="context.partyId" type="String"/>
             </if>
 
-            <entity-find entity-name="co.hotwax.netsuite.party.PartyRelationship" list="partyRelationshipList" distinct="true">
-                <econdition field-name="fromPartyId" operator="equals" from="organizationPartyId"/>
-                <econdition field-name="fromRoleTypeId" operator="equals" value="Organization"/>
-                <econdition field-name="toRoleTypeId" operator="equals" value="ContactIntegration"/>
-                <econdition field-name="relationshipTypeEnumId" operator="equals" value="PrtContact"/>
+            <entity-find-one entity-name="co.hotwax.netsuite.party.Organization" value-field="organization" cache="true">
+                <field-map field-name="partyId" from="organizationPartyId"/>
+            </entity-find-one>
+            <if condition="organization">
+                <set field="organizationName" from="organization.organizationName"/>
+            </if>
+
+            <entity-find-one entity-name="moqui.service.message.SystemMessageRemote" value-field="systemMessageRemote" cache="true">
+                <field-map field-name="systemMessageRemoteId" from="systemMessageRemoteId"/>
+            </entity-find-one>
+            <if condition="systemMessageRemote == null">
+                <return error="true" message="NetSuite Account not found for organization : ${organizationName} [${organizationPartyId}]"/>
+            </if>
+            <set field="netSuiteRemoteId" from="systemMessageRemote.remoteId"/>
+
+            <entity-find entity-name="moqui.security.UserAccount" list="userAccountList">
+                <econdition field-name="externalUserId" operator="equals" from="netSuiteRemoteId"/>
             </entity-find>
 
-            <if condition="partyRelationshipList">
-                <set field="partyId" from="partyRelationshipList[0].toPartyId" type="String"/>
+            <if condition="userAccountList">
+                <set field="userAccount" from="userAccountList[0]"/>
             </if>
-
-            <if condition="partyId == null"><return error="true" message="Integration party not found for Logged in user ${organizationPartyId}"/></if>
-
-            <entity-find-one entity-name="moqui.security.UserAccount" value-field="userAccount">
-                <field-map field-name="partyId" from="partyId"/>
-            </entity-find-one>
 
             <if condition="userAccount">
-                <set field="userId" from="userAccount.userId" type="String"/>
+                <return error="true" message="Integration user already exists for NetSuite Account : ${netSuiteRemoteId}"/>
             </if>
-            <if condition="userId == null"><return error="true" message="Integration user not found for Logged in user ${organizationPartyId}"/></if>
 
-            <entity-find-one entity-name="moqui.security.UserLoginKey" value-field="userLoginKey">
-                <econdition field-name="userId" operator="equals" from="userId"/>
-                <date-filter/>
-            </entity-find-one>
-            <if condition="userLoginKey">
-                <return error="true" message="User login api key already exists for user ${organizationPartyId}"/>
-            </if>
+            <!-- Create Integration UserLogin Account for registered user to call API from netsuite  -->
+
+            <!-- Create Integration Party -->
+            <set field="password" from="org.moqui.util.StringUtilities.getRandomString(20) + 'Hc@7'"/>
+
+            <service-call name="create#co.hotwax.netsuite.party.Party"
+                          in-map="[partyTypeEnumId:'PtyPerson', disabled:'N', ownerPartyId:organizationPartyId]"
+                          out-map="integrationPartyOut"/>
+            <set field="integrationPartyId" from="integrationPartyOut.partyId"/>
+
+            <service-call name="create#co.hotwax.netsuite.party.PartyRole"
+                          in-map="[partyId:integrationPartyId, roleTypeId:'ContactIntegration']"/>
+
+            <!-- Create Integration User Account -->
+            <service-call name="org.moqui.impl.UserServices.create#UserAccount"
+                          in-map="[username:netSuiteRemoteId + '_Integration', newPassword:password, newPasswordVerify:password, partyId:integrationPartyId, externalUserId:netSuiteRemoteId]"
+                          out-map="userOut"/>
+            <set field="integrationUserId" from="userOut.userId"/>
+
+            <service-call name="create#moqui.security.UserGroupMember" in-map="[userId:integrationUserId, userGroupId:'NETSUITE_INTEGRATION']"/>
+
+            <!-- Link integration user as a contact integration for the Organization -->
+            <service-call name="create#co.hotwax.netsuite.party.PartyRelationship"
+                          in-map="[fromPartyId:organizationPartyId, fromRoleTypeId:'Organization', toPartyId:integrationPartyId, toRoleTypeId:'ContactIntegration', relationshipTypeEnumId:'PrtContact', fromDate:fromDate]"/>
+
             <script><![CDATA[
                 import org.moqui.util.StringUtilities
                 import org.moqui.entity.EntityCondition
@@ -149,20 +175,16 @@
                 // generate login key
                 String loginKey = StringUtilities.getRandomString(40)
 
-                // expire in 5 years
-                expireHours = Float.valueOf(43800)
-
                 // save hashed in UserLoginKey, calc expire and set from/thru dates
                 String hashedKey = ec.ecfi.getSimpleHash(loginKey, "", ec.ecfi.getLoginKeyHashType(), false)
                 Timestamp fromDate = ec.user.nowTimestamp
-                long thruTime = fromDate.getTime() + Math.round(expireHours * 60*60*1000)
 
                 ec.service.sync().name("create", "moqui.security.UserLoginKey")
-                .parameters([loginKey:hashedKey, userId:userId, fromDate:fromDate, thruDate:new Timestamp(thruTime)])
+                .parameters([loginKey:hashedKey, userId:integrationUserId, fromDate:fromDate])
                 .disableAuthz().requireNewTransaction(false).call()
 
                 // clean out expired keys
-                ec.entity.find("moqui.security.UserLoginKey").condition("userId", userId)
+                ec.entity.find("moqui.security.UserLoginKey").condition("userId", integrationUserId)
                     .condition("thruDate", EntityCondition.LESS_THAN, fromDate).disableAuthz().deleteAll()
             ]]></script>
             <!-- Final Success Message -->
@@ -175,42 +197,48 @@
             <parameter name="organizationPartyId"/>
         </in-parameters>
         <out-parameters>
-            <parameter name="loginKey" type="String"/>
+            <parameter name="loginKeyMap" type="Map"/>
         </out-parameters>
         <actions>
+            <set field="loginKeyMap" from="[:]"/>
             <if condition="!organizationPartyId">
                 <!-- Get OrganizationPartyId from logged in user -->
                 <service-call name="co.hotwax.configuration.UserProfileServices.get#OrganizationPartyIds" out-map="context"/>
                 <set field="organizationPartyId" from="context.partyId" type="String"/>
             </if>
 
-            <entity-find entity-name="co.hotwax.netsuite.party.PartyRelationship" list="partyRelationshipList" distinct="true">
-                <econdition field-name="fromPartyId" operator="equals" from="organizationPartyId"/>
-                <econdition field-name="fromRoleTypeId" operator="equals" value="Organization"/>
-                <econdition field-name="toRoleTypeId" operator="equals" value="ContactIntegration"/>
-                <econdition field-name="relationshipTypeEnumId" operator="equals" value="PrtContact"/>
+            <entity-find entity-name="co.hotwax.netsuite.party.PartySystemMessageRemote" list="partyNetSystemMessageRemoteList">
+                <econdition field-name="systemMessageTypeId" operator="equals" value="NetsuiteCredentials"/>
+                <econdition field-name="partyId" operator="equals" from="organizationPartyId"/>
+                <date-filter/>
             </entity-find>
 
-            <if condition="partyRelationshipList">
-                <set field="partyId" from="partyRelationshipList[0].toPartyId" type="String"/>
-            </if>
+            <iterate list="partyNetSystemMessageRemoteList" entry="partyNetSystemMessageRemote">
+                <set field="systemMessageRemoteId" from="partyNetSystemMessageRemote.systemMessageRemoteId"/>
+                <entity-find-one entity-name="moqui.service.message.SystemMessageRemote" value-field="systemMessageRemote" cache="true">
+                    <field-map field-name="systemMessageRemoteId" from="systemMessageRemoteId"/>
+                </entity-find-one>
+                <set field="netSuiteRemoteId" from="systemMessageRemote.remoteId"/>
 
-            <if condition="partyId == null"><return error="true" message="Integration party not found for Logged in user ${loggedInPartyId}"/></if>
+                <entity-find entity-name="moqui.security.UserAccount" list="userAccountList">
+                    <econdition field-name="externalUserId" operator="equals" from="netSuiteRemoteId"/>
+                </entity-find>
 
-            <entity-find-one entity-name="moqui.security.UserAccount" value-field="userAccount">
-                <field-map field-name="partyId" from="partyId"/>
-            </entity-find-one>
+                <if condition="userAccountList">
+                    <set field="userId" from="userAccountList[0].userId"/>
+                    <entity-find entity-name="moqui.security.UserLoginKey" list="userLoginKeyList">
+                        <econdition field-name="userId" operator="equals" from="userId"/>
+                        <econdition field-name="loginKey" operator="is-not-null"/>
+                        <date-filter/>
+                    </entity-find>
 
-            <set field="userId" from="userAccount.userId" type="String"/>
-            <if condition="userId == null"><return error="true" message="Integration user not found for Logged in user ${loggedInPartyId}"/></if>
-
-            <entity-find-one entity-name="moqui.security.UserLoginKey" value-field="userLoginKey">
-                <econdition field-name="userId" operator="equals" from="userId"/>
-                <date-filter/>
-            </entity-find-one>
-            <if condition="userLoginKey">
-                <set field="loginKey" from="userLoginKey.loginKey" type="String"/>
-            </if>
+                    <if condition="userLoginKeyList">
+                        <script>
+                            loginKeyMap.put(netSuiteRemoteId, userLoginKeyList[0].loginKey)
+                        </script>
+                    </if>
+                </if>
+            </iterate>
         </actions>
     </service>
 
