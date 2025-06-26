@@ -100,7 +100,7 @@
         </actions>
     </service>
 
-    <service verb="create" noun="OrganizationWithContact">
+    <service verb="register" noun="Organization" authenticate="anonymous-all">
         <description>
             Creates a Person party with userFullName and email,
             creates an Organization with organizationName,
