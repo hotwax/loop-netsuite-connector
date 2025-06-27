@@ -160,7 +160,7 @@ under the License.
         </actions>
     </service>
 
-    <service verb="verify" noun="Hmac">
+    <service verb="verify" noun="Hmac" authenticate="anonymous-all">
         <description>Verify hmac for the received webhook payload.</description>
         <in-parameters>
             <parameter name="message" required="true"/>
@@ -192,7 +192,7 @@ under the License.
         </actions>
     </service>
 
-    <service verb="receive" noun="WebhookPayload">
+    <service verb="receive" noun="WebhookPayload" authenticate="anonymous-all">
         <description>Receive webhook payload in an incoming SystemMessage of the webhook topics SystemMessageType and put it to SFTP server.</description>
         <in-parameters>
             <parameter name="payload" type="Map" required="true"/>
@@ -217,7 +217,7 @@ under the License.
             <set field="nowDate" from="ec.user.nowTimestamp"/>
 
             <set field="jsonFilePathRef" from="ec.resource.expand(systemMessageType.receivePath, null,
-                        [contentRoot: ec.user.getPreference('mantle.content.root') ?: 'runtime://datamanager', date:ec.l10n.format(nowDate, 'yyyy-MM-dd'), dateTime:ec.l10n.format(nowDate, 'yyyy-MM-dd-HH-mm-ss-SSS'), partyId:webhookPartyId], false)"/>
+                        [contentRoot: ec.user.getPreference('mantle.content.root') ?: 'runtime://datamanager', date:ec.l10n.format(nowDate, 'yyyy-MM-dd'), dateTime:ec.l10n.format(nowDate, 'yyyy-MM-dd-HH-mm-ss-SSS'), partyId:webhookPartyId, accountType:remoteIdType], false)"/>
             <set field="jsonFilePath" from="ec.resource.getLocationReference(jsonFilePathRef).getUri().getPath()"/>
 
             <script><![CDATA[
