@@ -216,6 +216,10 @@
                 <service-call name="co.hotwax.configuration.UserProfileServices.get#OrganizationPartyIds" out-map="context"/>
                 <set field="organizationPartyId" from="context.partyId" type="String"/>
             </if>
+            <set field="fileName" from="sshKey.getName()"/>
+            <if condition="!fileName.endsWith('.pem')">
+                <return error="true" message="File ${fileName} is not a .pem file. Only .pem files are supported"/>
+            </if>
             <set field="fileText" from="sshKey.getString()"/>
 
             <if condition="remoteId.contains('_')">
