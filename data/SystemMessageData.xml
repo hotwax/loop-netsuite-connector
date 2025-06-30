@@ -33,21 +33,21 @@
   <parameters parameterName="scriptType" parameterValue="netsuite.restlet.create.return" systemMessageRemoteId=""/>
  </moqui.service.message.SystemMessageType>
 
- <!-- SystemMessageType record for loop return.updated webhook -->
- <moqui.service.message.SystemMessageType systemMessageTypeId="LoopReturnsUpdate"
-         description="Loop Returns Update Webhook"
+ <!-- SystemMessageType record for loop label.created webhook -->
+ <moqui.service.message.SystemMessageType systemMessageTypeId="LoopLabelCreate"
+         description="Loop Label Create Webhook"
          parentTypeId="LoopWebhook"
          sendServiceName="co.hotwax.loop.webhook.LoopWebhookServices.send#WebhookSubscriptionSystemMessage">
-  <parameters parameterName="topic" parameterValue="return" systemMessageRemoteId=""/>
-  <parameters parameterName="trigger" parameterValue="return.updated" systemMessageRemoteId=""/>
+  <parameters parameterName="topic" parameterValue="label" systemMessageRemoteId=""/>
+  <parameters parameterName="trigger" parameterValue="label.created" systemMessageRemoteId=""/>
   <parameters parameterName="status" parameterValue="active" systemMessageRemoteId=""/>
  </moqui.service.message.SystemMessageType>
 
- <moqui.basic.Enumeration description="Loop Update Return Webhook" enumId="LoopReturnsUpdate"
-         enumTypeId="LoopMessageTypeEnum" enumCode="return.updated"/>
+ <moqui.basic.Enumeration description="Loop Create Label Webhook" enumId="LoopLabelCreate"
+         enumTypeId="LoopMessageTypeEnum" enumCode="label.created"/>
 
- <!-- SystemMessageType record to put loop return.updated webhook payload on SFTP server -->
- <moqui.service.message.SystemMessageType systemMessageTypeId="return.updated"
+ <!-- SystemMessageType record to put loop label.created webhook payload on SFTP server -->
+ <moqui.service.message.SystemMessageType systemMessageTypeId="label.created"
          description="Send Update Return JSON file to NetSuite"
          parentTypeId="LocalFeedFile"
          receivePath="${contentRoot}/Netsuite/LoopReturns/${partyId}/update/loopUpdateReturnFeed-${dateTime}.json"
