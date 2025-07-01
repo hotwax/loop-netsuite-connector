@@ -216,10 +216,6 @@
                 <service-call name="co.hotwax.configuration.UserProfileServices.get#OrganizationPartyIds" out-map="context"/>
                 <set field="organizationPartyId" from="context.partyId" type="String"/>
             </if>
-            <set field="fileName" from="sshKey.getName()"/>
-            <if condition="!fileName.endsWith('.pem')">
-                <return error="true" message="File ${fileName} is not a .pem file. Only .pem files are supported"/>
-            </if>
             <set field="fileText" from="sshKey.getString()"/>
 
             <if condition="remoteId.contains('_')">
@@ -231,7 +227,17 @@
                 </else>
             </if>
             <if condition="fileText">
-                <set field="sshKeyValue" value="${fileText.replace('-----BEGIN PRIVATE KEY-----', '').replace('-----END PRIVATE KEY-----', '').replaceAll('\\s+', '')}"/>
+                <script>
+                    StringBuilder sb = new StringBuilder();
+                    String[] lines = fileText.split("\n");
+                    String[] skips = new String[]{"-----BEGIN", "-----END", ": "};
+                    for (String line : lines) {
+                    boolean skipLine = false;
+                    for (String skip : skips) if (line.contains(skip)) { skipLine = true; }
+                    if (!skipLine) sb.append(line.trim());
+                    }
+                    sshKeyValue = sb.toString();
+                </script>
             </if>
             <set field="systemMessageTypeId" from="'NetsuiteCredentials'"/>
             <set field="tokenUrl" from="'https://' + accountId + '.suitetalk.api.netsuite.com/services/rest/auth/oauth2/v1/token'"/>
