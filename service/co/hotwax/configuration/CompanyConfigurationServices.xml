@@ -394,23 +394,6 @@
                             integrationMappingId:integrationMappingId,
                             integrationTypeId:integrationTypeId
                           ]"/>
-            <!-- Get Party Integration Type Mappings -->
-            <entity-find-one entity-name="co.hotwax.netsuite.party.PartyIntegrationTypeMapping" value-field="partyIntegrationTypeMapping">
-                <econdition field-name="partyId" operator="equals" from="organizationPartyId"/>
-                <econdition field-name="integrationMappingId" operator="equals" from="integrationMappingId"/>
-                <econdition field-name="integrationTypeId" operator="equals" from="integrationTypeId"/>
-                <date-filter/>
-            </entity-find-one>
-
-            <if condition="partyIntegrationTypeMapping != null">
-                <service-call name="delete#co.hotwax.netsuite.party.PartyIntegrationTypeMapping"
-                              in-map="[
-                            partyId:organizationPartyId,
-                            integrationMappingId:partyIntegrationTypeMapping.integrationMappingId,
-                            integrationTypeId:partyIntegrationTypeMapping.integrationTypeId,
-                            fromDate:partyIntegrationTypeMapping.fromDate
-                          ]"/>
-            </if>
             <!-- Final Success Message -->
             <return type="success" message="Your integration type mapping record has been successfully deleted."/>
         </actions>
