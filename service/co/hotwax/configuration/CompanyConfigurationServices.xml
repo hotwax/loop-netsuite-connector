@@ -346,7 +346,6 @@
             Creates NetSuite Return Integration Type Mapping Records.
         </description>
         <in-parameters>
-            <parameter name="organizationPartyId"/>
             <parameter name="systemMessageRemoteId" required="true"/>
             <parameter name="enumId"/>
             <parameter name="mappingValue"/>
@@ -378,17 +377,10 @@
 
     <service verb="delete" noun="NetSuiteReturnIntegrationMapping">
         <in-parameters>
-            <parameter name="organizationPartyId"/>
             <parameter name="integrationMappingId" required="true"/>
             <parameter name="integrationTypeId" required="true"/>
         </in-parameters>
         <actions>
-            <if condition="!organizationPartyId">
-                <!-- Get OrganizationPartyId from logged in user -->
-                <service-call name="co.hotwax.configuration.UserProfileServices.get#OrganizationPartyIds" out-map="context"/>
-                <set field="organizationPartyId" from="context.partyId" type="String"/>
-            </if>
-
             <service-call name="delete#co.hotwax.netsuite.IntegrationTypeMapping"
                           in-map="[
                             integrationMappingId:integrationMappingId,
