@@ -203,7 +203,7 @@
             <parameter name="organizationPartyId"/>
             <parameter name="remoteId" required="true"/>
             <parameter name="accountType" required="true"/>
-            <parameter name="sshKey" required="true"/>
+            <parameter name="sshKey" type="org.apache.commons.fileupload.FileItem" required="true"/>
             <parameter name="sharedSecret" required="true"/>
             <parameter name="sendSharedSecret" required="true"/>
         </in-parameters>
@@ -216,6 +216,7 @@
                 <service-call name="co.hotwax.configuration.UserProfileServices.get#OrganizationPartyIds" out-map="context"/>
                 <set field="organizationPartyId" from="context.partyId" type="String"/>
             </if>
+            <set field="fileText" from="sshKey.getString()"/>
 
             <if condition="remoteId.contains('_')">
                 <then>
@@ -225,7 +226,19 @@
                     <set field="accountId" from="remoteId"/>
                 </else>
             </if>
-            <set field="sshKeyValue" value="${sshKey.replaceAll('\\s+', '')}"/>
+            <if condition="fileText">
+                <script>
+                    StringBuilder sb = new StringBuilder();
+                    String[] lines = fileText.split("\n");
+                    String[] skips = new String[]{"-----BEGIN", "-----END", ": "};
+                    for (String line : lines) {
+                    boolean skipLine = false;
+                    for (String skip : skips) if (line.contains(skip)) { skipLine = true; }
+                    if (!skipLine) sb.append(line.trim());
+                    }
+                    sshKeyValue = sb.toString();
+                </script>
+            </if>
             <set field="systemMessageTypeId" from="'NetsuiteCredentials'"/>
             <set field="tokenUrl" from="'https://' + accountId + '.suitetalk.api.netsuite.com/services/rest/auth/oauth2/v1/token'"/>
             <set field="sendUrl" from="'https://' + accountId + '.restlets.api.netsuite.com/app/site/hosting/restlet.nl'"/>
