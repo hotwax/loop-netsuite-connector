@@ -174,4 +174,45 @@ under the License.
                           in-map="inMap" out-map="result"/>
         </actions>
     </service>
+
+    <service verb="sendAll" noun="NetSuiteRMAMapping">
+        <description>Send NetSuite RMA Mapping and store it in NetSuite Custom Entity.</description>
+        <in-parameters>
+            <parameter name="accountId" required="true"/>
+        </in-parameters>
+        <actions>
+            <entity-find entity-name="co.hotwax.netsuite.IntegrationTypeMapping" list="integrationTypeMappingList">
+                <econdition field-name="systemMessageRemoteId" operator="equals" from="accountId"/>
+                <econdition field-name="synced" operator="equals" value="N"/>
+            </entity-find>
+            <if condition="!integrationTypeMappingList"><return error="true" message="Could not find IntegrationTypeMapping for Netsuite Account ID ${accountId}"/></if>
+
+            <set field="payloadMap" from="[:]"/>
+            <iterate list="integrationTypeMappingList" entry="integrationTypeMapping">
+                <set field="mappingKey" from="integrationTypeMapping.mappingKey"/>
+                <set field="mappingValue" from="integrationTypeMapping.mappingValue"/>
+                <script>
+                    payloadMap.put(mappingKey, mappingValue)
+                </script>
+            </iterate>
+
+            <entity-find-one entity-name="moqui.service.message.SystemMessageRemote" value-field="systemMessageRemote">
+                <field-map field-name="systemMessageRemoteId" from="accountId"/>
+            </entity-find-one>
+
+            <entity-find-one entity-name="co.hotwax.netsuite.NetsuiteConfig" value-field="netsuiteConfig" cache="true">
+                <field-map field-name="accountId" from="systemMessageRemote.remoteId"/>
+                <field-map field-name="accountType" from="systemMessageRemote.remoteIdType"/>
+                <field-map field-name="scriptType" value="netsuite.restlet.update.loopconfigrecord"/>
+            </entity-find-one>
+            <if condition="netsuiteConfig == null"><return error="true" message="No NetSuiteConfig found for SystemMessageRemote ${systemMessageRemote.systemMessageRemoteId}, not sending RMA Mapping."/></if>
+
+            <set field="inMap" from="[:]"/>
+            <set field="inMap.systemMessageRemoteId" from="systemMessageRemote.systemMessageRemoteId"/>
+            <set field="inMap.payload" from="payloadMap"/>
+            <set field="inMap.restletEndPoint" from="netsuiteConfig.scriptEndPoint"/>
+            <service-call name="co.hotwax.netsuite.NetSuiteRestServices.call#NetSuiteRestletAPI"
+                          in-map="inMap" out-map="result"/>
+        </actions>
+    </service>
 </services>
