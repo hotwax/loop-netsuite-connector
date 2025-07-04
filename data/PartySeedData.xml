@@ -31,14 +31,4 @@
 
     <Party partyId="_NA_" partyTypeEnumId="PtyPerson"/>
     <Person partyId="_NA_" firstName="Not" lastName="Applicable"/>
-
-    <moqui.basic.EnumerationType description="NetSuite RMA Mapping" enumTypeId="NETSUITE_RMA_MAPPING"/>
-    <moqui.basic.Enumeration enumId="NETSUITE_WH_LOCATION" description="Warehouse Location Internal Id" enumTypeId="NETSUITE_RMA_MAPPING"/>
-    <moqui.basic.Enumeration enumId="NETSUITE_DISCOUNT_ITEM" description="NetSuite Discount Item Internal Id" enumTypeId="NETSUITE_RMA_MAPPING"/>
-    <moqui.basic.Enumeration enumId="NETSUITE_GC_ITEM" description="NetSuite GiftCard Item Internal Id" enumTypeId="NETSUITE_RMA_MAPPING"/>
-    <moqui.basic.Enumeration enumId="NETSUITE_VARIANCE_ITEM" description="NetSuite Variance Item Internal Id" enumTypeId="NETSUITE_RMA_MAPPING"/>
-    <moqui.basic.Enumeration enumId="NETSUITE_TAX_CODE" description="NetSuite Tax Code Internal Id" enumTypeId="NETSUITE_RMA_MAPPING"/>
-    <moqui.basic.Enumeration enumId="NETSUITE_GC_PAYMENT" description="NetSuite GiftCard Payment Internal Id" enumTypeId="NETSUITE_RMA_MAPPING"/>
-    <moqui.basic.Enumeration enumId="NETSUITE_LOOP_EXCHANGE" description="NetSuite Loop Exchange Item Internal Id" enumTypeId="NETSUITE_RMA_MAPPING"/>
-    <moqui.basic.Enumeration enumId="NETSUITE_DEFAULT_PAYMENT" description="NetSuite Default Payment Item Internal Id" enumTypeId="NETSUITE_RMA_MAPPING"/>
 </entity-facade-xml>

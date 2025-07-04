@@ -194,15 +194,6 @@ along with this software (see the LICENSE.md file). If not, see
     <relationship type="one" related="co.hotwax.netsuite.party.Party" short-alias="party"/>
   </entity>
 
-  <entity entity-name="PartyIntegrationTypeMapping" package="co.hotwax.netsuite.party">
-    <field name="partyId" type="id" is-pk="true"/>
-    <field name="integrationMappingId" type="id" is-pk="true"/>
-    <field name="integrationTypeId" type="id" is-pk="true"/>
-    <field name="fromDate" type="date-time" is-pk="true"/>
-    <field name="thruDate" type="date-time"/>
-    <relationship type="one" related="co.hotwax.netsuite.party.Party" short-alias="party"/>
-  </entity>
-
   <!-- ========================================================= -->
   <!-- co.hotwax.netsuite.party.contact -->
   <!-- ========================================================= -->

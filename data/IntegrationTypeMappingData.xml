@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<entity-facade-xml type="seed">
+    <moqui.basic.EnumerationType description="NetSuite RMA Mapping" enumTypeId="NETSUITE_RMA_MAPPING"/>
+    <moqui.basic.Enumeration enumId="NETSUITE_WH_LOCATION" enumCode="wh_facility_id" description="Warehouse Location Internal Id" enumTypeId="NETSUITE_RMA_MAPPING"/>
+    <moqui.basic.Enumeration enumId="NETSUITE_DISCOUNT_ITEM" enumCode="discount_item_id" description="NetSuite Discount Item Internal Id" enumTypeId="NETSUITE_RMA_MAPPING"/>
+    <moqui.basic.Enumeration enumId="NETSUITE_GC_ITEM" enumCode="gift_card_item_id" description="NetSuite GiftCard Item Internal Id" enumTypeId="NETSUITE_RMA_MAPPING"/>
+    <moqui.basic.Enumeration enumId="NETSUITE_VARIANCE_ITEM" enumCode="variance_item_id" description="NetSuite Variance Item Internal Id" enumTypeId="NETSUITE_RMA_MAPPING"/>
+    <moqui.basic.Enumeration enumId="NETSUITE_TAX_CODE" enumCode="tax_code" description="NetSuite Tax Code Internal Id" enumTypeId="NETSUITE_RMA_MAPPING"/>
+    <moqui.basic.Enumeration enumId="NETSUITE_GC_PAYMENT" enumCode="giftcard_payment_method_id" description="NetSuite GiftCard Payment Internal Id" enumTypeId="NETSUITE_RMA_MAPPING"/>
+    <moqui.basic.Enumeration enumId="NETSUITE_LOOP_EXCHANGE" enumCode="exchange_item_id" description="NetSuite Loop Exchange Item Internal Id" enumTypeId="NETSUITE_RMA_MAPPING"/>
+    <moqui.basic.Enumeration enumId="NETSUITE_DEFAULT_PAYMENT" enumCode="default_payment_method_id" description="NetSuite Default Payment Item Internal Id" enumTypeId="NETSUITE_RMA_MAPPING"/>
+</entity-facade-xml>
