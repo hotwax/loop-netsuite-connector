@@ -187,6 +187,24 @@
                 ec.entity.find("moqui.security.UserLoginKey").condition("userId", integrationUserId)
                     .condition("thruDate", EntityCondition.LESS_THAN, fromDate).disableAuthz().deleteAll()
             ]]></script>
+            <entity-find entity-name="co.hotwax.netsuite.party.PartySystemMessageRemote" list="partyNetSystemMessageRemoteList">
+                <econdition field-name="partyId" operator="equals" from="organizationPartyId"/>
+                <econdition field-name="systemMessageRemoteId" operator="equals" from="systemMessageRemoteId"/>
+                <econdition field-name="systemMessageTypeId" operator="equals" value="NetsuiteCredentials"/>
+                <date-filter/>
+            </entity-find>
+
+            <iterate list="partyNetSystemMessageRemoteList" entry="partyNetSystemMessageRemote">
+                <service-call name="update#PartySystemMessageRemote"
+                              in-map="[
+                            partyId:partyNetSystemMessageRemote.partyId,
+                            systemMessageRemoteId:partyNetSystemMessageRemote.systemMessageRemoteId,
+                            remoteIdType:partyNetSystemMessageRemote.remoteIdType,
+                            fromDate:partyNetSystemMessageRemote.fromDate,
+                            apiKey:loginKey,
+                            systemMessageTypeId:partyNetSystemMessageRemote.systemMessageTypeId
+                          ]"/>
+            </iterate>
             <!-- Final Success Message -->
             <return type="success" message="User Login Key has been created successfully."/>
         </actions>
@@ -220,24 +238,9 @@
                 </entity-find-one>
                 <set field="netSuiteRemoteId" from="systemMessageRemote.remoteId"/>
 
-                <entity-find entity-name="moqui.security.UserAccount" list="userAccountList">
-                    <econdition field-name="externalUserId" operator="equals" from="netSuiteRemoteId"/>
-                </entity-find>
-
-                <if condition="userAccountList">
-                    <set field="userId" from="userAccountList[0].userId"/>
-                    <entity-find entity-name="moqui.security.UserLoginKey" list="userLoginKeyList">
-                        <econdition field-name="userId" operator="equals" from="userId"/>
-                        <econdition field-name="loginKey" operator="is-not-null"/>
-                        <date-filter/>
-                    </entity-find>
-
-                    <if condition="userLoginKeyList">
-                        <script>
-                            loginKeyMap.put(netSuiteRemoteId, userLoginKeyList[0].loginKey)
-                        </script>
-                    </if>
-                </if>
+                <script>
+                    loginKeyMap.put(netSuiteRemoteId, partyNetSystemMessageRemote.apiKey)
+                </script>
             </iterate>
         </actions>
     </service>
