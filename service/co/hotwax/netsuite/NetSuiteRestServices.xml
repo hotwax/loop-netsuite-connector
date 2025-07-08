@@ -193,4 +193,10 @@ under the License.
             </iterate>
         </actions>
     </service>
+
+    <service verb="verify" noun="APIKey">
+        <actions>
+            <return type="success" message="NetSuite API Key is verified"/>
+        </actions>
+    </service>
 </services>
