@@ -304,7 +304,7 @@ along with this software (see the LICENSE.md file). If not, see
                         </field>
                         <field name="apiKey">
                             <default-field>
-                                <dynamic-dialog id="ViewDocument" button-text="Generate API Key" transition="createUserLoginAPIKey" width="800">
+                                <dynamic-dialog id="generateAPIKey" button-text="Generate API Key" transition="createUserLoginAPIKey" width="800">
                                     <parameter name="organizationPartyId"/><parameter name="systemMessageRemoteId"/>
                                 </dynamic-dialog>
                             </default-field>
