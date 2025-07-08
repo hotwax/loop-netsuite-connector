@@ -250,31 +250,50 @@
             <parameter name="organizationPartyId"/>
         </in-parameters>
         <out-parameters>
-            <parameter name="integrationTypeMappingList" type="List"/>
+            <parameter name="integrationTypeMappingMap" type="Map"/>
         </out-parameters>
         <actions>
             <if condition="!organizationPartyId">
-                <!-- Get OrganizationPartyId from logged in user -->
-                <service-call name="co.hotwax.configuration.UserProfileServices.get#OrganizationPartyIds" out-map="context"/>
-                <set field="organizationPartyId" from="context.partyId" type="String"/>
+                <service-call name="co.hotwax.configuration.UserProfileServices.get#OrganizationPartyIds"
+                              out-map="context"/>
+                <set field="organizationPartyId" from="context.partyId"/>
             </if>
 
-            <!-- Get Party Integration Type Mappings -->
-            <entity-find entity-name="co.hotwax.netsuite.party.PartyIntegrationTypeMapping" list="partyIntegrationTypeMappingList">
+            <entity-find entity-name="co.hotwax.netsuite.party.PartySystemMessageRemote" list="partySystemMessageRemoteList">
                 <econdition field-name="partyId" operator="equals" from="organizationPartyId"/>
+                <econdition field-name="systemMessageTypeId" operator="equals" value="NetsuiteCredentials"/>
                 <date-filter/>
             </entity-find>
 
-            <set field="integrationTypeMappingList" from="[]"/>
-            <iterate list="partyIntegrationTypeMappingList" entry="partyIntegrationTypeMapping">
-                <entity-find-one entity-name="co.hotwax.netsuite.IntegrationTypeMapping" value-field="integrationTypeMapping">
-                    <field-map field-name="integrationMappingId" from="partyIntegrationTypeMapping.integrationMappingId"/>
-                    <field-map field-name="integrationTypeId" from="partyIntegrationTypeMapping.integrationTypeId"/>
+            <set field="integrationTypeMappingMap" from="[:]"/>
+
+            <iterate list="partySystemMessageRemoteList" entry="partySystemMessageRemote">
+                <set field="systemMessageRemoteId" from="partySystemMessageRemote.systemMessageRemoteId"/>
+                <entity-find-one entity-name="moqui.service.message.SystemMessageRemote" value-field="systemMessageRemote">
+                    <field-map field-name="systemMessageRemoteId" from="systemMessageRemoteId"/>
                 </entity-find-one>
+                <set field="netSuiteRemoteId" from="systemMessageRemote.remoteId"/>
+
+                <entity-find entity-name="co.hotwax.netsuite.IntegrationTypeMapping"
+                             list="intTypeMappingList">
+                    <econdition field-name="systemMessageRemoteId" operator="equals" from="systemMessageRemoteId"/>
+                </entity-find>
+
+                <set field="tmpList" from="[]"/>
+                <iterate list="intTypeMappingList" entry="itm">
+                    <script>
+                        tmpList.add([
+                        integrationMappingId: itm.integrationMappingId,
+                        integrationTypeId   : itm.integrationTypeId,
+                        mappingKey          : itm.mappingKey,
+                        mappingValue        : itm.mappingValue,
+                        synced              : itm.synced
+                        ])
+                    </script>
+                </iterate>
                 <script>
-                    if (integrationTypeMapping != null) {
-                        integrationTypeMappingList.add([integrationMappingId:integrationTypeMapping.integrationMappingId, integrationTypeId:integrationTypeMapping.integrationTypeId,
-                        mappingKey:integrationTypeMapping.mappingKey, mappingValue:integrationTypeMapping.mappingValue])
+                    if (netSuiteRemoteId) {
+                        integrationTypeMappingMap.put(netSuiteRemoteId, tmpList)
                     }
                 </script>
             </iterate>

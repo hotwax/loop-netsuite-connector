@@ -66,6 +66,14 @@ along with this software (see the LICENSE.md file). If not, see
         <service-call name="co.hotwax.configuration.CompanyConfigurationServices.delete#NetSuiteReturnIntegrationMapping" in-map="context"/>
         <default-response url="."/>
     </transition>
+    <transition name="syncNetSuiteRMAMapping">
+        <service-call name="co.hotwax.netsuite.NetSuiteRestServices.send#NetSuiteRMAMapping" in-map="context"/>
+        <default-response url="."/>
+    </transition>
+    <transition name="syncAllNetSuiteRMAMapping">
+        <service-call name="co.hotwax.netsuite.NetSuiteRestServices.sendAll#NetSuiteRMAMapping" in-map="context"/>
+        <default-response url="."/>
+    </transition>
 
     <actions>
         <entity-find-one entity-name="moqui.security.UserAccount" value-field="userAccount">
@@ -118,7 +126,7 @@ along with this software (see the LICENSE.md file). If not, see
         <service-call name="co.hotwax.configuration.UserProfileServices.get#IntegrationTypeMappingDetails"
                       in-map="[organizationPartyId:organizationPartyId]" out-map="context"/>
 
-        <set field="integrationTypeMappingList" from="context.integrationTypeMappingList"/>
+        <set field="integrationTypeMappingMap" from="context.integrationTypeMappingMap"/>
     </actions>
     <widgets>
         <container-row>
@@ -163,44 +171,27 @@ along with this software (see the LICENSE.md file). If not, see
                             <form-single name="AddIntegrationMappings" transition="addIntegrationMappings">
                                 <field name="userId"><default-field><hidden/></default-field></field>
                                 <field name="organizationPartyId"><default-field><hidden/></default-field></field>
-                                <field name="locationId" required="true">
-                                    <default-field title="NetSuite Warehouse Location Id (Internal Id)">
-                                        <text-line size="20"/>
+                                <field name="systemMessageRemoteId" required="true">
+                                    <default-field title="NetSuite Account Id">
+                                        <drop-down>
+                                            <list-options list="netsuiteRemoteList" key="${systemMessageRemoteId}" text="${remoteId} (${accountType})"/>
+                                        </drop-down>
                                     </default-field>
                                 </field>
-                                <field name="discountItem">
-                                    <default-field title="Discount Item (Internal Id)">
-                                        <text-line size="20"/>
+                                <field name="enumId">
+                                    <default-field title="Integration Type Mapping">
+                                        <drop-down>
+                                            <entity-options key="${enumId}" text="${enumId}: ${description}">
+                                                <entity-find entity-name="moqui.basic.Enumeration">
+                                                    <econdition field-name="enumTypeId" operator="equals" value="NETSUITE_RMA_MAPPING"/>
+                                                </entity-find>
+                                            </entity-options>
+                                        </drop-down>
                                     </default-field>
                                 </field>
-                                <field name="giftCardItem">
-                                    <default-field title="GiftCard Item (Internal Id)">
-                                        <text-line size="20"/>
-                                    </default-field>
-                                </field>
-                                <field name="varianceItem">
-                                    <default-field title="Variance Item (Internal Id)">
-                                        <text-line size="20"/>
-                                    </default-field>
-                                </field>
-                                <field name="giftCardPaymentMethod">
-                                    <default-field title="GiftCard Payment Method (Internal Id)">
-                                        <text-line size="20"/>
-                                    </default-field>
-                                </field>
-                                <field name="taxCode">
-                                    <default-field title="TaxCode (Internal Id)">
-                                        <text-line size="20"/>
-                                    </default-field>
-                                </field>
-                                <field name="loopExchangeItem" required="true">
-                                    <default-field title="Loop Exchange Item (Internal Id)">
-                                        <text-line size="20"/>
-                                    </default-field>
-                                </field>
-                                <field name="defaultPaymentMethod" required="true">
-                                    <default-field title="Default Payment Method (Internal Id)">
-                                        <text-line size="20"/>
+                                <field name="mappingValue" required="true">
+                                    <default-field title="Value">
+                                        <text-line/>
                                     </default-field>
                                 </field>
                                 <field name="submitButton">
@@ -211,33 +202,53 @@ along with this software (see the LICENSE.md file). If not, see
                             </form-single>
                         </container-dialog>
                     </box-toolbar>
-                    <box-body-nopad>
-                        <form-list name="IntegrationMappingList" list="integrationTypeMappingList">
-                            <field name="userId"><default-field><hidden/></default-field></field>
-                            <field name="organizationPartyId"><default-field><hidden/></default-field></field>
-                            <field name="integrationMappingId">
-                                <header-field show-order-by="true"/>
-                                <default-field><display/></default-field>
-                            </field>
-                            <field name="integrationTypeId">
-                                <header-field show-order-by="true"/>
-                                <default-field><display/></default-field>
-                            </field>
-                            <field name="mappingKey">
-                                <header-field show-order-by="true"/>
-                                <default-field><display/></default-field>
-                            </field>
-                            <field name="mappingValue">
-                                <header-field show-order-by="true"/>
-                                <default-field><display/></default-field>
-                            </field>
-                            <field name="deleteButton">
-                                <default-field title="">
-                                    <link url="deleteIntegrationTypeMapping" text=" " icon="fa fa-trash" confirmation="Do you really want to remove this mapping?"/>
-                                </default-field>
-                            </field>
-                        </form-list>
-                    </box-body-nopad>
+                    <box-body>
+                        <section-iterate name="integrationTypeMappings" list="netsuiteRemoteList" entry="netsuiteRemote">
+                            <widgets>
+                                <container-box>
+                                    <box-header title="NetSuite Account : ${netsuiteRemote.remoteId}"/>
+                                    <box-toolbar>
+                                        <link url="syncAllNetSuiteRMAMapping" text="Sync All" confirmation="Are you sure to sync mappings now?">
+                                            <parameter name="accountId" from="netsuiteRemote.remoteId"/>
+                                        </link>
+                                    </box-toolbar>
+                                    <box-body>
+                                        <form-list name="IntegrationMappingList" list="integrationTypeMappingMap.get(netsuiteRemote.remoteId)">
+                                            <field name="userId"><default-field><hidden/></default-field></field>
+                                            <field name="organizationPartyId"><default-field><hidden/></default-field></field>
+                                            <field name="integrationMappingId">
+                                                <header-field show-order-by="true"/>
+                                                <default-field><display/></default-field>
+                                            </field>
+                                            <field name="integrationTypeId">
+                                                <header-field show-order-by="true"/>
+                                                <default-field><display/></default-field>
+                                            </field>
+                                            <field name="mappingKey">
+                                                <header-field show-order-by="true"/>
+                                                <default-field><display/></default-field>
+                                            </field>
+                                            <field name="mappingValue">
+                                                <header-field show-order-by="true"/>
+                                                <default-field><display/></default-field>
+                                            </field>
+                                            <field name="">
+                                                <conditional-field condition="synced != 'Y'">
+                                                    <link url="syncNetSuiteRMAMapping" text="Sync"/>
+                                                </conditional-field>
+                                                <default-field><label text="Synced" type="strong" style="text-info"/></default-field>
+                                            </field>
+                                            <field name="deleteButton">
+                                                <default-field title="">
+                                                    <link url="deleteIntegrationTypeMapping" text=" " icon="fa fa-trash" confirmation="Do you really want to remove this mapping?"/>
+                                                </default-field>
+                                            </field>
+                                        </form-list>
+                                    </box-body>
+                                </container-box>
+                            </widgets>
+                        </section-iterate>
+                    </box-body>
                 </container-box>
 
                 <container-box><box-header title="NetSuite Credentials"/><box-toolbar>

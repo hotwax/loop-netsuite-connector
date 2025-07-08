@@ -29,12 +29,17 @@ along with this software (see the LICENSE.md file). If not, see
 
     <entity entity-name="IntegrationTypeMapping" package="co.hotwax.netsuite" use="configuration">
         <field name="integrationMappingId" type="id" is-pk="true"/>
+        <field name="systemMessageRemoteId" type="id"/>
         <field name="integrationTypeId" type="id"/>
         <field name="mappingKey" type="text-short"/>
         <field name="mappingValue" type="text-short"/>
         <field name="description" type="text-long"/>
+        <field name="synced" type="text-indicator" default="'N'"/>
         <relationship type="one" title="IntegrationTypeMappingType" related="moqui.basic.Enumeration" short-alias="type">
             <key-map field-name="integrationTypeId"/>
+        </relationship>
+        <relationship type="one" related="moqui.service.message.SystemMessageRemote">
+            <key-map field-name="systemMessageRemoteId"/>
         </relationship>
     </entity>
 </entities>
