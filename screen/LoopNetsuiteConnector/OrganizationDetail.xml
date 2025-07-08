@@ -55,8 +55,7 @@ along with this software (see the LICENSE.md file). If not, see
         <default-response url="."/>
     </transition>
     <transition name="createUserLoginAPIKey">
-        <service-call name="co.hotwax.configuration.UserProfileServices.create#UserLoginAPIKey" in-map="context"/>
-        <default-response url="."/>
+        <default-response url="../GenerateAPIKey"/>
     </transition>
     <transition name="addIntegrationMappings">
         <service-call name="co.hotwax.configuration.CompanyConfigurationServices.create#NetSuiteReturnIntegrationMapping" in-map="context"/>
@@ -117,10 +116,6 @@ along with this software (see the LICENSE.md file). If not, see
                 webhookSecret:loopRemote.sendSharedSecret, privateKey:loopRemote.privateKey, verified:partyLoopSystemMessageRemote.verified])
             </script>
         </iterate>
-
-        <!-- Get login API keys -->
-        <service-call name="co.hotwax.configuration.UserProfileServices.get#UserLoginAPIKey" in-map="[organizationPartyId:organizationPartyId]" out-map="resultMap"/>
-        <set field="loginKeyMap" from="resultMap.loginKeyMap"/>
 
         <!--Get Integration Type Mappings -->
         <service-call name="co.hotwax.configuration.UserProfileServices.get#IntegrationTypeMappingDetails"
@@ -308,10 +303,11 @@ along with this software (see the LICENSE.md file). If not, see
                             <default-field><display/></default-field>
                         </field>
                         <field name="apiKey">
-                            <conditional-field condition="loginKeyMap.get(remoteId) == null">
-                                <link url="createUserLoginAPIKey" text="" icon="fa fa-key"/>
-                            </conditional-field>
-                            <default-field><label text="${loginKeyMap.get(remoteId)}" type="strong" style=""/></default-field>
+                            <default-field>
+                                <dynamic-dialog id="ViewDocument" button-text="Generate API Key" transition="createUserLoginAPIKey" width="800">
+                                    <parameter name="organizationPartyId"/><parameter name="systemMessageRemoteId"/>
+                                </dynamic-dialog>
+                            </default-field>
                         </field>
                         <field name="">
                             <conditional-field condition="verified != 'Y'">

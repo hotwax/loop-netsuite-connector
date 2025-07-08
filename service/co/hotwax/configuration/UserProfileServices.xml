@@ -107,8 +107,12 @@
             <parameter name="organizationPartyId"/>
             <parameter name="systemMessageRemoteId" required="true"/>
         </in-parameters>
+        <out-parameters>
+            <parameter name="loginKeyMap" type="Map"/>
+        </out-parameters>
         <actions>
             <set field="fromDate" from="ec.user.nowTimestamp"/>
+            <set field="loginKeyMap" from="[:]"/>
 
             <if condition="!organizationPartyId">
                 <!-- Get OrganizationPartyId from logged in user -->
@@ -139,12 +143,7 @@
                 <set field="userAccount" from="userAccountList[0]"/>
             </if>
 
-            <if condition="userAccount">
-                <return error="true" message="Integration user already exists for NetSuite Account : ${netSuiteRemoteId}"/>
-            </if>
-
-            <!-- Create Integration UserLogin Account for registered user to call API from netsuite  -->
-
+            <if condition="!userAccount">
             <!-- Create Integration Party -->
             <set field="password" from="org.moqui.util.StringUtilities.getRandomString(20) + 'Hc@7'"/>
 
@@ -167,7 +166,26 @@
             <!-- Link integration user as a contact integration for the Organization -->
             <service-call name="create#co.hotwax.netsuite.party.PartyRelationship"
                           in-map="[fromPartyId:organizationPartyId, fromRoleTypeId:'Organization', toPartyId:integrationPartyId, toRoleTypeId:'ContactIntegration', relationshipTypeEnumId:'PrtContact', fromDate:fromDate]"/>
-
+            <else>
+                <set field="integrationUserId" from="userAccount.userId"/>
+                <entity-find entity-name="moqui.security.UserLoginKey" list="userLoginKeyList">
+                    <econdition field-name="userId" operator="equals" from="integrationUserId"/>
+                    <econdition field-name="loginKey" operator="is-not-null"/>
+                    <date-filter/>
+                </entity-find>
+                <if condition="userLoginKeyList">
+                    <iterate list="userLoginKeyList" entry="userLoginKey">
+                        <service-call name="update#moqui.security.UserLoginKey"
+                                      in-map="[
+                            userId:userLoginKey.userId,
+                            fromDate:userLoginKey.fromDate,
+                            loginKey:userLoginKey.loginKey,
+                            thruDate:fromDate
+                          ]"/>
+                    </iterate>
+                </if>
+            </else>
+            </if>
             <script><![CDATA[
                 import org.moqui.util.StringUtilities
                 import org.moqui.entity.EntityCondition
@@ -183,28 +201,8 @@
                 .parameters([loginKey:hashedKey, userId:integrationUserId, fromDate:fromDate])
                 .disableAuthz().requireNewTransaction(false).call()
 
-                // clean out expired keys
-                ec.entity.find("moqui.security.UserLoginKey").condition("userId", integrationUserId)
-                    .condition("thruDate", EntityCondition.LESS_THAN, fromDate).disableAuthz().deleteAll()
+                loginKeyMap.put(netSuiteRemoteId, loginKey)
             ]]></script>
-            <entity-find entity-name="co.hotwax.netsuite.party.PartySystemMessageRemote" list="partyNetSystemMessageRemoteList">
-                <econdition field-name="partyId" operator="equals" from="organizationPartyId"/>
-                <econdition field-name="systemMessageRemoteId" operator="equals" from="systemMessageRemoteId"/>
-                <econdition field-name="systemMessageTypeId" operator="equals" value="NetsuiteCredentials"/>
-                <date-filter/>
-            </entity-find>
-
-            <iterate list="partyNetSystemMessageRemoteList" entry="partyNetSystemMessageRemote">
-                <service-call name="update#PartySystemMessageRemote"
-                              in-map="[
-                            partyId:partyNetSystemMessageRemote.partyId,
-                            systemMessageRemoteId:partyNetSystemMessageRemote.systemMessageRemoteId,
-                            remoteIdType:partyNetSystemMessageRemote.remoteIdType,
-                            fromDate:partyNetSystemMessageRemote.fromDate,
-                            apiKey:loginKey,
-                            systemMessageTypeId:partyNetSystemMessageRemote.systemMessageTypeId
-                          ]"/>
-            </iterate>
             <!-- Final Success Message -->
             <return type="success" message="User Login Key has been created successfully."/>
         </actions>
@@ -238,9 +236,24 @@
                 </entity-find-one>
                 <set field="netSuiteRemoteId" from="systemMessageRemote.remoteId"/>
 
-                <script>
-                    loginKeyMap.put(netSuiteRemoteId, partyNetSystemMessageRemote.apiKey)
-                </script>
+                <entity-find entity-name="moqui.security.UserAccount" list="userAccountList">
+                    <econdition field-name="externalUserId" operator="equals" from="netSuiteRemoteId"/>
+                </entity-find>
+
+                <if condition="userAccountList">
+                    <set field="userId" from="userAccountList[0].userId"/>
+                    <entity-find entity-name="moqui.security.UserLoginKey" list="userLoginKeyList">
+                        <econdition field-name="userId" operator="equals" from="userId"/>
+                        <econdition field-name="loginKey" operator="is-not-null"/>
+                        <date-filter/>
+                    </entity-find>
+
+                    <if condition="userLoginKeyList">
+                        <script>
+                            loginKeyMap.put(netSuiteRemoteId, userLoginKeyList[0].loginKey)
+                        </script>
+                    </if>
+                </if>
             </iterate>
         </actions>
     </service>
