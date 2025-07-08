@@ -317,30 +317,18 @@
         <in-parameters>
             <parameter name="username"/>
             <parameter name="password"/>
-            <parameter name="token"/>
         </in-parameters>
         <out-parameters>
             <parameter name="token"/>
             <parameter name="api_key"/>
         </out-parameters>
         <actions>
-            <if condition="!token">
-                <set field="token" from="ec.web.request.getHeader('token')"/>
-            </if>
-            <if condition="!(token || (username &amp;&amp; password))">
+            <if condition="!(username &amp;&amp; password)">
                 <return error="true" message="Username and/or password missing"/>
             </if>
             <script><![CDATA[
-                import co.hotwax.auth.JWTManager;
                 try {
-                    if (token) {
-                        jwtClaims = JWTManager.validateToken(token, ec);
-                        if (jwtClaims != null && jwtClaims.userLoginId) {
-                            loggedIn = ec.user.internalLoginUser(jwtClaims.userLoginId, false)
-                        }
-                    } else {
-                        loggedIn = ec.user.loginUser(username, password)
-                    }
+                    loggedIn = ec.user.loginUser(username, password)
                     if (loggedIn) {
                         api_key = ec.user.getLoginKey()
                         token = api_key;
