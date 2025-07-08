@@ -24,6 +24,9 @@ under the License.
             <service name="co.hotwax.configuration.CompanyConfigurationServices.register#Organization"/>
         </method>
     </resource>
+    <resource name="login" require-authentication="anonymous-all">
+        <method type="post"><service name="co.hotwax.configuration.UserProfileServices.login#User"/></method>
+    </resource>
     <resource name="organizations">
         <resource name="profile">
             <method type="get">

@@ -299,4 +299,48 @@
             </iterate>
         </actions>
     </service>
+
+    <service verb="login" noun="User" authenticate="anonymous-all">
+        <in-parameters>
+            <parameter name="username"/>
+            <parameter name="password"/>
+            <parameter name="token"/>
+        </in-parameters>
+        <out-parameters>
+            <parameter name="token"/>
+            <parameter name="api_key"/>
+        </out-parameters>
+        <actions>
+            <if condition="!token">
+                <set field="token" from="ec.web.request.getHeader('token')"/>
+            </if>
+            <if condition="!(token || (username &amp;&amp; password))">
+                <return error="true" message="Username and/or password missing"/>
+            </if>
+            <script><![CDATA[
+                import co.hotwax.auth.JWTManager;
+                try {
+                    if (token) {
+                        jwtClaims = JWTManager.validateToken(token, ec);
+                        if (jwtClaims != null && jwtClaims.userLoginId) {
+                            loggedIn = ec.user.internalLoginUser(jwtClaims.userLoginId, false)
+                        }
+                    } else {
+                        loggedIn = ec.user.loginUser(username, password)
+                    }
+                    if (loggedIn) {
+                        api_key = ec.user.getLoginKey()
+                        token = api_key;
+                        return;
+                    } else if (ec.message.hasError()) {
+                        ec.logger.error("User login error : " + ec.message.getErrorsString())
+                        ec.message.clearErrors()
+                    }
+                }   catch (Exception e) {
+                    ec.logger.warn(e.getMessage())
+                }
+            ]]></script>
+            <return error="true" message="Sorry, your username and/or password are incorrect - please try again." />
+        </actions>
+    </service>
 </services>
