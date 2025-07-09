@@ -27,7 +27,6 @@ along with this software (see the LICENSE.md file). If not, see
             <return error="true" message="NetSuite Account not found for organization : ${organizationName} [${organizationPartyId}]"/>
         </if>
         <set field="netSuiteRemoteId" from="systemMessageRemote.remoteId"/>
-        <set field="loginKeyMap" from="context.loginKeyMap"/>
     </actions>
     <widgets>
         <label text="We have generated a API Key for NetSuite Remote ID ${netSuiteRemoteId}. Please save the below API Key and make API Secret record in NetSuite." type="p"/>
