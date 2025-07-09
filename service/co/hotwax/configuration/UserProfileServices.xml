@@ -107,6 +107,9 @@
             <parameter name="organizationPartyId"/>
             <parameter name="systemMessageRemoteId" required="true"/>
         </in-parameters>
+        <out-parameters>
+            <parameter name="loginKey" type="String"/>
+        </out-parameters>
         <actions>
             <set field="fromDate" from="ec.user.nowTimestamp"/>
 
@@ -139,12 +142,7 @@
                 <set field="userAccount" from="userAccountList[0]"/>
             </if>
 
-            <if condition="userAccount">
-                <return error="true" message="Integration user already exists for NetSuite Account : ${netSuiteRemoteId}"/>
-            </if>
-
-            <!-- Create Integration UserLogin Account for registered user to call API from netsuite  -->
-
+            <if condition="!userAccount">
             <!-- Create Integration Party -->
             <set field="password" from="org.moqui.util.StringUtilities.getRandomString(20) + 'Hc@7'"/>
 
@@ -167,13 +165,32 @@
             <!-- Link integration user as a contact integration for the Organization -->
             <service-call name="create#co.hotwax.netsuite.party.PartyRelationship"
                           in-map="[fromPartyId:organizationPartyId, fromRoleTypeId:'Organization', toPartyId:integrationPartyId, toRoleTypeId:'ContactIntegration', relationshipTypeEnumId:'PrtContact', fromDate:fromDate]"/>
-
+            <else>
+                <set field="integrationUserId" from="userAccount.userId"/>
+                <entity-find entity-name="moqui.security.UserLoginKey" list="userLoginKeyList">
+                    <econdition field-name="userId" operator="equals" from="integrationUserId"/>
+                    <econdition field-name="loginKey" operator="is-not-null"/>
+                    <date-filter/>
+                </entity-find>
+                <if condition="userLoginKeyList">
+                    <iterate list="userLoginKeyList" entry="userLoginKey">
+                        <service-call name="update#moqui.security.UserLoginKey"
+                                      in-map="[
+                            userId:userLoginKey.userId,
+                            fromDate:userLoginKey.fromDate,
+                            loginKey:userLoginKey.loginKey,
+                            thruDate:fromDate
+                          ]"/>
+                    </iterate>
+                </if>
+            </else>
+            </if>
             <script><![CDATA[
                 import org.moqui.util.StringUtilities
                 import org.moqui.entity.EntityCondition
 
                 // generate login key
-                String loginKey = StringUtilities.getRandomString(40)
+                loginKey = StringUtilities.getRandomString(40)
 
                 // save hashed in UserLoginKey, calc expire and set from/thru dates
                 String hashedKey = ec.ecfi.getSimpleHash(loginKey, "", ec.ecfi.getLoginKeyHashType(), false)
@@ -182,10 +199,6 @@
                 ec.service.sync().name("create", "moqui.security.UserLoginKey")
                 .parameters([loginKey:hashedKey, userId:integrationUserId, fromDate:fromDate])
                 .disableAuthz().requireNewTransaction(false).call()
-
-                // clean out expired keys
-                ec.entity.find("moqui.security.UserLoginKey").condition("userId", integrationUserId)
-                    .condition("thruDate", EntityCondition.LESS_THAN, fromDate).disableAuthz().deleteAll()
             ]]></script>
             <!-- Final Success Message -->
             <return type="success" message="User Login Key has been created successfully."/>
@@ -294,6 +307,36 @@
                     }
                 </script>
             </iterate>
+        </actions>
+    </service>
+
+    <service verb="login" noun="User" authenticate="anonymous-all">
+        <in-parameters>
+            <parameter name="username"/>
+            <parameter name="password"/>
+        </in-parameters>
+        <out-parameters>
+            <parameter name="api_key"/>
+        </out-parameters>
+        <actions>
+            <if condition="!(username &amp;&amp; password)">
+                <return error="true" message="Username and/or password missing"/>
+            </if>
+            <script><![CDATA[
+                try {
+                    loggedIn = ec.user.loginUser(username, password)
+                    if (loggedIn) {
+                        api_key = ec.user.getLoginKey()
+                        return;
+                    } else if (ec.message.hasError()) {
+                        ec.logger.error("User login error : " + ec.message.getErrorsString())
+                        ec.message.clearErrors()
+                    }
+                }   catch (Exception e) {
+                    ec.logger.warn(e.getMessage())
+                }
+            ]]></script>
+            <return error="true" message="Sorry, your username and/or password are incorrect - please try again." />
         </actions>
     </service>
 </services>

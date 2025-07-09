@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+This software is in the public domain under CC0 1.0 Universal plus a
+Grant of Patent License.
+
+To the extent possible under law, the author(s) have dedicated all
+copyright and related and neighboring rights to this software to the
+public domain worldwide. This software is distributed without any
+warranty.
+
+You should have received a copy of the CC0 Public Domain Dedication
+along with this software (see the LICENSE.md file). If not, see
+<http://creativecommons.org/publicdomain/zero/1.0/>.
+-->
+<screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-3.xsd"
+        default-menu-include="false" standalone="true">
+
+    <parameter name="organizationPartyId" required="true"/>
+    <parameter name="systemMessageRemoteId" required="true"/>
+
+    <actions>
+        <entity-find-one entity-name="moqui.service.message.SystemMessageRemote" value-field="systemMessageRemote" cache="true">
+            <field-map field-name="systemMessageRemoteId" from="systemMessageRemoteId"/>
+        </entity-find-one>
+        <if condition="systemMessageRemote == null">
+            <return error="true" message="NetSuite Account not found for organization : ${organizationName} [${organizationPartyId}]"/>
+        </if>
+        <set field="netSuiteRemoteId" from="systemMessageRemote.remoteId"/>
+    </actions>
+    <widgets>
+        <label text="An API Key has been generated for NetSuite Remote ID ${netSuiteRemoteId}. Please copy and save this key now — it will only be shown once. Use this key to create an API Secret record in NetSuite." type="p"/>
+        <label text="Your API Key is : " type="p"/>
+        <label text="${loginKey}" type="strong"/>
+    </widgets>
+</screen>
