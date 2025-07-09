@@ -319,7 +319,6 @@
             <parameter name="password"/>
         </in-parameters>
         <out-parameters>
-            <parameter name="token"/>
             <parameter name="api_key"/>
         </out-parameters>
         <actions>
@@ -331,7 +330,6 @@
                     loggedIn = ec.user.loginUser(username, password)
                     if (loggedIn) {
                         api_key = ec.user.getLoginKey()
-                        token = api_key;
                         return;
                     } else if (ec.message.hasError()) {
                         ec.logger.error("User login error : " + ec.message.getErrorsString())
