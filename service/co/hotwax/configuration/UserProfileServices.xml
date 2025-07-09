@@ -108,11 +108,10 @@
             <parameter name="systemMessageRemoteId" required="true"/>
         </in-parameters>
         <out-parameters>
-            <parameter name="loginKeyMap" type="Map"/>
+            <parameter name="loginKey" type="String"/>
         </out-parameters>
         <actions>
             <set field="fromDate" from="ec.user.nowTimestamp"/>
-            <set field="loginKeyMap" from="[:]"/>
 
             <if condition="!organizationPartyId">
                 <!-- Get OrganizationPartyId from logged in user -->
@@ -191,7 +190,7 @@
                 import org.moqui.entity.EntityCondition
 
                 // generate login key
-                String loginKey = StringUtilities.getRandomString(40)
+                loginKey = StringUtilities.getRandomString(40)
 
                 // save hashed in UserLoginKey, calc expire and set from/thru dates
                 String hashedKey = ec.ecfi.getSimpleHash(loginKey, "", ec.ecfi.getLoginKeyHashType(), false)
@@ -200,8 +199,6 @@
                 ec.service.sync().name("create", "moqui.security.UserLoginKey")
                 .parameters([loginKey:hashedKey, userId:integrationUserId, fromDate:fromDate])
                 .disableAuthz().requireNewTransaction(false).call()
-
-                loginKeyMap.put(netSuiteRemoteId, loginKey)
             ]]></script>
             <!-- Final Success Message -->
             <return type="success" message="User Login Key has been created successfully."/>

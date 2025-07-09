@@ -54,8 +54,9 @@ along with this software (see the LICENSE.md file). If not, see
         <service-call name="co.hotwax.loop.webhook.LoopWebhookServices.create#PartyWebhookSubscriptionSystemMessage" in-map="context"/>
         <default-response url="."/>
     </transition>
-    <transition name="createUserLoginAPIKey">
-        <default-response url="../GenerateAPIKey"/>
+    <transition name="createUserLoginAPIKey" read-only="true">
+        <service-call name="co.hotwax.configuration.UserProfileServices.create#UserLoginAPIKey" in-map="context"/>
+        <default-response url="../GenerateAPIKey" parameter-map="[loginKey:loginKey]"/>
     </transition>
     <transition name="addIntegrationMappings">
         <service-call name="co.hotwax.configuration.CompanyConfigurationServices.create#NetSuiteReturnIntegrationMapping" in-map="context"/>
@@ -305,7 +306,6 @@ along with this software (see the LICENSE.md file). If not, see
                         <field name="apiKey">
                             <default-field>
                                 <dynamic-dialog id="generateAPIKey" button-text="Generate API Key" transition="createUserLoginAPIKey" width="800">
-                                    <parameter name="organizationPartyId"/><parameter name="systemMessageRemoteId"/>
                                 </dynamic-dialog>
                             </default-field>
                         </field>
