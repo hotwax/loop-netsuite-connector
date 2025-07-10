@@ -24,4 +24,7 @@ under the License.
             <method type="post"><service name="co.hotwax.netsuite.NetSuiteRestServices.receive#BundlePayload"/></method>
         </resource>
     </resource>
+    <resource name="verifyAPIKey">
+        <method type="post"><service name="co.hotwax.netsuite.NetSuiteRestServices.verify#APIKey"/></method>
+    </resource>
 </resource>
