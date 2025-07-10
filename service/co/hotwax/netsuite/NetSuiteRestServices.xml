@@ -25,6 +25,9 @@ under the License.
             <parameter name="payload" type="Map" required="true"/>
             <parameter name="restletEndPoint"/>
         </in-parameters>
+        <out-parameters>
+            <parameter name="responseMap" type="Map"/>
+        </out-parameters>
     </service>
 
     <service verb="verify" noun="NetSuiteAcessToken">
@@ -116,6 +119,9 @@ under the License.
             <set field="inMap.restletEndPoint" from="netsuiteConfig.scriptEndPoint"/>
             <service-call name="co.hotwax.netsuite.NetSuiteRestServices.call#NetSuiteRestletAPI"
                           in-map="inMap" out-map="result"/>
+            <if condition="result.responseMap.status != 'success'">
+                <return error="true" message="Error syncing NetSuite RMA : ${result.responseMap.message}"/>
+            </if>
             <set field="remoteMessageId" from="filename"/>
         </actions>
     </service>
@@ -172,6 +178,16 @@ under the License.
             <set field="inMap.restletEndPoint" from="netsuiteConfig.scriptEndPoint"/>
             <service-call name="co.hotwax.netsuite.NetSuiteRestServices.call#NetSuiteRestletAPI"
                           in-map="inMap" out-map="result"/>
+            <if condition="result.responseMap.status != 'success'">
+                <return error="true" message="Error syncing NetSuite RMA Mapping: ${result.responseMap.message}"/>
+            </if>
+
+            <service-call name="update#co.hotwax.netsuite.IntegrationTypeMapping"
+                          in-map="[
+                            integrationMappingId:integrationMappingId,
+                            synced:'Y'
+                          ]"/>
+            <return type="success" message="NetSuite RMA Mapping Synced."/>
         </actions>
     </service>
 
