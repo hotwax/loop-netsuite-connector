@@ -123,6 +123,10 @@ along with this software (see the LICENSE.md file). If not, see
                       in-map="[organizationPartyId:organizationPartyId]" out-map="context"/>
 
         <set field="integrationTypeMappingMap" from="context.integrationTypeMappingMap"/>
+
+        <!-- Get login API keys -->
+        <service-call name="co.hotwax.configuration.UserProfileServices.get#UserLoginAPIKey" in-map="[organizationPartyId:organizationPartyId]" out-map="resultMap"/>
+        <set field="loginKeyMap" from="resultMap.loginKeyMap"/>
     </actions>
     <widgets>
         <container-row>
@@ -304,9 +308,11 @@ along with this software (see the LICENSE.md file). If not, see
                             <default-field><display/></default-field>
                         </field>
                         <field name="apiKey">
+                            <conditional-field condition="loginKeyMap.get(remoteId) == null">
+                                <dynamic-dialog id="generateAPIKey" button-text="Generate API Key" transition="createUserLoginAPIKey" width="800"/>
+                            </conditional-field>
                             <default-field>
-                                <dynamic-dialog id="generateAPIKey" button-text="Generate API Key" transition="createUserLoginAPIKey" width="800">
-                                </dynamic-dialog>
+                                <dynamic-dialog id="refreshAPIKey" button-text="Refresh API Key" transition="createUserLoginAPIKey" width="800"/>
                             </default-field>
                         </field>
                         <field name="">
