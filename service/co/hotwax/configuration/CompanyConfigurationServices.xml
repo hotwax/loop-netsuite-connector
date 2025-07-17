@@ -220,7 +220,7 @@
 
             <if condition="remoteId.contains('_')">
                 <then>
-                    <set field="accountId" from="remoteId.replace('_', '-')"/>
+                    <set field="accountId" from="remoteId.replace('_', '-').toLowerCase()"/>
                 </then>
                 <else>
                     <set field="accountId" from="remoteId"/>
