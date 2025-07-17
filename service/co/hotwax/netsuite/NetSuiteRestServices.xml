@@ -211,8 +211,15 @@ under the License.
     </service>
 
     <service verb="verify" noun="APIKey">
+        <out-parameters>
+            <parameter name="accountId"/>
+        </out-parameters>
         <actions>
-            <return type="success" message="NetSuite API Key is verified"/>
+            <set field="userAccount" from="ec.user.UserAccount"/>
+            <if condition="userAccount != null">
+                <set field="accountId" from="userAccount.externalUserId"/>
+            </if>
+            <return type="success" message="NetSuite API Key is verified for account : ${accountId}"/>
         </actions>
     </service>
 </services>
