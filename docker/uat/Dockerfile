@@ -1,3 +1,34 @@
+FROM ubuntu:22.04
+LABEL maintainer="HotWax Commerce <sysadmin@hotwaxsystems.com>"
+
+# Update package lists
+RUN apt-get update
+
+# Upgrade installed packages
+RUN apt-get upgrade -y --no-install-recommends
+
+# Install necessary packages and Set noninteractive mode for tzdata
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+    openjdk-11-jdk \
+    software-properties-common \
+    ca-certificates-java \
+    git \
+    curl \
+    vim \
+    screen \
+    patch \
+    bash \
+    tzdata
+
+# Fix certificate issues
+RUN update-ca-certificates -f
+
+# Clean up to reduce image size
+RUN apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Setup JAVA_HOME -- useful for docker commandline
+ENV JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
+ENV PATH="$JAVA_HOME/bin:$PATH"
 
 # Clone the necessary repositories in one RUN command to reduce image layers
 WORKDIR /
