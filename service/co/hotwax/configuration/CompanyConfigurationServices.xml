@@ -217,15 +217,6 @@
                 <set field="organizationPartyId" from="context.partyId" type="String"/>
             </if>
             <set field="fileText" from="sshKey.getString()"/>
-
-            <if condition="remoteId.contains('_')">
-                <then>
-                    <set field="accountId" from="remoteId.replace('_', '-')"/>
-                </then>
-                <else>
-                    <set field="accountId" from="remoteId"/>
-                </else>
-            </if>
             <if condition="fileText">
                 <script>
                     StringBuilder sb = new StringBuilder();
@@ -240,13 +231,13 @@
                 </script>
             </if>
             <set field="systemMessageTypeId" from="'NetsuiteCredentials'"/>
-            <set field="tokenUrl" from="'https://' + accountId + '.suitetalk.api.netsuite.com/services/rest/auth/oauth2/v1/token'"/>
-            <set field="sendUrl" from="'https://' + accountId + '.restlets.api.netsuite.com/app/site/hosting/restlet.nl'"/>
+            <set field="tokenUrl" from="'https://${accountId}.suitetalk.api.netsuite.com/services/rest/auth/oauth2/v1/token'"/>
+            <set field="sendUrl" from="'https://${accountId}.restlets.api.netsuite.com/app/site/hosting/restlet.nl'"/>
 
             <!-- Create SystemMessage entry -->
             <service-call name="create#SystemMessageRemote"
                           in-map="[
-                              remoteId:accountId,
+                              remoteId:remoteId,
                               sendUrl:sendUrl,
                               remoteIdType:accountType,
                               description:'NetSuite connection credentials',

@@ -39,11 +39,19 @@ public class NetSuiteUtil {
                     ec.getLogger().error("Unable to find system message remote record with id : " + systemMessageRemoteId);
                     return ec.message.addError("Unable to find system message remote record with id : ${systemMessageRemoteId}.")
                 }
+                String remoteId = systemMessageRemote.getString("remoteId");
+                if (remoteId.contains("_")) {
+                    remoteId = remoteId.replace("_", "-").toLowerCase();
+                }
+
                 String tokenEndpoint =  systemMessageRemote.getString("receiveUrl");
                 String certificateId = systemMessageRemote.getString("sendSharedSecret");
                 String consumerKey = systemMessageRemote.getString("sharedSecret");
                 String privateKeyStr = systemMessageRemote.getString("privateKey");
                 String messageAuthEnumId = systemMessageRemote.getString("messageAuthEnumId");
+
+                //prepare token url
+                tokenEndpoint = ec.resourceFacade.expand(tokenEndpoint, null, ["accountId": remoteId], false);
 
                 // JWT Header
                 Map<String, Object> headerClaims = new HashMap<>();
@@ -61,13 +69,6 @@ public class NetSuiteUtil {
                 payloadClaims.put("exp", exp);
                 payloadClaims.put("aud", tokenEndpoint);
 
-                // Load private key
-                if (privateKeyStr.contains("-----BEGIN PRIVATE KEY-----") && privateKeyStr.contains("-----END PRIVATE KEY-----")) {
-                    privateKeyStr = privateKeyStr
-                            .replace("-----BEGIN PRIVATE KEY-----", "")
-                            .replace("-----END PRIVATE KEY-----", "")
-                            .replaceAll("\\s+", "");
-                }
                 byte[] privateKeyBytes = Base64.getDecoder().decode(privateKeyStr);
                 PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(privateKeyBytes);
                 KeyFactory keyFactory = KeyFactory.getInstance("EC");
@@ -119,10 +120,16 @@ public class NetSuiteUtil {
     }
 
     public static String getNetSuiteRestletInstanceUrl(ExecutionContextFactoryImpl ecfi, String systemMessageRemoteId) {
+        ExecutionContext ec = ecfi.getExecutionContext();
         String netSuiteInstanceUrl = null;
         EntityValue netSuiteInstance = ecfi.entityFacade.find("moqui.service.message.SystemMessageRemote").condition("systemMessageRemoteId", systemMessageRemoteId).useCache(true).disableAuthz().one();
         if (netSuiteInstance != null && netSuiteInstance.getString("sendUrl") != null) {
+            String remoteId = netSuiteInstance.getString("remoteId");
+            if (remoteId != null && remoteId.contains("_")) {
+                remoteId = remoteId.replace("_", "-").toLowerCase();
+            }
             netSuiteInstanceUrl =  netSuiteInstance.getString("sendUrl");
+            netSuiteInstanceUrl = ec.resourceFacade.expand(netSuiteInstanceUrl, null, ["accountId": remoteId], false);
         }
         return netSuiteInstanceUrl;
     }
