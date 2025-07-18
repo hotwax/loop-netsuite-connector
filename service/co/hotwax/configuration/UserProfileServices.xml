@@ -134,10 +134,6 @@
             </if>
             <set field="netSuiteRemoteId" from="systemMessageRemote.remoteId"/>
 
-            <if condition="netSuiteRemoteId.contains('_')">
-                <set field="netSuiteRemoteId" from="netSuiteRemoteId.replace('_', '-').toLowerCase()"/>
-            </if>
-
             <entity-find entity-name="moqui.security.UserAccount" list="userAccountList">
                 <econdition field-name="externalUserId" operator="equals" from="netSuiteRemoteId"/>
             </entity-find>
@@ -236,10 +232,6 @@
                     <field-map field-name="systemMessageRemoteId" from="systemMessageRemoteId"/>
                 </entity-find-one>
                 <set field="netSuiteRemoteId" from="systemMessageRemote.remoteId"/>
-
-                <if condition="netSuiteRemoteId.contains('_')">
-                    <set field="netSuiteRemoteId" from="netSuiteRemoteId.replace('_', '-').toLowerCase()"/>
-                </if>
 
                 <entity-find entity-name="moqui.security.UserAccount" list="userAccountList">
                     <econdition field-name="externalUserId" operator="equals" from="netSuiteRemoteId"/>

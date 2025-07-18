@@ -67,6 +67,7 @@ under the License.
                     RestClient.RestResponse restResponse = restClient.call()
                     resposeText = restResponse.text()
                     if (resposeText == "true") {
+                        response = [ "type" : "success"]
                     } else {
                         response = restResponse.jsonObject()
                     }

@@ -27,4 +27,7 @@ under the License.
     <resource name="verifyAPIKey">
         <method type="post"><service name="co.hotwax.netsuite.NetSuiteRestServices.verify#APIKey"/></method>
     </resource>
+    <resource name="processLoopReturn">
+        <method type="post"><service name="co.hotwax.netsuite.NetSuiteRestServices.process#LoopReturn"/></method>
+    </resource>
 </resource>
