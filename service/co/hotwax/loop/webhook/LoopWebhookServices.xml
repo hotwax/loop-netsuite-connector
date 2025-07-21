@@ -112,7 +112,7 @@ under the License.
             </if>
             <script>
                 callBackUrl = ec.resourceFacade.expand('/rest/s1/loop/webhook/payload/${remoteIdType}/${webhookPartyId}', null, ["webhookPartyId": partyId, "remoteIdType": remoteIdType], false)
-                callBackUrl = org.moqui.impl.context.WebFacadeImpl.getWebappRootUrl('webroot', null, true, false, ec)  + callBackUrl
+                callBackUrl = ec.web.getWebappRootUrl(true, false)  + callBackUrl
             </script>
 
             <!-- verify webhook subscription exists -->
