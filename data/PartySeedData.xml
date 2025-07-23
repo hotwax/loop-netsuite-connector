@@ -38,7 +38,7 @@
     <moqui.basic.StatusItem description="Error" sequenceNum="2" statusId="RT_ERROR" statusTypeId="LoopReturn"/>
     <moqui.basic.StatusItem description="Pending Receipt" sequenceNum="3" statusId="RT_PENDING_RECEIPT" statusTypeId="LoopReturn"/>
     <moqui.basic.StatusItem description="Pending Refund" sequenceNum="4" statusId="RT_PENDING_REFUND" statusTypeId="LoopReturn"/>
-    <moqui.basic.StatusItem description="Refunded" sequenceNum="4" statusId="RT_REFUNDED" statusTypeId="LoopReturn"/>
+    <moqui.basic.StatusItem description="Refunded" sequenceNum="5" statusId="RT_REFUNDED" statusTypeId="LoopReturn"/>
 
     <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="RT_CREATED" toStatusId="RT_ERROR" transitionName="Create Return Error"/>
     <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="RT_CREATED" toStatusId="RT_PENDING_RECEIPT" transitionName="Pending Receipt Return"/>
