@@ -123,9 +123,65 @@ under the License.
             <set field="inMap.restletEndPoint" from="netsuiteConfig.scriptEndPoint"/>
             <service-call name="co.hotwax.netsuite.NetSuiteRestServices.call#NetSuiteRestletAPI"
                           in-map="inMap" out-map="result"/>
+
+            <set field="date" from="ec.user.nowTimestamp"/>
+
+            <entity-find-one entity-name="co.hotwax.netsuite.LoopReturnHistory" value-field="loopReturnHistory">
+                <field-map field-name="loopReturnId" from="payloadMap.id"/>
+                <field-map field-name="partyId" from="systemMessage.senderId"/>
+            </entity-find-one>
+
             <if condition="result.responseMap.status != 'success'">
+                <if condition="loopReturnHistory != null">
+                    <service-call name="update#co.hotwax.netsuite.LoopReturnHistory"
+                                  in-map="[
+                            loopReturnId: payloadMap.id,
+                            partyId: systemMessage.senderId,
+                            statusId: 'RT_ERROR',
+                            lastModifiedDate: date
+                          ]" transaction="force-new"/>
+                    <service-call name="create#co.hotwax.netsuite.LoopReturnStatus"
+                                  in-map="[
+                            loopReturnId: payloadMap.id,
+                            statusId: 'RT_ERROR',
+                            statusDatetime: date,
+                            changeReason: result.responseMap.message
+                          ]" transaction="force-new"/>
+
+                </if>
                 <return error="true" message="Error syncing NetSuite RMA : ${result.responseMap.message}"/>
             </if>
+
+            <set field="serviceCtx" from="[:]"/>
+            <set field="serviceCtx.loopReturnId" from="payloadMap.id"/>
+            <set field="serviceCtx.partyId" from="systemMessage.senderId"/>
+            <set field="serviceCtx.lastModifiedDate" from="date"/>
+
+            <set field="statusCtx" from="[:]"/>
+            <set field="statusCtx.loopReturnId" from="payloadMap.id"/>
+            <set field="statusCtx.statusDatetime" from="date"/>
+
+            <if condition="systemMessage.systemMessageTypeId == 'return.created'">
+                <if condition="loopReturnHistory != null">
+                    <set field="serviceCtx.netsuiteReturnId" from="result.responseMap.internalId"/>
+                    <set field="serviceCtx.statusId" value="RT_PENDING_RECEIPT"/>
+                    <service-call name="update#co.hotwax.netsuite.LoopReturnHistory" in-map="serviceCtx"/>
+
+                    <set field="statusCtx.statusId" value="RT_PENDING_RECEIPT"/>
+                    <service-call name="create#co.hotwax.netsuite.LoopReturnStatus" in-map="statusCtx"/>
+                </if>
+            </if>
+
+            <if condition="systemMessage.systemMessageTypeId == 'return.closed'">
+                <if condition="loopReturnHistory != null">
+                    <set field="serviceCtx.statusId" value="RT_REFUNDED"/>
+                    <service-call name="update#co.hotwax.netsuite.LoopReturnHistory" in-map="serviceCtx"/>
+
+                    <set field="statusCtx.statusId" value="RT_REFUNDED"/>
+                    <service-call name="create#co.hotwax.netsuite.LoopReturnStatus" in-map="statusCtx"/>
+                </if>
+            </if>
+
             <set field="remoteMessageId" from="filename"/>
         </actions>
     </service>
@@ -268,7 +324,31 @@ under the License.
             <service-call name="co.hotwax.loop.common.LoopHelperServices.send#LoopRequest" in-map="[systemMessageRemoteId:loopSystemMessageRemoteId,
                 requestType:'POST', contentType:'application/json', endPoint: endPoint]" out-map="processReturnResponse"/>
 
+            <set field="date" from="ec.user.nowTimestamp"/>
+
+            <entity-find-one entity-name="co.hotwax.netsuite.LoopReturnHistory" value-field="loopReturnHistory">
+                <field-map field-name="loopReturnId" from="loopReturnId"/>
+                <field-map field-name="partyId" from="organizationPartyId"/>
+            </entity-find-one>
+
             <if condition="processReturnResponse.response.errors">
+                <if condition="loopReturnHistory != null">
+                    <service-call name="update#co.hotwax.netsuite.LoopReturnHistory"
+                                  in-map="[
+                            loopReturnId: loopReturnId,
+                            partyId: organizationPartyId,
+                            statusId: 'RT_ERROR',
+                            lastModifiedDate: date
+                          ]" transaction="force-new"/>
+                    <service-call name="create#co.hotwax.netsuite.LoopReturnStatus"
+                                  in-map="[
+                            loopReturnId: loopReturnId,
+                            statusId: 'RT_ERROR',
+                            statusDatetime: date,
+                            changeReason: processReturnResponse.response.errors.message
+                          ]" transaction="force-new"/>
+
+                </if>
                 <return error="true" message="${processReturnResponse.response.errors.message}"/>
             </if>
             <return type="success" message="Loop Return is processed successfully : ${loopReturnId}"/>

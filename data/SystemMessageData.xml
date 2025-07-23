@@ -76,7 +76,7 @@
          receivePath="${contentRoot}/Netsuite/LoopReturns/${partyId}/${accountType}/close/loopCloseReturnFeed-${dateTime}.json"
          sendPath=""
          sendServiceName="co.hotwax.netsuite.NetSuiteRestServices.send#SystemMessageFileNetSuite">
- <parameters parameterName="scriptType" parameterValue="netsuite.restlet.closed.return" systemMessageRemoteId=""/>
+ <parameters parameterName="scriptType" parameterValue="netsuite.restlet.create.refund" systemMessageRemoteId=""/>
  </moqui.service.message.SystemMessageType>
 
  <!--Enum data for M2M setup algorithm types -->
