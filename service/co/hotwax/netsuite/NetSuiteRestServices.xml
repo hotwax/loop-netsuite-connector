@@ -138,16 +138,8 @@ under the License.
                             loopReturnId: payloadMap.id,
                             partyId: systemMessage.senderId,
                             statusId: 'RT_ERROR',
-                            lastModifiedDate: date
-                          ]" transaction="force-new"/>
-                    <service-call name="create#co.hotwax.netsuite.LoopReturnStatus"
-                                  in-map="[
-                            loopReturnId: payloadMap.id,
-                            statusId: 'RT_ERROR',
-                            statusDatetime: date,
                             changeReason: result.responseMap.message
                           ]" transaction="force-new"/>
-
                 </if>
                 <return error="true" message="Error syncing NetSuite RMA : ${result.responseMap.message}"/>
             </if>
@@ -155,20 +147,12 @@ under the License.
             <set field="serviceCtx" from="[:]"/>
             <set field="serviceCtx.loopReturnId" from="payloadMap.id"/>
             <set field="serviceCtx.partyId" from="systemMessage.senderId"/>
-            <set field="serviceCtx.lastModifiedDate" from="date"/>
-
-            <set field="statusCtx" from="[:]"/>
-            <set field="statusCtx.loopReturnId" from="payloadMap.id"/>
-            <set field="statusCtx.statusDatetime" from="date"/>
 
             <if condition="systemMessage.systemMessageTypeId == 'return.created'">
                 <if condition="loopReturnHistory != null">
                     <set field="serviceCtx.netsuiteReturnId" from="result.responseMap.internalId"/>
                     <set field="serviceCtx.statusId" value="RT_PENDING_RECEIPT"/>
                     <service-call name="update#co.hotwax.netsuite.LoopReturnHistory" in-map="serviceCtx"/>
-
-                    <set field="statusCtx.statusId" value="RT_PENDING_RECEIPT"/>
-                    <service-call name="create#co.hotwax.netsuite.LoopReturnStatus" in-map="statusCtx"/>
                 </if>
             </if>
 
@@ -176,9 +160,6 @@ under the License.
                 <if condition="loopReturnHistory != null">
                     <set field="serviceCtx.statusId" value="RT_REFUNDED"/>
                     <service-call name="update#co.hotwax.netsuite.LoopReturnHistory" in-map="serviceCtx"/>
-
-                    <set field="statusCtx.statusId" value="RT_REFUNDED"/>
-                    <service-call name="create#co.hotwax.netsuite.LoopReturnStatus" in-map="statusCtx"/>
                 </if>
             </if>
 
@@ -294,7 +275,6 @@ under the License.
             <parameter name="accountId" required="true"/>
         </in-parameters>
         <actions>
-            <log level="info" message="Processing Loop Return ${loopReturnId} for Netsuite Account ${accountId}"/>
             <entity-find-one entity-name="moqui.service.message.SystemMessageRemote" value-field="systemMessageRemote" cache="true">
                 <field-map field-name="remoteId" from="accountId"/>
                 <field-map field-name="systemMessageTypeId" value="NetsuiteCredentials"/>
@@ -338,16 +318,8 @@ under the License.
                             loopReturnId: loopReturnId,
                             partyId: organizationPartyId,
                             statusId: 'RT_ERROR',
-                            lastModifiedDate: date
-                          ]" transaction="force-new"/>
-                    <service-call name="create#co.hotwax.netsuite.LoopReturnStatus"
-                                  in-map="[
-                            loopReturnId: loopReturnId,
-                            statusId: 'RT_ERROR',
-                            statusDatetime: date,
                             changeReason: processReturnResponse.response.errors.message
                           ]" transaction="force-new"/>
-
                 </if>
                 <return error="true" message="${processReturnResponse.response.errors.message}"/>
             </if>

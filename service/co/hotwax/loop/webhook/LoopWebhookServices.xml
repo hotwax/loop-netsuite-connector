@@ -253,7 +253,6 @@ under the License.
                 <set field="serviceCtx.shopifyOrderId" from="payload.provider_order_id"/>
                 <set field="serviceCtx.shopifyOrderName" from="payload.order_name"/>
                 <set field="serviceCtx.systemMessageRemoteId" from="systemMessageRemoteId"/>
-                <set field="serviceCtx.lastModifiedDate" from="date"/>
 
                 <if condition="webhookTrigger == 'return.created'">
                     <set field="serviceCtx.createdDate" from="date"/>
@@ -272,7 +271,6 @@ under the License.
                     <if condition="loopReturnHistory != null">
                         <set field="serviceCtx.statusId" value="RT_PENDING_REFUND"/>
                         <service-call name="update#co.hotwax.netsuite.LoopReturnHistory" in-map="serviceCtx"/>
-                        <service-call name="create#co.hotwax.netsuite.LoopReturnStatus" in-map="[loopReturnId: payload.id, statusId: 'RT_PENDING_REFUND', statusDatetime: date]"/>
                     </if>
                 </if>
             </if>

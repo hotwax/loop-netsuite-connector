@@ -52,7 +52,7 @@ along with this software (see the LICENSE.md file). If not, see
         <field name="netsuiteReturnId" type="id"/>
         <field name="statusId" type="id"/>
         <field name="createdDate" type="date-time"/>
-        <field name="lastModifiedDate" type="date-time"/>
+        <field name="changeReason" type="text-medium"></field>
         <relationship type="one" related="moqui.basic.StatusItem">
             <key-map field-name="statusId"/>
         </relationship>
