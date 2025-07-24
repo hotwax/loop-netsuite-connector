@@ -42,4 +42,36 @@ along with this software (see the LICENSE.md file). If not, see
             <key-map field-name="systemMessageRemoteId"/>
         </relationship>
     </entity>
+
+    <entity entity-name="LoopReturnHistory" package="co.hotwax.netsuite" use="configuration">
+        <field name="loopReturnId" type="id" is-pk="true"/>
+        <field name="partyId" type="id" is-pk="true"/>
+        <field name="systemMessageRemoteId" type="id"/>
+        <field name="shopifyOrderId" type="id"/>
+        <field name="shopifyOrderName" type="id"/>
+        <field name="netsuiteReturnId" type="id"/>
+        <field name="statusId" type="id"/>
+        <field name="createdDate" type="date-time"/>
+        <field name="changeReason" type="text-medium"></field>
+        <relationship type="one" related="moqui.basic.StatusItem">
+            <key-map field-name="statusId"/>
+        </relationship>
+        <relationship type="one" related="moqui.service.message.SystemMessageRemote">
+            <key-map field-name="systemMessageRemoteId"/>
+        </relationship>
+    </entity>
+
+    <entity entity-name="LoopReturnStatus" package="co.hotwax.netsuite" cache="never">
+        <field name="loopReturnStatusId" type="id" is-pk="true"></field>
+        <field name="statusId" type="id"></field>
+        <field name="loopReturnId" type="id"></field>
+        <field name="statusDatetime" type="date-time"></field>
+        <field name="changeReason" type="text-medium"></field>
+        <relationship type="one" related="moqui.basic.StatusItem">
+            <key-map field-name="statusId"/>
+        </relationship>
+        <relationship type="one" related="co.hotwax.netsuite.LoopReturnHistory">
+            <key-map field-name="loopReturnId"/>
+        </relationship>
+    </entity>
 </entities>

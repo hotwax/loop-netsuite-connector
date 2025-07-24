@@ -241,7 +241,39 @@ under the License.
 
             <service-call name="org.moqui.impl.SystemMessageServices.queue#SystemMessage"
                           in-map="[systemMessageTypeId:systemMessageType.systemMessageTypeId, systemMessageRemoteId:systemMessageRemoteId,
-                    messageText:jsonFilePathRef, senderId: webhookPartyId, docType: remoteIdType]" async="true"/>
+                    messageText:jsonFilePathRef, senderId: webhookPartyId, docType: remoteIdType, sendNow:false]" out-map="resultMap"/>
+
+            <!-- Make LoopReturnHistory record for received webhook RMA payload -->
+            <if condition="resultMap.systemMessageId">
+                <set field="date" from="ec.user.nowTimestamp"/>
+
+                <set field="serviceCtx" from="[:]"/>
+                <set field="serviceCtx.loopReturnId" from="payload.id"/>
+                <set field="serviceCtx.partyId" from="webhookPartyId"/>
+                <set field="serviceCtx.shopifyOrderId" from="payload.provider_order_id"/>
+                <set field="serviceCtx.shopifyOrderName" from="payload.order_name"/>
+                <set field="serviceCtx.systemMessageRemoteId" from="systemMessageRemoteId"/>
+
+                <if condition="webhookTrigger == 'return.created'">
+                    <set field="serviceCtx.createdDate" from="date"/>
+                    <set field="serviceCtx.statusId" value="RT_CREATED"/>
+
+                    <service-call name="create#co.hotwax.netsuite.LoopReturnHistory" in-map="serviceCtx"/>
+                    <service-call name="create#co.hotwax.netsuite.LoopReturnStatus" in-map="[loopReturnId: payload.id, statusId: 'RT_CREATED', statusDatetime: date]"/>
+                </if>
+
+                <if condition="webhookTrigger == 'return.closed'">
+                    <entity-find-one entity-name="co.hotwax.netsuite.LoopReturnHistory" value-field="loopReturnHistory">
+                        <field-map field-name="loopReturnId" from="payload.id"/>
+                        <field-map field-name="partyId" from="webhookPartyId"/>
+                    </entity-find-one>
+
+                    <if condition="loopReturnHistory != null">
+                        <set field="serviceCtx.statusId" value="RT_PENDING_REFUND"/>
+                        <service-call name="update#co.hotwax.netsuite.LoopReturnHistory" in-map="serviceCtx"/>
+                    </if>
+                </if>
+            </if>
         </actions>
     </service>
 
