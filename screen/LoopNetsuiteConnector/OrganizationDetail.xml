@@ -375,13 +375,13 @@ along with this software (see the LICENSE.md file). If not, see
                             <default-field><display/></default-field>
                         </field>
                         <field name="">
-                            <conditional-field condition="verified != 'Y' &amp;&amp; webhookSubscriptionMap.get(systemMessageRemoteId)">
+                            <conditional-field condition="verified != 'Y' &amp;&amp; webhookSubscriptionMap.get(systemMessageRemoteId) == 'Y'">
                                 <link url="subscribeLoopWebhook" text="Subscribe Webhook" confirmation="Do you really want to subscribe webhook?"/>
                             </conditional-field>
                             <conditional-field condition="verified == 'Y'">
                                 <label text="Subscribed Webhook" type="strong" style="text-info"/>
                             </conditional-field>
-                            <conditional-field condition="verified != 'Y' &amp;&amp; !webhookSubscriptionMap.get(systemMessageRemoteId)">
+                            <conditional-field condition="verified != 'Y' &amp;&amp; webhookSubscriptionMap.get(systemMessageRemoteId) == 'N'">
                                 <link url="unSubscribeLoopWebhook" text="Subscribe Webhook"/>
                             </conditional-field>
                         </field>

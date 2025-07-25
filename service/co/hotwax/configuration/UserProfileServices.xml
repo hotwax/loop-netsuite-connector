@@ -362,14 +362,14 @@
             </entity-find>
 
             <iterate list="partyNetSystemMessageRemoteList" entry="partyNetSystemMessageRemote">
-                <set field="isWebhookSubscriptionEligible" type="Boolean" default-value="true"/>
+                <set field="isWebhookSubscriptionEligible" value="Y"/>
 
                 <set field="systemMessageRemoteId" from="partyNetSystemMessageRemote.systemMessageRemoteId"/>
                 <set field="remoteIdType" from="partyNetSystemMessageRemote.remoteIdType"/>
 
                 <set field="verified" from="partyNetSystemMessageRemote.verified"/>
                 <if condition="verified == 'N'">
-                    <set field="isWebhookSubscriptionEligible" from="false"/>
+                    <set field="isWebhookSubscriptionEligible" value="N"/>
                 </if>
 
                 <entity-find-one entity-name="moqui.service.message.SystemMessageRemote" value-field="systemMessageRemote" cache="true">
@@ -388,7 +388,7 @@
                 </entity-find>
 
                 <if condition="!netsuiteConfigList">
-                    <set field="isWebhookSubscriptionEligible" value="false"/>
+                    <set field="isWebhookSubscriptionEligible" value="N"/>
                 </if>
 
                 <entity-find entity-name="co.hotwax.netsuite.IntegrationTypeMapping" list="intTypeMappingList">
@@ -398,7 +398,7 @@
                 </entity-find>
 
                 <if condition="!intTypeMappingList">
-                    <set field="isWebhookSubscriptionEligible" value="false"/>
+                    <set field="isWebhookSubscriptionEligible" value="N"/>
                 </if>
 
                 <entity-find entity-name="co.hotwax.netsuite.party.PartySystemMessageRemote" list="partyLoopSystemMessageRemoteList">
