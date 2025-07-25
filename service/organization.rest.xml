@@ -83,6 +83,9 @@ under the License.
             <method type="post">
                 <service name="co.hotwax.loop.webhook.LoopWebhookServices.create#PartyWebhookSubscriptionSystemMessage"/>
             </method>
+            <method type="get">
+                <service name="co.hotwax.configuration.UserProfileServices.verify#LoopWebhookSubscriptions"/>
+            </method>
         </resource>
     </resource>
 </resource>
