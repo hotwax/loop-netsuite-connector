@@ -71,7 +71,7 @@
                 </entity-find-one>
                 <script>
                     netsuiteRemoteList.add([systemMessageRemoteId:netsuiteRemote.systemMessageRemoteId, accountType:netsuiteRemote.remoteIdType,
-                    remoteId:netsuiteRemote.remoteId, certificateId:netsuiteRemote.sendSharedSecret, consumerKey:netsuiteRemote.sharedSecret, privateKey:netsuiteRemote.privateKey, verified:partyNetSystemMessageRemote.verified])
+                    remoteId:netsuiteRemote.remoteId, verified:partyNetSystemMessageRemote.verified])
                 </script>
             </iterate>
         </actions>
@@ -96,7 +96,7 @@
                 </entity-find-one>
                 <script>
                     loopRemoteList.add([systemMessageRemoteId:loopRemote.systemMessageRemoteId, accountType:loopRemote.remoteIdType,
-                    webhookSecret:loopRemote.sendSharedSecret, privateKey:loopRemote.privateKey, verified:partyLoopSystemMessageRemote.verified])
+                    verified:partyLoopSystemMessageRemote.verified])
                 </script>
             </iterate>
         </actions>
@@ -337,6 +337,86 @@
                 }
             ]]></script>
             <return error="true" message="Sorry, your username and/or password are incorrect - please try again." />
+        </actions>
+    </service>
+
+    <service verb="verify" noun="LoopWebhookSubscriptions">
+        <in-parameters>
+            <parameter name="organizationPartyId"/>
+        </in-parameters>
+        <out-parameters>
+            <parameter name="webhookSubscriptionMap" type="Map"/>
+        </out-parameters>
+        <actions>
+            <set field="webhookSubscriptionMap" from="[:]"/>
+            <if condition="!organizationPartyId">
+                <!-- Get OrganizationPartyId from logged in user -->
+                <service-call name="co.hotwax.configuration.UserProfileServices.get#OrganizationPartyIds" out-map="context"/>
+                <set field="organizationPartyId" from="context.partyId" type="String"/>
+            </if>
+
+            <entity-find entity-name="co.hotwax.netsuite.party.PartySystemMessageRemote" list="partyNetSystemMessageRemoteList">
+                <econdition field-name="systemMessageTypeId" operator="equals" value="NetsuiteCredentials"/>
+                <econdition field-name="partyId" operator="equals" from="organizationPartyId"/>
+                <date-filter/>
+            </entity-find>
+
+            <iterate list="partyNetSystemMessageRemoteList" entry="partyNetSystemMessageRemote">
+                <set field="isWebhookSubscriptionEligible" type="Boolean" default-value="true"/>
+
+                <set field="systemMessageRemoteId" from="partyNetSystemMessageRemote.systemMessageRemoteId"/>
+                <set field="remoteIdType" from="partyNetSystemMessageRemote.remoteIdType"/>
+
+                <set field="verified" from="partyNetSystemMessageRemote.verified"/>
+                <if condition="verified == 'N'">
+                    <set field="isWebhookSubscriptionEligible" from="false"/>
+                </if>
+
+                <entity-find-one entity-name="moqui.service.message.SystemMessageRemote" value-field="systemMessageRemote" cache="true">
+                    <field-map field-name="systemMessageRemoteId" from="systemMessageRemoteId"/>
+                </entity-find-one>
+
+                <set field="remoteId" from="systemMessageRemote.remoteId"/>
+                <if condition="remoteId.contains('_')">
+                    <set field="remoteId" from="remoteId.replace('_', '-').toLowerCase()"/>
+                </if>
+
+                <entity-find entity-name="co.hotwax.netsuite.NetsuiteConfig" list="netsuiteConfigList">
+                    <econdition field-name="accountId" operator="equals" from="remoteId"/>
+                    <econdition field-name="accountType" operator="equals" from="remoteIdType"/>
+                    <econdition field-name="scriptType" operator="in" value="netsuite.restlet.create.refund,netsuite.restlet.create.return,netsuite.restlet.update.trackingnum,netsuite.restlet.create.rma.mapping"/>
+                </entity-find>
+
+                <if condition="!netsuiteConfigList">
+                    <set field="isWebhookSubscriptionEligible" value="false"/>
+                </if>
+
+                <entity-find entity-name="co.hotwax.netsuite.IntegrationTypeMapping" list="intTypeMappingList">
+                    <econdition field-name="systemMessageRemoteId" operator="equals" from="systemMessageRemoteId"/>
+                    <econdition field-name="synced" operator="equals" value="Y"/>
+                    <econdition field-name="integrationTypeId" operator="equals" value="NETSUITE_WH_LOCATION"/>
+                </entity-find>
+
+                <if condition="!intTypeMappingList">
+                    <set field="isWebhookSubscriptionEligible" value="false"/>
+                </if>
+
+                <entity-find entity-name="co.hotwax.netsuite.party.PartySystemMessageRemote" list="partyLoopSystemMessageRemoteList">
+                    <econdition field-name="systemMessageTypeId" operator="equals" value="LoopWebhook"/>
+                    <econdition field-name="partyId" operator="equals" from="organizationPartyId"/>
+                    <econdition field-name="remoteIdType" operator="equals" from="remoteIdType"/>
+                    <date-filter/>
+                </entity-find>
+                <if condition="partyLoopSystemMessageRemoteList">
+                    <set field="loopSystemMessageRemoteId" from="partyLoopSystemMessageRemoteList[0].systemMessageRemoteId"/>
+                </if>
+
+                <script>
+                    if (loopSystemMessageRemoteId) {
+                        webhookSubscriptionMap.put(loopSystemMessageRemoteId, isWebhookSubscriptionEligible)
+                    }
+                </script>
+            </iterate>
         </actions>
     </service>
 </services>
