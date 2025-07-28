@@ -419,4 +419,18 @@
             </iterate>
         </actions>
     </service>
+
+    <service verb="get" noun="IntegrationTypeList">
+        <out-parameters>
+            <parameter name="enumList" type="List"/>
+        </out-parameters>
+        <actions>
+            <set field="enumList" from="[]"/>
+            <entity-find entity-name="moqui.basic.Enumeration" list="enumList">
+                <econdition field-name="enumTypeId" operator="equals" value="NETSUITE_RMA_MAPPING"/>
+                <econdition field-name="enumId" operator="not-in" from="integrationTypeList"/>
+                <order-by field-name="sequenceNum"/>
+            </entity-find>
+        </actions>
+    </service>
 </services>

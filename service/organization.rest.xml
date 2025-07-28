@@ -87,5 +87,10 @@ under the License.
                 <service name="co.hotwax.configuration.UserProfileServices.verify#LoopWebhookSubscriptions"/>
             </method>
         </resource>
+        <resource name="returnIntegrationTypeMapping">
+            <method type="get">
+                <service name="co.hotwax.configuration.UserProfileServices.get#IntegrationTypeList"/>
+            </method>
+        </resource>
     </resource>
 </resource>
