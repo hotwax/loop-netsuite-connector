@@ -213,7 +213,7 @@ under the License.
             <entity-find-one entity-name="co.hotwax.netsuite.NetsuiteConfig" value-field="netsuiteConfig" cache="true">
                 <field-map field-name="accountId" from="remoteId"/>
                 <field-map field-name="accountType" from="systemMessageRemote.remoteIdType"/>
-                <field-map field-name="scriptType" value="netsuite.restlet.update.loopconfigrecord"/>
+                <field-map field-name="scriptType" value="netsuite.restlet.create.rma.mapping"/>
             </entity-find-one>
             <if condition="netsuiteConfig == null"><return error="true" message="No NetSuiteConfig found for SystemMessageRemote ${systemMessageRemote.systemMessageRemoteId}, not sending RMA Mapping."/></if>
 

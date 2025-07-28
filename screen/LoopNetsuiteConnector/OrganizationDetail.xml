@@ -95,7 +95,7 @@ along with this software (see the LICENSE.md file). If not, see
             </entity-find-one>
             <script>
                 netsuiteRemoteList.add([systemMessageRemoteId:netsuiteRemote.systemMessageRemoteId, accountType:netsuiteRemote.remoteIdType,
-                remoteId:netsuiteRemote.remoteId, certificateId:netsuiteRemote.sendSharedSecret, consumerKey:netsuiteRemote.sharedSecret, privateKey:netsuiteRemote.privateKey, verified:partyNetSystemMessageRemote.verified])
+                remoteId:netsuiteRemote.remoteId, verified:partyNetSystemMessageRemote.verified])
             </script>
         </iterate>
 
@@ -114,7 +114,7 @@ along with this software (see the LICENSE.md file). If not, see
             </entity-find-one>
             <script>
                 loopRemoteList.add([systemMessageRemoteId:loopRemote.systemMessageRemoteId, accountType:loopRemote.remoteIdType,
-                webhookSecret:loopRemote.sendSharedSecret, privateKey:loopRemote.privateKey, verified:partyLoopSystemMessageRemote.verified])
+                verified:partyLoopSystemMessageRemote.verified])
             </script>
         </iterate>
 
@@ -127,6 +127,9 @@ along with this software (see the LICENSE.md file). If not, see
         <!-- Get login API keys -->
         <service-call name="co.hotwax.configuration.UserProfileServices.get#UserLoginAPIKey" in-map="[organizationPartyId:organizationPartyId]" out-map="resultMap"/>
         <set field="loginKeyMap" from="resultMap.loginKeyMap"/>
+
+        <service-call name="co.hotwax.configuration.UserProfileServices.verify#LoopWebhookSubscriptions" in-map="[organizationPartyId:organizationPartyId]" out-map="outMap"/>
+        <set field="webhookSubscriptionMap" from="outMap.webhookSubscriptionMap"/>
     </actions>
     <widgets>
         <container-row>
@@ -371,19 +374,16 @@ along with this software (see the LICENSE.md file). If not, see
                             <header-field show-order-by="true"/>
                             <default-field><display/></default-field>
                         </field>
-                        <field name="privateKey">
-                            <header-field show-order-by="true"/>
-                            <default-field><display/></default-field>
-                        </field>
-                        <field name="webhookSecret">
-                            <header-field show-order-by="true"/>
-                            <default-field><display/></default-field>
-                        </field>
                         <field name="">
-                            <conditional-field condition="verified != 'Y'">
-                                <link url="subscribeLoopWebhook" text="Subscribe Webhook"/>
+                            <conditional-field condition="verified != 'Y' &amp;&amp; webhookSubscriptionMap.get(systemMessageRemoteId) == 'Y'">
+                                <link url="subscribeLoopWebhook" text="Subscribe Webhook" confirmation="Do you really want to subscribe webhook?"/>
                             </conditional-field>
-                            <default-field><label text="Subscribed Webhook" type="strong" style="text-info"/></default-field>
+                            <conditional-field condition="verified == 'Y'">
+                                <label text="Subscribed Webhook" type="strong" style="text-info"/>
+                            </conditional-field>
+                            <conditional-field condition="verified != 'Y' &amp;&amp; webhookSubscriptionMap.get(systemMessageRemoteId) == 'N'">
+                                <link url="unSubscribeLoopWebhook" text="Subscribe Webhook"/>
+                            </conditional-field>
                         </field>
                         <field name="deleteButton">
                             <default-field title="">
