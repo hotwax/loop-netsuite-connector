@@ -217,7 +217,7 @@ under the License.
             <set field="nowDate" from="ec.user.nowTimestamp"/>
 
             <set field="jsonFilePathRef" from="ec.resource.expand(systemMessageType.receivePath, null,
-                        [contentRoot: ec.user.getPreference('mantle.content.root') ?: 'runtime://datamanager', date:ec.l10n.format(nowDate, 'yyyy-MM-dd'), dateTime:ec.l10n.format(nowDate, 'yyyy-MM-dd-HH-mm-ss-SSS'), partyId:webhookPartyId, accountType:remoteIdType], false)"/>
+                        [contentRoot: ec.user.getPreference('mantle.content.root') ?: 'runtime://datamanager', date:ec.l10n.format(nowDate, 'yyyy-MM-dd'), dateTime:ec.l10n.format(nowDate, 'yyyy-MM-dd-HH-mm-ss-SSS'), partyId:webhookPartyId, accountType:remoteIdType, loopReturnId:payload.id], false)"/>
             <set field="jsonFilePath" from="ec.resource.getLocationReference(jsonFilePathRef).getUri().getPath()"/>
 
             <script><![CDATA[
