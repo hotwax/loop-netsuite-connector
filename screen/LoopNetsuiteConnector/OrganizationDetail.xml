@@ -74,6 +74,10 @@ along with this software (see the LICENSE.md file). If not, see
         <service-call name="co.hotwax.netsuite.NetSuiteRestServices.sendAll#NetSuiteRMAMapping" in-map="context"/>
         <default-response url="."/>
     </transition>
+    <transition name="syncLoopReturn">
+        <service-call name="co.hotwax.loop.common.LoopReturnServices.get#LoopReturn" in-map="context"/>
+        <default-response url="."/>
+    </transition>
 
     <actions>
         <entity-find-one entity-name="moqui.security.UserAccount" value-field="userAccount">
@@ -152,6 +156,39 @@ along with this software (see the LICENSE.md file). If not, see
                 <link url="disableUserAccount" text="Disable Account" parameter-map="[userId:userId]" condition="userAccount.disabled != 'Y'"/>
                 <link url="resetPassword" text="Reset Password" parameter-map="[userId:userAccount.userId]" condition="userAccount.emailAddress"
                       confirmation="Generate reset password and send by email to ${userAccount.emailAddress}?"/>
+
+                <container-dialog id="SyncLoopReturn" button-text="Sync Loop Return">
+                    <form-single name="SyncLoopReturnForm" transition="syncLoopReturn">
+                        <field name="organizationPartyId"><default-field><hidden/></default-field></field>
+                        <field name="userId"><default-field><hidden/></default-field></field>
+                        <field name="accountType" required="true">
+                            <default-field title="Account Type">
+                                <radio>
+                                    <option key="sandbox" text="Sandbox"/>
+                                    <option key="production" text="Production"/>
+                                </radio>
+                            </default-field>
+                        </field>
+                        <field name="returnId">
+                            <default-field title="Loop Return Id">
+                                <text-line size="20"/>
+                            </default-field>
+                        </field>
+                        <field name="orderId">
+                            <default-field title="Shopify Order Id">
+                                <text-line size="20"/>
+                            </default-field>
+                        </field>
+                        <field name="orderName">
+                            <default-field title="Shopify Order Name">
+                                <text-line size="20"/>
+                            </default-field>
+                        </field>
+                        <field name="submitButton">
+                            <default-field title="Submit"><submit/></default-field>
+                        </field>
+                    </form-single>
+                </container-dialog>
 
                 <form-single name="UserAccountForm" map="userAccount" transition="updateUserAccount">
                     <field name="userId"><default-field><display/></default-field></field>
