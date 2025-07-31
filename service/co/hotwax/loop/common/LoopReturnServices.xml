@@ -95,4 +95,100 @@ under the License.
         </actions>
     </service>
 
+    <service verb="get" noun="LoopReturn">
+        <description>
+            This service will get loop return payload based on given input parameters.
+        </description>
+        <in-parameters>
+            <parameter name="organizationPartyId"/>
+            <parameter name="accountType" required="true"/>
+            <parameter name="returnId"/>
+            <parameter name="orderId"/>
+            <parameter name="orderName"/>
+        </in-parameters>
+        <actions>
+            <if condition="!organizationPartyId">
+                <!-- Get OrganizationPartyId from logged in user -->
+                <service-call name="co.hotwax.configuration.UserProfileServices.get#OrganizationPartyIds" out-map="context"/>
+                <set field="organizationPartyId" from="context.partyId" type="String"/>
+            </if>
+            <if condition="returnId == null &amp;&amp; orderId == null &amp;&amp; orderName == null">
+                <return error="true" message="returnId or orderId or orderName is required."/>
+            </if>
+
+            <entity-find entity-name="co.hotwax.netsuite.party.PartySystemMessageRemote" list="partyLoopSystemMessageRemoteList">
+                <econdition field-name="systemMessageTypeId" operator="equals" value="LoopWebhook"/>
+                <econdition field-name="partyId" operator="equals" from="organizationPartyId"/>
+                <econdition field-name="remoteIdType" operator="equals" from="accountType"/>
+                <date-filter/>
+            </entity-find>
+
+            <entity-find-one entity-name="co.hotwax.netsuite.party.Organization" value-field="organization" cache="true">
+                <field-map field-name="partyId" from="organizationPartyId"/>
+            </entity-find-one>
+            <if condition="organization">
+                <set field="organizationName" from="organization.organizationName"/>
+            </if>
+
+            <set field="systemMessageRemoteId" from="partyLoopSystemMessageRemoteList[0].systemMessageRemoteId" type="String"/>
+            <if condition="systemMessageRemoteId == null">
+                <return error="true" message="Loop account is not configured for organization ${organizationName} with account type ${accountType}."/>
+            </if>
+
+            <entity-find-one entity-name="moqui.service.message.SystemMessageType" value-field="systemMessageType">
+                <field-map field-name="systemMessageTypeId" value="return.get"/>
+            </entity-find-one>
+            <if condition="systemMessageType == null"><return error="true" message="Could not find SystemMessageType with ID return.get"/></if>
+
+            <if condition="returnId">
+                <then>
+                    <set field="endPoint" value="/warehouse/return/details?return_id=${returnId}"/>
+                </then>
+                <else-if condition="orderId">
+                    <set field="endPoint" value="/warehouse/return/details?order_id=${orderId}"/>
+                </else-if>
+                <else-if condition="orderName">
+                    <set field="endPoint" value="/warehouse/return/details?order_name=${orderName}"/>
+                </else-if>
+            </if>
+
+            <service-call name="co.hotwax.loop.common.LoopHelperServices.send#LoopRequest" in-map="[systemMessageRemoteId:systemMessageRemoteId,
+                        requestType:'GET', contentType:'application/json', endPoint: endPoint]" out-map="loopReturnResponse"/>
+
+            <if condition="loopReturnResponse.response instanceof Map &amp;&amp; loopReturnResponse.response.errors">
+                <return error="true" message="Error getting Loop Return: ${loopReturnResponse.response.errors.message}"/>
+            </if>
+
+            <set field="loopReturnPayloadList" from="loopReturnResponse.response"/>
+            <script><![CDATA[
+                import java.nio.file.Files
+                import java.nio.file.Paths
+                import java.nio.charset.StandardCharsets
+                import groovy.json.JsonOutput
+
+                for (loopReturnPayload in loopReturnPayloadList) {
+                    loopReturnId = loopReturnPayload.id
+                    nowDate = ec.user.nowTimestamp
+
+                    jsonFilePathRef = ec.resource.expand(systemMessageType.receivePath, null,
+                    [contentRoot: ec.user.getPreference('mantle.content.root') ?: 'runtime://datamanager', date:ec.l10n.format(nowDate, 'yyyy-MM-dd'),
+                    dateTime:ec.l10n.format(nowDate, 'yyyy-MM-dd-HH-mm-ss-SSS'), partyId:organizationPartyId, accountType:accountType, loopReturnId:loopReturnId], false)
+
+                    jsonFilePath = ec.resource.getLocationReference(jsonFilePathRef).getUri().getPath()
+
+                    // Create directories if they do not exist
+                    def file = new File(jsonFilePath)
+                    if (!file.parentFile.exists()) file.parentFile.mkdirs()
+
+                    jsonString = JsonOutput.prettyPrint(JsonOutput.toJson(loopReturnPayload))
+                    Files.write(Paths.get(jsonFilePath), jsonString.getBytes("UTF-8"))
+                    logger.info("File successfully written to: ${jsonFilePath}")
+                }
+            ]]></script>
+            <service-call name="org.moqui.impl.SystemMessageServices.queue#SystemMessage"
+                          in-map="[systemMessageTypeId:systemMessageType.systemMessageTypeId, systemMessageRemoteId:systemMessageRemoteId,
+                    messageText:jsonFilePathRef, senderId: organizationPartyId, docType: accountType, sendNow:false]" out-map="resultMap"/>
+            <return message="Get Loop Return process has been executed successfully."/>
+        </actions>
+    </service>
 </services>

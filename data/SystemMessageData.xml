@@ -46,7 +46,7 @@
  <moqui.basic.Enumeration description="Loop Create Label Webhook" enumId="LoopLabelCreate"
          enumTypeId="LoopMessageTypeEnum" enumCode="label.created"/>
 
- <!-- SystemMessageType record to put loop label.created webhook payload on SFTP server -->
+ <!-- SystemMessageType record to send loop label.created webhook payload to Netsuite -->
  <moqui.service.message.SystemMessageType systemMessageTypeId="label.created"
          description="Send Update Return JSON file to NetSuite"
          parentTypeId="LocalFeedFile"
@@ -69,7 +69,7 @@
  <moqui.basic.Enumeration description="Loop Close Return Webhook" enumId="LoopReturnsClose"
          enumTypeId="LoopMessageTypeEnum" enumCode="return.closed"/>
 
- <!-- SystemMessageType record to put loop return.closed webhook payload on SFTP server -->
+ <!-- SystemMessageType record to send loop return.closed webhook payload to Netsuite -->
  <moqui.service.message.SystemMessageType systemMessageTypeId="return.closed"
          description="Send Close Return JSON file to NetSuite"
          parentTypeId="LocalFeedFile"
@@ -100,4 +100,14 @@
    <parameters parameterName="retryLimit" parameterValue="3"/>
    <parameters parameterName="retryMinutes" parameterValue="60"/>
  </moqui.service.job.ServiceJob>
+
+ <!-- SystemMessageType record to send loop RMA payload to Netsuite -->
+ <moqui.service.message.SystemMessageType systemMessageTypeId="return.get"
+                                          description="Return JSON file to NetSuite"
+                                          parentTypeId="LocalFeedFile"
+                                          receivePath="${contentRoot}/Netsuite/LoopReturns/${partyId}/${accountType}/SyncReturn/loopReturnFeed-${loopReturnId}-${dateTime}.json"
+                                          sendPath=""
+                                          sendServiceName="co.hotwax.netsuite.NetSuiteRestServices.send#SystemMessageFileNetSuite">
+  <parameters parameterName="scriptType" parameterValue="netsuite.restlet.create.return" systemMessageRemoteId=""/>
+ </moqui.service.message.SystemMessageType>
 </entity-facade-xml>
