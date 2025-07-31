@@ -132,10 +132,9 @@
             <if condition="systemMessageRemote == null">
                 <return error="true" message="NetSuite Account not found for organization : ${organizationName} [${organizationPartyId}]"/>
             </if>
-            <set field="netSuiteRemoteId" from="systemMessageRemote.remoteId"/>
 
             <entity-find entity-name="moqui.security.UserAccount" list="userAccountList">
-                <econdition field-name="externalUserId" operator="equals" from="netSuiteRemoteId"/>
+                <econdition field-name="externalUserId" operator="equals" from="systemMessageRemoteId"/>
             </entity-find>
 
             <if condition="userAccountList">
@@ -156,7 +155,7 @@
 
             <!-- Create Integration User Account -->
             <service-call name="org.moqui.impl.UserServices.create#UserAccount"
-                          in-map="[username:netSuiteRemoteId + '_Integration', newPassword:password, newPasswordVerify:password, partyId:integrationPartyId, externalUserId:netSuiteRemoteId]"
+                          in-map="[username:systemMessageRemoteId + '_Integration', newPassword:password, newPasswordVerify:password, partyId:integrationPartyId, externalUserId:systemMessageRemoteId]"
                           out-map="userOut"/>
             <set field="integrationUserId" from="userOut.userId"/>
 
@@ -231,10 +230,9 @@
                 <entity-find-one entity-name="moqui.service.message.SystemMessageRemote" value-field="systemMessageRemote" cache="true">
                     <field-map field-name="systemMessageRemoteId" from="systemMessageRemoteId"/>
                 </entity-find-one>
-                <set field="netSuiteRemoteId" from="systemMessageRemote.remoteId"/>
 
                 <entity-find entity-name="moqui.security.UserAccount" list="userAccountList">
-                    <econdition field-name="externalUserId" operator="equals" from="netSuiteRemoteId"/>
+                    <econdition field-name="externalUserId" operator="equals" from="systemMessageRemoteId"/>
                 </entity-find>
 
                 <if condition="userAccountList">
@@ -247,7 +245,7 @@
 
                     <if condition="userLoginKeyList">
                         <script>
-                            loginKeyMap.put(netSuiteRemoteId, userLoginKeyList[0].loginKey)
+                            loginKeyMap.put(systemMessageRemoteId, userLoginKeyList[0].loginKey)
                         </script>
                     </if>
                 </if>
@@ -279,10 +277,6 @@
 
             <iterate list="partySystemMessageRemoteList" entry="partySystemMessageRemote">
                 <set field="systemMessageRemoteId" from="partySystemMessageRemote.systemMessageRemoteId"/>
-                <entity-find-one entity-name="moqui.service.message.SystemMessageRemote" value-field="systemMessageRemote">
-                    <field-map field-name="systemMessageRemoteId" from="systemMessageRemoteId"/>
-                </entity-find-one>
-                <set field="netSuiteRemoteId" from="systemMessageRemote.remoteId"/>
 
                 <entity-find entity-name="co.hotwax.netsuite.IntegrationTypeMapping"
                              list="intTypeMappingList">
@@ -302,8 +296,8 @@
                     </script>
                 </iterate>
                 <script>
-                    if (netSuiteRemoteId) {
-                        integrationTypeMappingMap.put(netSuiteRemoteId, tmpList)
+                    if (systemMessageRemoteId) {
+                        integrationTypeMappingMap.put(systemMessageRemoteId, tmpList)
                     }
                 </script>
             </iterate>
