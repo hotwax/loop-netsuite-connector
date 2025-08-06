@@ -86,6 +86,9 @@ under the License.
             <method type="get">
                 <service name="co.hotwax.configuration.UserProfileServices.verify#LoopWebhookSubscriptions"/>
             </method>
+            <method type="delete">
+                <service name="co.hotwax.loop.webhook.LoopWebhookServices.delete#LoopWebhookSubscription"/>
+            </method>
         </resource>
         <resource name="returnIntegrationTypeMapping">
             <method type="get">

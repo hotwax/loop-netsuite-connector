@@ -65,13 +65,14 @@ under the License.
                 }
                 try {
                     RestClient.RestResponse restResponse = restClient.call()
-                    resposeText = restResponse.text()
+                    statusCode = restResponse.getStatusCode()
                     if (resposeText == "true") {
+                        response = [ "type" : "success"]
+                    } else if (statusCode == 204) {
                         response = [ "type" : "success"]
                     } else {
                         response = restResponse.jsonObject()
                     }
-                    statusCode = restResponse.getStatusCode()
                     restResponse.checkError()
                 } catch (Exception e) {
                     ec.logger.error("Error in API call Error: ${e.getMessage()}")

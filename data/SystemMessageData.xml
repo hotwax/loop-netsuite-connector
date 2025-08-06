@@ -11,7 +11,7 @@
  <moqui.service.message.SystemMessageType systemMessageTypeId="LoopReturnsCreate"
          description="Loop Returns Create Webhook"
          parentTypeId="LoopWebhook"
-         sendServiceName="co.hotwax.loop.webhook.LoopWebhookServices.send#WebhookSubscriptionSystemMessage">
+         sendServiceName="">
   <parameters parameterName="topic" parameterValue="return" systemMessageRemoteId=""/>
   <parameters parameterName="trigger" parameterValue="return.created" systemMessageRemoteId=""/>
   <parameters parameterName="status" parameterValue="active" systemMessageRemoteId=""/>
@@ -37,7 +37,7 @@
  <moqui.service.message.SystemMessageType systemMessageTypeId="LoopLabelCreate"
          description="Loop Label Create Webhook"
          parentTypeId="LoopWebhook"
-         sendServiceName="co.hotwax.loop.webhook.LoopWebhookServices.send#WebhookSubscriptionSystemMessage">
+         sendServiceName="">
   <parameters parameterName="topic" parameterValue="label" systemMessageRemoteId=""/>
   <parameters parameterName="trigger" parameterValue="label.created" systemMessageRemoteId=""/>
   <parameters parameterName="status" parameterValue="active" systemMessageRemoteId=""/>
@@ -60,7 +60,7 @@
  <moqui.service.message.SystemMessageType systemMessageTypeId="LoopReturnsClose"
          description="Loop Returns Close Webhook"
          parentTypeId="LoopWebhook"
-         sendServiceName="co.hotwax.loop.webhook.LoopWebhookServices.send#WebhookSubscriptionSystemMessage">
+         sendServiceName="">
   <parameters parameterName="topic" parameterValue="return" systemMessageRemoteId=""/>
   <parameters parameterName="trigger" parameterValue="return.closed" systemMessageRemoteId=""/>
   <parameters parameterName="status" parameterValue="active" systemMessageRemoteId=""/>

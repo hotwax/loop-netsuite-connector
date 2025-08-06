@@ -43,4 +43,18 @@ along with this software (see the LICENSE.md file). If not, see
     <alias-all entity-alias="SM"/>
     <alias-all entity-alias="SMT"/>
   </view-entity>
+
+  <entity entity-name="WebhookSubscription" package="moqui.service.message" use="configuration">
+    <field name="partyId" type="id" is-pk="true"/>
+    <field name="systemMessageRemoteId" type="id" is-pk="true"/>
+    <field name="systemMessageTypeId" type="id" is-pk="true"/>
+    <field name="subscriptionId" type="id"/>
+    <field name="fromDate" type="date-time" is-pk="true"/>
+    <field name="thruDate" type="date-time"/>
+    <relationship type="one" related="co.hotwax.netsuite.party.Party" short-alias="party"/>
+    <relationship type="one" related="moqui.service.message.SystemMessageRemote">
+      <key-map field-name="systemMessageRemoteId"/>
+    </relationship>
+    <relationship type="one" related="moqui.service.message.SystemMessageType"/>
+  </entity>
 </entities>

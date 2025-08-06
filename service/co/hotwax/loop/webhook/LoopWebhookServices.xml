@@ -43,6 +43,7 @@ under the License.
                 <set field="serviceCtx.remoteIdType" from="accountType"/>
                 <service-call name="co.hotwax.loop.webhook.LoopWebhookServices.queue#WebhookSubscriptionSystemMessage" in-map="serviceCtx"/>
             </iterate>
+            <return type="success" message="Webhook Subscribed Successfully"/>
         </actions>
     </service>
 
@@ -57,37 +58,19 @@ under the License.
             <parameter name="partyId" required="true"/>
         </in-parameters>
         <actions>
-            <entity-find-one entity-name="moqui.service.message.SystemMessageType" value-field="systemMessageType"/>
-            <set field="messageParams" from="[:]"/>
+            <set field="serviceCtx" from="[:]"/>
             <entity-find entity-name="moqui.service.message.SystemMessageTypeParameter" list="systemMessageParams">
                 <econdition field-name="systemMessageTypeId" operator="equals" from="systemMessageTypeId"/>
             </entity-find>
             <if condition="systemMessageParams">
                 <iterate list="systemMessageParams" entry="paramMap">
-                    <script>messageParams.put(paramMap.parameterName, paramMap.parameterValue)</script>
+                    <script>serviceCtx.put(paramMap.parameterName, paramMap.parameterValue)</script>
                 </iterate>
             </if>
-            <set field="messageText" from="org.moqui.impl.context.ContextJavaUtil.jacksonMapper.writeValueAsString(messageParams)"/>
-            <service-call name="org.moqui.impl.SystemMessageServices.queue#SystemMessage" in-map="[systemMessageTypeId:systemMessageTypeId, systemMessageRemoteId:systemMessageRemoteId, messageText:messageText, sendNow:true, senderId: partyId, docType: remoteIdType]"
-                          out-map="context"/>
-        </actions>
-    </service>
+            <set field="serviceCtx.systemMessageRemoteId" from="systemMessageRemoteId"/>
+            <set field="serviceCtx.systemMessageTypeId" from="systemMessageTypeId"/>
 
-    <service verb="send" noun="WebhookSubscriptionSystemMessage">
-        <description>
-            Send service to invoke Create Webhook Subscription API for the System Message.
-        </description>
-        <implements service="org.moqui.impl.SystemMessageServices.send#SystemMessage"/>
-        <actions>
-            <entity-find-one entity-name="moqui.service.message.SystemMessageAndType" value-field="systemMessage">
-                <field-map field-name="systemMessageId"/>
-            </entity-find-one>
-
-            <set field="serviceCtx" from="org.moqui.impl.context.ContextJavaUtil.jacksonMapper.readValue(systemMessage.messageText, Map.class)"/>
-            <set field="serviceCtx.systemMessageRemoteId" from="systemMessage.systemMessageRemoteId"/>
             <service-call name="co.hotwax.loop.webhook.LoopWebhookServices.create#WebhookSubscription" in-map="serviceCtx" out-map="context"/>
-
-            <set field="remoteMessageId" from="webhookSubscriptionId"/>
         </actions>
     </service>
 
@@ -98,6 +81,7 @@ under the License.
             <parameter name="topic" required="true"/>
             <parameter name="trigger" required="true"/>
             <parameter name="status" required="true"/>
+            <parameter name="systemMessageTypeId" required="true"/>
         </in-parameters>
         <out-parameters>
             <parameter name="webhookSubscriptionId"/>
@@ -105,6 +89,7 @@ under the License.
         <actions>
             <entity-find entity-name="co.hotwax.netsuite.party.PartySystemMessageRemote" list="partySystemMessageRemoteList">
                 <econdition field-name="systemMessageRemoteId" operator="equals" from="systemMessageRemoteId"/>
+                <date-filter/>
             </entity-find>
             <if condition="partySystemMessageRemoteList">
                 <set field="partyId" from="partySystemMessageRemoteList[0].partyId" type="String"/>
@@ -155,6 +140,36 @@ under the License.
                             fromDate:partyLoopSystemMessageRemote.fromDate,
                             verified:'Y',
                             systemMessageTypeId:partyLoopSystemMessageRemote.systemMessageTypeId
+                          ]"/>
+
+                <entity-find entity-name="moqui.service.message.WebhookSubscription" list="webhookSubscriptionList">
+                    <econdition field-name="partyId" operator="equals" from="partyId"/>
+                    <econdition field-name="systemMessageRemoteId" operator="equals" from="systemMessageRemoteId"/>
+                    <econdition field-name="systemMessageTypeId" operator="equals" from="systemMessageTypeId"/>
+                    <date-filter/>
+                </entity-find>
+
+                <if condition="webhookSubscriptionList">
+                    <set field="thruDate" from="ec.user.nowTimestamp"/>
+                    <iterate list="webhookSubscriptionList" entry="webhookSubscription">
+                        <service-call name="update#moqui.service.message.WebhookSubscription"
+                                      in-map="[
+                            partyId:webhookSubscription.partyId,
+                            systemMessageRemoteId:webhookSubscription.systemMessageRemoteId,
+                            fromDate:webhookSubscription.fromDate,
+                            thruDate:thruDate,
+                            systemMessageTypeId:webhookSubscription.systemMessageTypeId,
+                            subscriptionId:webhookSubscription.subscriptionId
+                          ]"/>
+                    </iterate>
+                </if>
+                <service-call name="create#moqui.service.message.WebhookSubscription"
+                              in-map="[
+                            partyId:partyId,
+                            systemMessageRemoteId:systemMessageRemoteId,
+                            fromDate:ec.user.nowTimestamp,
+                            subscriptionId:webhookSubscriptionId,
+                            systemMessageTypeId:systemMessageTypeId
                           ]"/>
             </if>
         </actions>
@@ -292,6 +307,65 @@ under the License.
                         requestType:'GET', endPoint: endPoint]" out-map="getWebhookSubscriptionsResponse"/>
 
             <set field="webhookList" from="getWebhookSubscriptionsResponse.response.webhooks"/>
+        </actions>
+    </service>
+
+    <service verb="delete" noun="LoopWebhookSubscription">
+        <description>Get a list of all subscribed webhooks filtered by query parameters.</description>
+        <in-parameters>
+            <parameter name="systemMessageRemoteId" required="true"/>
+            <parameter name="organizationPartyId" required="true"/>
+        </in-parameters>
+        <actions>
+            <if condition="!organizationPartyId">
+                <!-- Get OrganizationPartyId from logged in user -->
+                <service-call name="co.hotwax.configuration.UserProfileServices.get#OrganizationPartyIds" out-map="context"/>
+                <set field="organizationPartyId" from="context.partyId" type="String"/>
+            </if>
+
+            <entity-find entity-name="moqui.service.message.WebhookSubscription" list="webhookSubscriptionList">
+                <econdition field-name="partyId" operator="equals" from="organizationPartyId"/>
+                <econdition field-name="systemMessageRemoteId" operator="equals" from="systemMessageRemoteId"/>
+                <date-filter/>
+            </entity-find>
+            <set field="thruDate" from="ec.user.nowTimestamp"/>
+
+            <iterate list="webhookSubscriptionList" entry="webhookSubscription">
+                <set field="id" from="webhookSubscription.subscriptionId"/>
+                <set field="endPoint" value="/webhooks/${id}"/>
+
+                <service-call name="co.hotwax.loop.common.LoopHelperServices.send#LoopRequest" in-map="[systemMessageRemoteId:systemMessageRemoteId,
+                            requestType:'DELETE', endPoint: endPoint]" out-map="deleteWebhookSubscriptionsResponse"/>
+                <if condition="deleteWebhookSubscriptionsResponse.response.errors">
+                    <return error="true" message="${processReturnResponse.response.errors.message}"/>
+                </if>
+                    <service-call name="update#moqui.service.message.WebhookSubscription"
+                                  in-map="[
+                            partyId:webhookSubscription.partyId,
+                            systemMessageRemoteId:webhookSubscription.systemMessageRemoteId,
+                            fromDate:webhookSubscription.fromDate,
+                            thruDate:thruDate,
+                            systemMessageTypeId:webhookSubscription.systemMessageTypeId,
+                            subscriptionId:webhookSubscription.subscriptionId
+                          ]"/>
+            </iterate>
+            <entity-find entity-name="co.hotwax.netsuite.party.PartySystemMessageRemote" list="partySystemMessageRemoteList">
+                <econdition field-name="systemMessageRemoteId" operator="equals" from="systemMessageRemoteId"/>
+                <econdition field-name="partyId" operator="equals" from="organizationPartyId"/>
+                <date-filter/>
+            </entity-find>
+
+            <set field="partyLoopSystemMessageRemote" from="partySystemMessageRemoteList[0]"/>
+            <service-call name="update#PartySystemMessageRemote"
+                          in-map="[
+                            partyId:partyLoopSystemMessageRemote.partyId,
+                            systemMessageRemoteId:partyLoopSystemMessageRemote.systemMessageRemoteId,
+                            remoteIdType:partyLoopSystemMessageRemote.remoteIdType,
+                            fromDate:partyLoopSystemMessageRemote.fromDate,
+                            verified:'N',
+                            systemMessageTypeId:partyLoopSystemMessageRemote.systemMessageTypeId
+                          ]"/>
+            <return type="success" message="Webhook Unsubscribed Successfully"/>
         </actions>
     </service>
 </services>
