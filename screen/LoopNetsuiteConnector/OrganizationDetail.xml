@@ -78,6 +78,10 @@ along with this software (see the LICENSE.md file). If not, see
         <service-call name="co.hotwax.loop.common.LoopReturnServices.get#LoopReturn" in-map="context"/>
         <default-response url="."/>
     </transition>
+    <transition name="unSubscribeLoopWebhook">
+        <service-call name="co.hotwax.loop.webhook.LoopWebhookServices.delete#LoopWebhookSubscription" in-map="context"/>
+        <default-response url="."/>
+    </transition>
 
     <actions>
         <entity-find-one entity-name="moqui.security.UserAccount" value-field="userAccount">
@@ -415,7 +419,7 @@ along with this software (see the LICENSE.md file). If not, see
                                 <link url="subscribeLoopWebhook" text="Subscribe Webhook" confirmation="Do you really want to subscribe webhook?"/>
                             </conditional-field>
                             <conditional-field condition="verified == 'Y'">
-                                <label text="Subscribed Webhook" type="strong" style="text-info"/>
+                                <link url="unSubscribeLoopWebhook" text="Unsubscribe Webhook" confirmation="Do you really want to unsubscribe webhook?"/>
                             </conditional-field>
                             <conditional-field condition="verified != 'Y' &amp;&amp; webhookSubscriptionMap.get(systemMessageRemoteId) == 'N'">
                                 <link url="unSubscribeLoopWebhook" text="Subscribe Webhook"/>
