@@ -1,0 +1,157 @@
+name: Create Release and Image
+# Required Repository Secrets:
+#AWS_REGION
+#AWS_ECR_REPOSITORY_URL
+#AWS_ECR_REPO_SLUG
+#AWS_ACCESS_KEY_ID
+#AWS_SECRET_ACCESS_KEY
+#GIT_USERNAME
+#GIT_PASSWORD
+on:
+  workflow_dispatch:
+    inputs:
+      RELEASE_TAG:
+        description: "New release tag (format: vX.Y.Z)"
+        required: true
+      DOCKER_BRANCH:
+        description: "Source branch name"
+        default: "main"
+        required: true
+      CI_BOT_PAT:
+        description: "Personal Access Token with repo access"
+        required: true
+
+env:
+  AWS_REGION: ${{ secrets.AWS_REGION }}
+  REPOSITORY_URL: ${{ secrets.AWS_ECR_REPOSITORY_URL }}
+  GIT_USERNAME: ${{ secrets.GIT_USERNAME }}
+  GIT_PASSWORD: ${{ secrets.GIT_PASSWORD }}
+  REPO_SLUG: ${{ vars.AWS_ECR_REPO_SLUG }}
+
+jobs:
+  prepare_and_tag:
+    name: Update Dockerfile & Tag
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Validate input tag
+        run: |
+          if [[ ! "${{ inputs.RELEASE_TAG }}" =~ ^v.+ ]]; then
+            echo "RELEASE_TAG must start with 'v'"
+            exit 1
+          fi
+
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.DOCKER_BRANCH }}
+          token: ${{ inputs.CI_BOT_PAT }}
+
+      - name: Configure git author
+        run: |
+          git config user.name "hotwax-ci-bot"
+          git config user.email "hotwax-ci-bot@hotwax.co"
+
+      - name: Update Dockerfile(s)
+        run: |
+          TAG="${{ inputs.RELEASE_TAG }}"
+          sed -i "s|RUN git clone --depth 1 -b \".*\" https://github.com/hotwax/loop-netsuite-connector.git|RUN git clone --depth 1 -b \"$TAG\" https://github.com/hotwax/loop-netsuite-connector.git|" docker/prod/Dockerfile || true
+          if [[ -f docker/uat/Dockerfile ]]; then
+            sed -i "s|RUN git clone --depth 1 -b \".*\" https://github.com/hotwax/loop-netsuite-connector.git|RUN git clone --depth 1 -b \"$TAG\" https://github.com/hotwax/loop-netsuite-connector.git|" docker/uat/Dockerfile || true
+          fi
+
+      - name: Commit changes
+        run: |
+          if ! git diff --quiet; then
+            git add docker
+            git commit -m "Updated Dockerfile(s) to ${{ inputs.RELEASE_TAG }}"
+            git push https://x-access-token:${{ inputs.CI_BOT_PAT }}@github.com/${{ github.repository }} HEAD:${{ inputs.DOCKER_BRANCH }}
+          else
+            echo "No changes to commit"
+          fi
+
+      - name: Create annotated tag
+        run: |
+          TAG="${{ inputs.RELEASE_TAG }}"
+          git tag -d "$TAG" 2>/dev/null || true
+          git tag -a "$TAG" -m "Tagged release $TAG"
+          git push https://x-access-token:${{ inputs.CI_BOT_PAT }}@github.com/${{ github.repository }} "$TAG"
+
+  build_and_push:
+    name: Build & Push Docker Image
+    runs-on: ubuntu-latest
+    needs: prepare_and_tag
+    environment: production
+    env:
+      DOCKER_BUILDKIT: "1"
+
+    steps:
+      - name: Checkout at tag
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.RELEASE_TAG }}
+          token: ${{ inputs.CI_BOT_PAT }}
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: docker/prod/Dockerfile
+          push: true
+          no-cache: true
+          build-args: |
+            GIT_USERNAME=${{ env.GIT_USERNAME }}
+            GIT_PASSWORD=${{ env.GIT_PASSWORD }}
+          tags: |
+            ${{ env.REPOSITORY_URL }}/${{ env.REPO_SLUG }}:${{ inputs.RELEASE_TAG }}
+
+  release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    needs: build_and_push
+
+    steps:
+      - name: Create release
+        run: |
+          RELEASE_DATE=$(date +%F)
+          curl -s -X POST https://api.github.com/repos/${{ github.repository }}/releases \
+            -H "Authorization: token ${{ inputs.CI_BOT_PAT }}" \
+            -H "Content-Type: application/json" \
+            -d @- <<EOF
+          {
+            "tag_name": "${{ inputs.RELEASE_TAG }}",
+            "name": "${{ inputs.RELEASE_TAG }} ($RELEASE_DATE)",
+            "body": "Release created on $RELEASE_DATE",
+            "draft": false,
+            "prerelease": false,
+            "generate_release_notes": true
+          }
+          EOF
+      - name: Notify Google Chat (success)
+        if: success()
+        env:
+          GCHAT_WEBHOOK: ${{ secrets.GCHAT_WEBHOOK }}
+        run: |
+          if [ -z "$GCHAT_WEBHOOK" ]; then
+            echo "GCHAT_WEBHOOK not set — skipping Google Chat notification."
+            exit 0
+          fi
+          tag="${{ inputs.RELEASE_TAG }}"
+          repo="${{ github.repository }}"
+          rel_url="${{ github.server_url }}/${{ github.repository }}/releases/tag/${tag}"
+          # Google Chat supports basic Markdown (like [text](url))
+          text="Release <${rel_url}|${tag}> published for \`${repo}\`"
+          payload=$(jq -n --arg t "$text" '{text:$t}')
+          curl -sS -X POST -H 'Content-Type: application/json' -d "$payload" "$GCHAT_WEBHOOK"
+
