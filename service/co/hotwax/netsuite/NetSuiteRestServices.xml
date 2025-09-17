@@ -262,7 +262,12 @@ under the License.
         <actions>
             <set field="userAccount" from="ec.user.UserAccount"/>
             <if condition="userAccount != null">
-                <set field="accountId" from="userAccount.externalUserId"/>
+                <entity-find-one entity-name="moqui.service.message.SystemMessageRemote" value-field="systemMessageRemote" cache="true">
+                    <field-map field-name="systemMessageRemoteId" from="userAccount.externalUserId"/>
+                    <field-map field-name="systemMessageTypeId" value="NetsuiteCredentials"/>
+                </entity-find-one>
+                <if condition="systemMessageRemote == null"><return error="true" message="Could not find SystemMessageRemote for ${userAccount.externalUserId}"/></if>
+                <set field="accountId" from="systemMessageRemote.remoteId"/>
             </if>
             <return type="success" message="NetSuite API Key is verified for account : ${accountId}"/>
         </actions>
