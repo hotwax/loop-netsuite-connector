@@ -67,6 +67,7 @@ under the License.
                 try {
                     RestClient.RestResponse restResponse = restClient.call()
                     statusCode = restResponse.getStatusCode()
+                    resposeText = restResponse.text()
                     if (resposeText == "true") {
                         response = [ "type" : "success"]
                     } else if (statusCode == 204) {
