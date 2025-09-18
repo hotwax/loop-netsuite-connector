@@ -81,6 +81,7 @@ class NetSuiteRestServiceRunner implements ServiceRunner {
             // NOTE: another option for parameters might be addBodyParameters(parameters), but a JSON body in the request is more common except for GET
             if (parameters != null && !parameters.isEmpty()) rc.jsonObject(parameters)
         }
+        rc.timeout(600);
 
         try {
             rc.maxResponseSize(10 * 1024 * 1024)

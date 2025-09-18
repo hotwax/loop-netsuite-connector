@@ -63,6 +63,7 @@ under the License.
                 if (requestBody != null) {
                     restClient.jsonObject(requestBody)
                 }
+                restClient.timeout(300);
                 try {
                     RestClient.RestResponse restResponse = restClient.call()
                     statusCode = restResponse.getStatusCode()
