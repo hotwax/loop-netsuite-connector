@@ -31,7 +31,7 @@ ENV JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
 ENV PATH="$JAVA_HOME/bin:$PATH"
 # Clone the necessary repositories in one RUN command to reduce image layers
 WORKDIR /
-RUN git clone --depth 1 -b "v3.3.0" https://github.com/hotwax/moqui-framework.git
+RUN git clone --depth 1 -b "v3.4.0" https://github.com/hotwax/moqui-framework.git
 WORKDIR /moqui-framework
 RUN git clone --depth 1 -b "v3.2.0" https://github.com/hotwax/moqui-runtime.git runtime
 WORKDIR /moqui-framework/runtime/component
