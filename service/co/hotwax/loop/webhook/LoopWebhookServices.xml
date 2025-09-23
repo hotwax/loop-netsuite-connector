@@ -279,6 +279,7 @@ under the License.
                 <if condition="webhookTrigger == 'return.created'">
                     <set field="serviceCtx.createdDate" from="date"/>
                     <set field="serviceCtx.statusId" value="RT_CREATED"/>
+                    <set field="serviceCtx.changeReason" value="Created"/>
 
                     <service-call name="create#co.hotwax.netsuite.LoopReturnHistory" in-map="serviceCtx"/>
                     <service-call name="create#co.hotwax.netsuite.LoopReturnStatus" in-map="[loopReturnId: payload.id, statusId: 'RT_CREATED', statusDatetime: date]"/>
@@ -292,6 +293,7 @@ under the License.
 
                     <if condition="loopReturnHistory != null">
                         <set field="serviceCtx.statusId" value="RT_PENDING_REFUND"/>
+                        <set field="serviceCtx.changeReason" value="Pending Refund"/>
                         <service-call name="update#co.hotwax.netsuite.LoopReturnHistory" in-map="serviceCtx"/>
                     </if>
                 </if>

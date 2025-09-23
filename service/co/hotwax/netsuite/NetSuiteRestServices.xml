@@ -152,6 +152,7 @@ under the License.
                 <if condition="loopReturnHistory != null">
                     <set field="serviceCtx.netsuiteReturnId" from="result.responseMap.internalId"/>
                     <set field="serviceCtx.statusId" value="RT_PENDING_RECEIPT"/>
+                    <set field="serviceCtx.changeReason" value="Pending Receipt"/>
                     <service-call name="update#co.hotwax.netsuite.LoopReturnHistory" in-map="serviceCtx"/>
                 </if>
             </if>
@@ -159,6 +160,7 @@ under the License.
             <if condition="systemMessage.systemMessageTypeId == 'return.closed'">
                 <if condition="loopReturnHistory != null">
                     <set field="serviceCtx.statusId" value="RT_REFUNDED"/>
+                    <set field="serviceCtx.changeReason" value="Refunded"/>
                     <service-call name="update#co.hotwax.netsuite.LoopReturnHistory" in-map="serviceCtx"/>
                 </if>
             </if>
@@ -327,6 +329,15 @@ under the License.
                           ]" transaction="force-new"/>
                 </if>
                 <return error="true" message="${processReturnResponse.response.errors.message}"/>
+            </if>
+            <if condition="loopReturnHistory != null">
+                <service-call name="update#co.hotwax.netsuite.LoopReturnHistory"
+                              in-map="[
+                            loopReturnId: loopReturnId,
+                            partyId: organizationPartyId,
+                            statusId: 'RT_PROCESSED',
+                            changeReason: 'Processed'
+                          ]" transaction="force-new"/>
             </if>
             <return type="success" message="Loop Return is processed successfully : ${loopReturnId}"/>
         </actions>
