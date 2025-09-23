@@ -231,8 +231,15 @@ under the License.
 
             <set field="nowDate" from="ec.user.nowTimestamp"/>
 
+            <entity-find-one entity-name="co.hotwax.netsuite.party.Organization" value-field="organization" cache="true">
+                <field-map field-name="partyId" from="webhookPartyId"/>
+            </entity-find-one>
+            <if condition="organization">
+                <set field="organizationName" from="organization.organizationName"/>
+            </if>
+
             <set field="jsonFilePathRef" from="ec.resource.expand(systemMessageType.receivePath, null,
-                        [contentRoot: ec.user.getPreference('mantle.content.root') ?: 'runtime://datamanager', date:ec.l10n.format(nowDate, 'yyyy-MM-dd'), dateTime:ec.l10n.format(nowDate, 'yyyy-MM-dd-HH-mm-ss-SSS'), partyId:webhookPartyId, accountType:remoteIdType, loopReturnId:payload.id], false)"/>
+                        [contentRoot: ec.user.getPreference('mantle.content.root') ?: 'runtime://datamanager', date:ec.l10n.format(nowDate, 'yyyy-MM-dd'), dateTime:ec.l10n.format(nowDate, 'yyyy-MM-dd-HH-mm-ss-SSS'), partyId:webhookPartyId, accountType:remoteIdType, loopReturnId:payload.id, organizationName:organizationName], false)"/>
             <set field="jsonFilePath" from="ec.resource.getLocationReference(jsonFilePathRef).getUri().getPath()"/>
 
             <script><![CDATA[
@@ -256,7 +263,7 @@ under the License.
 
             <service-call name="org.moqui.impl.SystemMessageServices.queue#SystemMessage"
                           in-map="[systemMessageTypeId:systemMessageType.systemMessageTypeId, systemMessageRemoteId:systemMessageRemoteId,
-                    messageText:jsonFilePathRef, senderId: webhookPartyId, docType: remoteIdType, sendNow:false]" out-map="resultMap"/>
+                    messageText:jsonFilePathRef, senderId: webhookPartyId, docType: remoteIdType, sendNow:false, returnId: payload.id]" out-map="resultMap"/>
 
             <!-- Make LoopReturnHistory record for received webhook RMA payload -->
             <if condition="resultMap.systemMessageId">

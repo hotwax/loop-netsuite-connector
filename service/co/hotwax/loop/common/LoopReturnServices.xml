@@ -172,7 +172,7 @@ under the License.
 
                     jsonFilePathRef = ec.resource.expand(systemMessageType.receivePath, null,
                     [contentRoot: ec.user.getPreference('mantle.content.root') ?: 'runtime://datamanager', date:ec.l10n.format(nowDate, 'yyyy-MM-dd'),
-                    dateTime:ec.l10n.format(nowDate, 'yyyy-MM-dd-HH-mm-ss-SSS'), partyId:organizationPartyId, accountType:accountType, loopReturnId:loopReturnId], false)
+                    dateTime:ec.l10n.format(nowDate, 'yyyy-MM-dd-HH-mm-ss-SSS'), partyId:organizationPartyId, accountType:accountType, loopReturnId:loopReturnId, organizationName:organizationName], false)
 
                     jsonFilePath = ec.resource.getLocationReference(jsonFilePathRef).getUri().getPath()
 
@@ -187,7 +187,7 @@ under the License.
             ]]></script>
             <service-call name="org.moqui.impl.SystemMessageServices.queue#SystemMessage"
                           in-map="[systemMessageTypeId:systemMessageType.systemMessageTypeId, systemMessageRemoteId:systemMessageRemoteId,
-                    messageText:jsonFilePathRef, senderId: organizationPartyId, docType: accountType, sendNow:false]" out-map="resultMap"/>
+                    messageText:jsonFilePathRef, senderId: organizationPartyId, docType: accountType, sendNow:false, returnId: loopReturnId]" out-map="resultMap"/>
             <return message="Get Loop Return process has been executed successfully."/>
         </actions>
     </service>
