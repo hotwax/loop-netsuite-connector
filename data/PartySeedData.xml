@@ -39,15 +39,19 @@
     <moqui.basic.StatusItem description="Pending Receipt" sequenceNum="3" statusId="RT_PENDING_RECEIPT" statusTypeId="LoopReturn"/>
     <moqui.basic.StatusItem description="Pending Refund" sequenceNum="4" statusId="RT_PENDING_REFUND" statusTypeId="LoopReturn"/>
     <moqui.basic.StatusItem description="Refunded" sequenceNum="5" statusId="RT_REFUNDED" statusTypeId="LoopReturn"/>
+    <moqui.basic.StatusItem description="Processed" sequenceNum="6" statusId="RT_PROCESSED" statusTypeId="LoopReturn"/>
 
     <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="RT_CREATED" toStatusId="RT_ERROR" transitionName="Create Return Error"/>
     <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="RT_CREATED" toStatusId="RT_PENDING_RECEIPT" transitionName="Pending Receipt Return"/>
     <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="RT_PENDING_RECEIPT" toStatusId="RT_ERROR" transitionName="Pending Receipt Return Error"/>
-    <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="RT_PENDING_RECEIPT" toStatusId="RT_PENDING_REFUND" transitionName="Pending Refund Return"/>
+    <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="RT_PENDING_RECEIPT" toStatusId="RT_PROCESSED" transitionName="Pending Refund Return"/>
+    <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="RT_PROCESSED" toStatusId="RT_ERROR" transitionName="Pending Refund Return"/>
+    <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="RT_PROCESSED" toStatusId="RT_PENDING_REFUND" transitionName="Pending Refund Return"/>
     <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="RT_PENDING_REFUND" toStatusId="RT_ERROR" transitionName="Pending Refund Return Error"/>
     <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="RT_PENDING_REFUND" toStatusId="RT_REFUNDED" transitionName="Refunded Return"/>
 
     <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="RT_ERROR" toStatusId="RT_PENDING_RECEIPT" transitionName="Error Pending Receipt"/>
     <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="RT_ERROR" toStatusId="RT_PENDING_REFUND" transitionName="Error Pending Refund"/>
     <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="RT_ERROR" toStatusId="RT_REFUNDED" transitionName="Error Refunded Return"/>
+    <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="RT_ERROR" toStatusId="RT_PROCESSED" transitionName="Error Processed Return"/>
 </entity-facade-xml>
