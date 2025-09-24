@@ -95,5 +95,15 @@ under the License.
                 <service name="co.hotwax.configuration.UserProfileServices.get#IntegrationTypeList"/>
             </method>
         </resource>
+        <resource name="syncIntegrationTypeMapping">
+            <method type="post">
+                <service name="co.hotwax.netsuite.NetSuiteRestServices.send#NetSuiteRMAMapping"/>
+            </method>
+        </resource>
+        <resource name="syncAllIntegrationTypeMapping">
+            <method type="post">
+                <service name="co.hotwax.netsuite.NetSuiteRestServices.sendAll#NetSuiteRMAMapping"/>
+            </method>
+        </resource>
     </resource>
 </resource>
