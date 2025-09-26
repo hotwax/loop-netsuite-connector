@@ -33,6 +33,16 @@ under the License.
                 <service name="co.hotwax.configuration.UserProfileServices.get#UserProfileList"/>
             </method>
         </resource>
+        <resource name="updateProfile">
+            <method type="post">
+                <service name="org.moqui.impl.UserServices.update#UserAccount"/>
+            </method>
+        </resource>
+        <resource name="changePassword">
+            <method type="post">
+                <service name="org.moqui.impl.UserServices.update#Password"/>
+            </method>
+        </resource>
         <resource name="netsuiteDetails">
             <method type="get">
                 <service name="co.hotwax.configuration.UserProfileServices.get#NetsuiteDetails"/>
