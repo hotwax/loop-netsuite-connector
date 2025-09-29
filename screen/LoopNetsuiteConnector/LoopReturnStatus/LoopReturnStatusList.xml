@@ -35,6 +35,11 @@
                 <header-field show-order-by="true"><text-find/></header-field>
                 <default-field><display/></default-field>
             </field>
+            <field name="organizationName" from="partyId">
+                <default-field title="Organization Name">
+                    <display-entity entity-name="co.hotwax.netsuite.party.Organization" text="${organizationName ?: ''}"/>
+                </default-field>
+            </field>
             <field name="loopReturnId">
                 <header-field show-order-by="true"><text-find/></header-field>
                 <default-field><display/></default-field>
@@ -53,11 +58,13 @@
             </field>
             <field name="statusId">
                 <header-field show-order-by="true"><text-find/></header-field>
-                <default-field><display/></default-field>
+                <default-field title="Status">
+                    <display-entity entity-name="moqui.basic.StatusItem" text="${description ?: ''}"/>
+                </default-field>
             </field>
-            <field name="statusButton">
+            <field name="statusHistory">
                 <default-field>
-                    <dynamic-dialog id="viewLoopReturnStatus" button-text="View Status" transition="viewLoopReturnStatus" width="800">
+                    <dynamic-dialog id="viewLoopReturnStatus" button-text="" icon="fa fa-external-link" transition="viewLoopReturnStatus" width="800">
                         <parameter name="loopReturnId" from="loopReturnId"/>
                     </dynamic-dialog>
                 </default-field>
