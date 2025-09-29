@@ -64,7 +64,7 @@
             </field>
             <field name="statusHistory">
                 <default-field>
-                    <dynamic-dialog id="viewLoopReturnStatus" button-text="" icon="fa fa-external-link" transition="viewLoopReturnStatus" width="800">
+                    <dynamic-dialog id="viewLoopReturnStatus" button-text="" icon="fa fa-external-link" title="Status History" transition="viewLoopReturnStatus" width="800">
                         <parameter name="loopReturnId" from="loopReturnId"/>
                     </dynamic-dialog>
                 </default-field>
