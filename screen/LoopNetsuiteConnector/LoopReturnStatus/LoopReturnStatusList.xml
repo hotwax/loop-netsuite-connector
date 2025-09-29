@@ -22,6 +22,9 @@
         xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-3.xsd" default-menu-title="Loop Return Status" default-menu-index="1">
 
     <parameter name="organizationPartyId"/>
+
+    <transition name="viewLoopReturnStatus"><default-response url="../ViewLoopReturnStatus"/></transition>
+
     <widgets>
         <form-list name="LoopReturnStatusList" list="loopReturnHistoryList" list-entry="loopReturnHistory" skip-form="true" header-dialog="true">
             <entity-find entity-name="co.hotwax.netsuite.LoopReturnHistory" list="loopReturnHistoryList">
@@ -51,6 +54,13 @@
             <field name="statusId">
                 <header-field show-order-by="true"><text-find/></header-field>
                 <default-field><display/></default-field>
+            </field>
+            <field name="statusButton">
+                <default-field>
+                    <dynamic-dialog id="viewLoopReturnStatus" button-text="View Status" transition="viewLoopReturnStatus" width="800">
+                        <parameter name="loopReturnId" from="loopReturnId"/>
+                    </dynamic-dialog>
+                </default-field>
             </field>
             <field name="changeReason">
                 <header-field show-order-by="true"></header-field>
