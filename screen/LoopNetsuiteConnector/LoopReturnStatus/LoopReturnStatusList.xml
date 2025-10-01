@@ -21,62 +21,141 @@
 <screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-3.xsd" default-menu-title="Loop Return Status" default-menu-index="1">
 
-    <parameter name="organizationPartyId"/>
-
     <transition name="viewLoopReturnStatus"><default-response url="../ViewLoopReturnStatus"/></transition>
+    <actions>
+        <script>
+            import org.moqui.entity.EntityFind
+            import org.moqui.context.ExecutionContext
+            import org.moqui.entity.EntityCondition
+
+            ExecutionContext ec = context.ec
+
+            // Build common conditions
+            Map condMap = [:]
+            if (partyId) condMap.partyId = partyId
+            if (loopReturnId) condMap.loopReturnId = loopReturnId
+            if (shopifyOrderId) condMap.shopifyOrderId = shopifyOrderId
+            if (shopifyOrderName) condMap.shopifyOrderName = shopifyOrderName
+            if (netsuiteReturnId) condMap.netsuiteReturnId = netsuiteReturnId
+
+            def resultMap = [:]
+            if (statusId) {
+                count = ec.entity.find("co.hotwax.netsuite.LoopReturnHistory")
+                    .condition(condMap)
+                    .condition("statusId", EntityCondition.LIKE, "%${statusId}%")
+                    .count()
+                resultMap = [statusId: statusId, count: count]
+            } else {
+                loopReturnClosedCount = ec.entity.find("co.hotwax.netsuite.LoopReturnHistory")
+                    .condition(condMap)
+                    .condition("statusId", "RT_REFUNDED")
+                    .count()
+
+                loopReturnFailedCount = ec.entity.find("co.hotwax.netsuite.LoopReturnHistory")
+                    .condition(condMap)
+                    .condition("statusId", "RT_ERROR")
+                    .count()
+
+                loopReturnOpenCount = ec.entity.find("co.hotwax.netsuite.LoopReturnHistory")
+                    .condition(condMap)
+                    .condition("statusId", EntityCondition.NOT_IN, ["RT_REFUNDED", "RT_ERROR"])
+                    .count()
+            }
+        </script>
+        <set field="statusId" from="resultMap.statusId"/>
+        <set field="countVal" from="resultMap.count"/>
+    </actions>
 
     <widgets>
-        <form-list name="LoopReturnStatusList" list="loopReturnHistoryList" list-entry="loopReturnHistory" skip-form="true" header-dialog="true">
-            <entity-find entity-name="co.hotwax.netsuite.LoopReturnHistory" list="loopReturnHistoryList">
-                <search-form-inputs default-order-by="-createdDate"/>
-                <econdition field-name="partyId" from="organizationPartyId" ignore-if-empty="true"/>
-            </entity-find>
-            <field name="partyId">
-                <header-field show-order-by="true"><text-find/></header-field>
-                <default-field><display/></default-field>
-            </field>
-            <field name="organizationName" from="partyId">
-                <default-field title="Organization Name">
-                    <display-entity entity-name="co.hotwax.netsuite.party.Organization" text="${organizationName ?: ''}"/>
-                </default-field>
-            </field>
-            <field name="loopReturnId">
-                <header-field show-order-by="true"><text-find/></header-field>
-                <default-field><display/></default-field>
-            </field>
-            <field name="shopifyOrderId">
-                <header-field show-order-by="true"><text-find/></header-field>
-                <default-field><display/></default-field>
-            </field>
-            <field name="shopifyOrderName">
-                <header-field show-order-by="true"><text-find/></header-field>
-                <default-field><display/></default-field>
-            </field>
-            <field name="netsuiteReturnId">
-                <header-field show-order-by="true"></header-field>
-                <default-field><display/></default-field>
-            </field>
-            <field name="statusId">
-                <header-field show-order-by="true"><text-find/></header-field>
-                <default-field title="Status">
-                    <display-entity entity-name="moqui.basic.StatusItem" text="${description ?: ''}"/>
-                </default-field>
-            </field>
-            <field name="statusHistory">
-                <default-field>
-                    <dynamic-dialog id="viewLoopReturnStatus" button-text="" icon="fa fa-external-link" title="Status History" transition="viewLoopReturnStatus" width="800">
-                        <parameter name="loopReturnId" from="loopReturnId"/>
-                    </dynamic-dialog>
-                </default-field>
-            </field>
-            <field name="changeReason">
-                <header-field show-order-by="true"></header-field>
-                <default-field><display/></default-field>
-            </field>
-            <field name="findButton">
-                <header-field title="Find"><submit/></header-field><default-field>
-                <display text=" "/></default-field>
-            </field>
-        </form-list>
+        <container-row>
+            <row-col lg="2">
+                <container-box id="ReturnReport"><box-header title="Loop Return Statistics"/>
+                    <box-body>
+                        <container-row>
+                            <row-col md="6">
+                                <container-row>
+                                    <row-col xs="5"><label text="Open" type="strong"/></row-col>
+                                    <row-col xs="7"><label text="${loopReturnOpenCount ?: 0}"/></row-col>
+                                </container-row>
+                                <container-row>
+                                    <row-col xs="5"><label text="Closed" type="strong"/></row-col>
+                                    <row-col xs="7"><label text="${loopReturnClosedCount ?: 0}"/></row-col>
+                                </container-row>
+                                <container-row>
+                                    <row-col xs="5"><label text="Failed" type="strong"/></row-col>
+                                    <row-col xs="7"><label text="${loopReturnFailedCount ?: 0}"/></row-col>
+                                </container-row>
+                                <section name="LoopReturnStatusCount" condition="statusId &amp;&amp; countVal">
+                                    <widgets>
+                                        <container-row>
+                                            <row-col xs="5"><label text="${statusId}" type="strong"/></row-col>
+                                            <row-col xs="7"><label text="${countVal ?: 0}"/></row-col>
+                                        </container-row>
+                                    </widgets>
+                                </section>
+                            </row-col>
+                        </container-row>
+                    </box-body>
+                </container-box>
+            </row-col>
+            <row-col lg="10">
+                <container-box>
+                    <box-header title="Loop Return Status"/>
+                    <box-body>
+                        <form-list name="LoopReturnStatusList" list="loopReturnHistoryList" list-entry="loopReturnHistory" skip-form="true" header-dialog="true">
+                            <entity-find entity-name="co.hotwax.netsuite.LoopReturnHistory" list="loopReturnHistoryList">
+                                <search-form-inputs default-order-by="-createdDate"/>
+                            </entity-find>
+                            <field name="partyId">
+                                <header-field show-order-by="true"><text-find/></header-field>
+                                <default-field><display/></default-field>
+                            </field>
+                            <field name="organizationName" from="partyId">
+                                <default-field title="Organization Name">
+                                    <display-entity entity-name="co.hotwax.netsuite.party.Organization" text="${organizationName ?: ''}"/>
+                                </default-field>
+                            </field>
+                            <field name="loopReturnId">
+                                <header-field show-order-by="true"><text-find/></header-field>
+                                <default-field><display/></default-field>
+                            </field>
+                            <field name="shopifyOrderId">
+                                <header-field show-order-by="true"><text-find/></header-field>
+                                <default-field><display/></default-field>
+                            </field>
+                            <field name="shopifyOrderName">
+                                <header-field show-order-by="true"><text-find/></header-field>
+                                <default-field><display/></default-field>
+                            </field>
+                            <field name="netsuiteReturnId">
+                                <header-field show-order-by="true"><text-find/></header-field>
+                                <default-field><display/></default-field>
+                            </field>
+                            <field name="statusId">
+                                <header-field show-order-by="true"><text-find/></header-field>
+                                <default-field title="Status">
+                                    <display-entity entity-name="moqui.basic.StatusItem" text="${description ?: ''}"/>
+                                </default-field>
+                            </field>
+                            <field name="statusHistory">
+                                <default-field>
+                                    <dynamic-dialog id="viewLoopReturnStatus" button-text="" icon="fa fa-external-link" title="Status History" transition="viewLoopReturnStatus" width="800">
+                                        <parameter name="loopReturnId" from="loopReturnId"/>
+                                    </dynamic-dialog>
+                                </default-field>
+                            </field>
+                            <field name="changeReason">
+                                <header-field show-order-by="true"></header-field>
+                                <default-field><display/></default-field>
+                            </field>
+                            <field name="findButton">
+                                <header-field title="Find"><submit/></header-field><default-field>
+                                <display text=" "/></default-field>
+                            </field>
+                        </form-list>
+                    </box-body>
+                </container-box>
+            </row-col>
+        </container-row>
     </widgets>
 </screen>
