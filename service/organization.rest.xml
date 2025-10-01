@@ -40,7 +40,7 @@ under the License.
         </resource>
         <resource name="changePassword">
             <method type="post">
-                <service name="org.moqui.impl.UserServices.update#Password"/>
+                <service name="co.hotwax.configuration.UserProfileServices.change#Password"/>
             </method>
         </resource>
         <resource name="netsuiteDetails">

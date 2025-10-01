@@ -427,4 +427,21 @@
             </entity-find>
         </actions>
     </service>
+
+    <service verb="change" noun="Password">
+       <in-parameters>
+           <parameter name="userId" required="true"/>
+           <parameter name="oldPassword" required="true"/>
+           <parameter name="newPassword" required="true"/>
+           <parameter name="newPasswordVerify" required="true"/>
+       </in-parameters>
+        <actions>
+            <service-call name="org.moqui.impl.UserServices.update#Password" in-map="context" out-map="context"/>
+            <set field="updateSuccessful" from="context.updateSuccessful" type="Boolean"/>
+            <set field="username" from="context.username"/>
+            <if condition="!updateSuccessful">
+                <return error="true" message="Password incorrect for user ${username}." />
+            </if>
+        </actions>
+    </service>
 </services>
