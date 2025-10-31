@@ -115,5 +115,10 @@ under the License.
                 <service name="co.hotwax.netsuite.NetSuiteRestServices.sendAll#NetSuiteRMAMapping"/>
             </method>
         </resource>
+        <resource name="return">
+            <method type="get">
+                <service name="co.hotwax.configuration.UserProfileServices.get#ReturnDetails"/>
+            </method>
+        </resource>
     </resource>
 </resource>
