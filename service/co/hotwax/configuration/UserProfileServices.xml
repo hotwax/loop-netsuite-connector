@@ -536,4 +536,41 @@
             </script>
         </actions>
     </service>
+
+    <service verb="get" noun="ReturnCount">
+        <out-parameters>
+            <parameter name="returnCountMap" type="Map"/>
+        </out-parameters>
+        <actions>
+            <set field="returnCountMap" from="[:]"/>
+
+            <!-- Get OrganizationPartyId from logged in user -->
+            <service-call name="co.hotwax.configuration.UserProfileServices.get#OrganizationPartyIds" out-map="context"/>
+            <set field="organizationPartyId" from="context.partyId" type="String"/>
+
+            <script>
+                import org.moqui.entity.EntityCondition
+
+                loopReturnClosedCount = ec.entity.find("co.hotwax.netsuite.LoopReturnHistory")
+                    .condition("partyId", organizationPartyId)
+                    .condition("statusId", "RT_REFUNDED")
+                    .count()
+
+                loopReturnFailedCount = ec.entity.find("co.hotwax.netsuite.LoopReturnHistory")
+                    .condition("partyId", organizationPartyId)
+                    .condition("statusId", "RT_ERROR")
+                    .count()
+
+                loopReturnOpenCount = ec.entity.find("co.hotwax.netsuite.LoopReturnHistory")
+                    .condition("partyId", organizationPartyId)
+                    .condition("statusId", EntityCondition.NOT_IN, ["RT_REFUNDED", "RT_ERROR"])
+                    .count()
+
+                returnCountMap.put("open", loopReturnOpenCount)
+                returnCountMap.put("closed", loopReturnClosedCount)
+                returnCountMap.put("failed", loopReturnFailedCount)
+                
+            </script>
+        </actions>
+    </service>
 </services>

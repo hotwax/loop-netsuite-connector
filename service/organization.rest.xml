@@ -127,5 +127,10 @@ under the License.
                 <service name="co.hotwax.configuration.UserProfileServices.get#ReturnStatusDetails"/>
             </method>
         </resource>
+        <resource name="returnCount">
+            <method type="get">
+                <service name="co.hotwax.configuration.UserProfileServices.get#ReturnCount"/>
+            </method>
+        </resource>
     </resource>
 </resource>
