@@ -447,6 +447,7 @@
 
     <service verb="get" noun="ReturnDetails">
         <in-parameters>
+            <parameter name="statusId" type="String"/>
             <parameter name="pageIndex" type="Integer" default-value="0">
                 <description>The current page index to get the shipments.</description>
             </parameter>
@@ -459,13 +460,29 @@
         </out-parameters>
         <actions>
             <set field="returnList" from="[]"/>
+            <set field="conditionMap" from="[:]"/>
+            <set field="conditions" from="[]"/>
 
             <!-- Get OrganizationPartyId from logged in user -->
             <service-call name="co.hotwax.configuration.UserProfileServices.get#OrganizationPartyIds" out-map="context"/>
             <set field="organizationPartyId" from="context.partyId" type="String"/>
+
+            <set field="conditionMap.partyId" from="organizationPartyId"/>
             <script>
+                import org.moqui.entity.EntityCondition
+
+                conditions.add(ec.entity.conditionFactory.makeCondition(conditionMap));
+
+                if (statusId) {
+                    if (statusId == "RT_OPEN") {
+                        conditions.add(ec.entity.conditionFactory.makeCondition("statusId", EntityCondition.NOT_IN, ["RT_REFUNDED", "RT_ERROR"]));
+                    } else {
+                        conditions.add(ec.entity.conditionFactory.makeCondition("statusId", EntityCondition.EQUALS, statusId));
+                    }
+                }
+
                 offset = pageIndex.multiply(pageSize)
-                returnFind = ec.entity.find("co.hotwax.netsuite.LoopReturnHistory").condition("partyId", organizationPartyId).orderBy("-createdDate").offset(offset).limit(pageSize)
+                returnFind = ec.entity.find("co.hotwax.netsuite.LoopReturnHistory").condition(ec.entity.conditionFactory.makeCondition(conditions)).orderBy("-createdDate").offset(offset).limit(pageSize)
 
                 try (returnItr = returnFind.iterator()) {
             </script>
