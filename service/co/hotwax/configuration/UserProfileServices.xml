@@ -444,4 +444,133 @@
             </if>
         </actions>
     </service>
+
+    <service verb="get" noun="ReturnDetails">
+        <in-parameters>
+            <parameter name="statusId" type="String"/>
+            <parameter name="pageIndex" type="Integer" default-value="0">
+                <description>The current page index to get the shipments.</description>
+            </parameter>
+            <parameter name="pageSize" type="Integer" default-value="20">
+                <description>The maximum number of shipments to display.</description>
+            </parameter>
+        </in-parameters>
+        <out-parameters>
+            <parameter name="returnList" type="List"/>
+        </out-parameters>
+        <actions>
+            <set field="returnList" from="[]"/>
+            <set field="conditionMap" from="[:]"/>
+            <set field="conditions" from="[]"/>
+
+            <!-- Get OrganizationPartyId from logged in user -->
+            <service-call name="co.hotwax.configuration.UserProfileServices.get#OrganizationPartyIds" out-map="context"/>
+            <set field="organizationPartyId" from="context.partyId" type="String"/>
+
+            <set field="conditionMap.partyId" from="organizationPartyId"/>
+            <script>
+                import org.moqui.entity.EntityCondition
+
+                conditions.add(ec.entity.conditionFactory.makeCondition(conditionMap));
+
+                if (statusId) {
+                    if (statusId == "RT_OPEN") {
+                        conditions.add(ec.entity.conditionFactory.makeCondition("statusId", EntityCondition.NOT_IN, ["RT_REFUNDED", "RT_ERROR"]));
+                    } else {
+                        conditions.add(ec.entity.conditionFactory.makeCondition("statusId", EntityCondition.EQUALS, statusId));
+                    }
+                }
+
+                offset = pageIndex.multiply(pageSize)
+                returnFind = ec.entity.find("co.hotwax.netsuite.LoopReturnHistory").condition(ec.entity.conditionFactory.makeCondition(conditions)).orderBy("-createdDate").offset(offset).limit(pageSize)
+
+                try (returnItr = returnFind.iterator()) {
+            </script>
+            <iterate list="returnItr" entry="returnDetail">
+                <entity-find-one entity-name="moqui.basic.StatusItem" value-field="statusItem" cache="true">
+                    <field-map field-name="statusId" from="returnDetail.statusId"/>
+                </entity-find-one>
+                <script>
+                    returnList.add([
+                    loopReturnId        : returnDetail.loopReturnId,
+                    shopifyOrderId      : returnDetail.shopifyOrderId,
+                    shopifyOrderName    : returnDetail.shopifyOrderName,
+                    netsuiteReturnId    : returnDetail.netsuiteReturnId,
+                    status              : statusItem.description
+                    ])
+                </script>
+            </iterate>
+            <script>}</script>
+        </actions>
+    </service>
+
+    <service verb="get" noun="ReturnStatusDetails">
+        <in-parameters>
+            <parameter name="loopReturnId" type="String"/>
+        </in-parameters>
+        <out-parameters>
+            <parameter name="returnStatusDetailMap" type="Map"/>
+        </out-parameters>
+        <actions>
+            <set field="returnStatusDetailMap" from="[:]"/>
+            <set field="returnStatusList" from="[]"/>
+
+            <entity-find entity-name="co.hotwax.netsuite.LoopReturnStatus" list="loopReturnStatusList">
+                <econdition field-name="loopReturnId" from="loopReturnId"/>
+            </entity-find>
+
+            <iterate list="loopReturnStatusList" entry="loopReturnStatus">
+                <entity-find-one entity-name="moqui.basic.StatusItem" value-field="statusItem" cache="true">
+                    <field-map field-name="statusId" from="loopReturnStatus.statusId"/>
+                </entity-find-one>
+                <script>
+                    returnStatusList.add([
+                    message           : loopReturnStatus.changeReason,
+                    statusDatetime    : loopReturnStatus.statusDatetime,
+                    status            : statusItem.description
+                    ])
+                </script>
+            </iterate>
+            <script>
+                returnStatusDetailMap.put(loopReturnId, returnStatusList)
+            </script>
+        </actions>
+    </service>
+
+    <service verb="get" noun="ReturnCount">
+        <out-parameters>
+            <parameter name="returnCountMap" type="Map"/>
+        </out-parameters>
+        <actions>
+            <set field="returnCountMap" from="[:]"/>
+
+            <!-- Get OrganizationPartyId from logged in user -->
+            <service-call name="co.hotwax.configuration.UserProfileServices.get#OrganizationPartyIds" out-map="context"/>
+            <set field="organizationPartyId" from="context.partyId" type="String"/>
+
+            <script>
+                import org.moqui.entity.EntityCondition
+
+                loopReturnClosedCount = ec.entity.find("co.hotwax.netsuite.LoopReturnHistory")
+                    .condition("partyId", organizationPartyId)
+                    .condition("statusId", "RT_REFUNDED")
+                    .count()
+
+                loopReturnFailedCount = ec.entity.find("co.hotwax.netsuite.LoopReturnHistory")
+                    .condition("partyId", organizationPartyId)
+                    .condition("statusId", "RT_ERROR")
+                    .count()
+
+                loopReturnOpenCount = ec.entity.find("co.hotwax.netsuite.LoopReturnHistory")
+                    .condition("partyId", organizationPartyId)
+                    .condition("statusId", EntityCondition.NOT_IN, ["RT_REFUNDED", "RT_ERROR"])
+                    .count()
+
+                returnCountMap.put("open", loopReturnOpenCount)
+                returnCountMap.put("closed", loopReturnClosedCount)
+                returnCountMap.put("failed", loopReturnFailedCount)
+                
+            </script>
+        </actions>
+    </service>
 </services>
