@@ -278,6 +278,27 @@
             <iterate list="partySystemMessageRemoteList" entry="partySystemMessageRemote">
                 <set field="systemMessageRemoteId" from="partySystemMessageRemote.systemMessageRemoteId"/>
 
+                <entity-find-one entity-name="moqui.service.message.SystemMessageRemote" value-field="systemMessageRemote">
+                    <field-map field-name="systemMessageRemoteId" from="systemMessageRemoteId"/>
+                </entity-find-one>
+
+                <set field="remoteId" from="systemMessageRemote.remoteId"/>
+                <if condition="remoteId.contains('_')">
+                    <set field="remoteId" from="remoteId.replace('_', '-').toLowerCase()"/>
+                </if>
+                <entity-find-one entity-name="co.hotwax.netsuite.NetsuiteConfig" value-field="netsuiteConfig" cache="true">
+                    <field-map field-name="accountId" from="remoteId"/>
+                    <field-map field-name="accountType" from="systemMessageRemote.remoteIdType"/>
+                    <field-map field-name="scriptType" value="netsuite.restlet.create.rma.mapping"/>
+                </entity-find-one>
+
+                <if condition="netsuiteConfig != null">
+                    <set field="scriptEndPoint" value="Y"/>
+                    <else>
+                        <set field="scriptEndPoint" value="N"/>
+                    </else>
+                </if>
+
                 <entity-find entity-name="co.hotwax.netsuite.IntegrationTypeMapping"
                              list="intTypeMappingList">
                     <econdition field-name="systemMessageRemoteId" operator="equals" from="systemMessageRemoteId"/>
@@ -290,7 +311,8 @@
                         integrationMappingId: itm.integrationMappingId,
                         mappingValue        : itm.mappingValue,
                         description         : itm.description,
-                        synced              : itm.synced
+                        synced              : itm.synced,
+                        scriptEndPoint      : scriptEndPoint
                         ])
                     </script>
                 </iterate>
