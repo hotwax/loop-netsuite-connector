@@ -96,7 +96,7 @@
  </moqui.service.message.SystemMessageType>-->
 
  <moqui.service.job.ServiceJob jobName="send_AllProducedSystemMessages_frequent" description="Send All Produced SystemMessages"
-                               serviceName="org.moqui.impl.SystemMessageServices.send#AllProducedSystemMessages" cronExpression="0 0 0 * * ?" paused="N">
+                               serviceName="org.moqui.impl.SystemMessageServices.send#AllProducedSystemMessages" cronExpression="0 0/5 * * * ?" paused="N">
    <parameters parameterName="retryLimit" parameterValue="3"/>
    <parameters parameterName="retryMinutes" parameterValue="60"/>
  </moqui.service.job.ServiceJob>
