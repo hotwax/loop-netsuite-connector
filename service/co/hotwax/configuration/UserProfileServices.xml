@@ -288,9 +288,8 @@
                     <script>
                         tmpList.add([
                         integrationMappingId: itm.integrationMappingId,
-                        integrationTypeId   : itm.integrationTypeId,
-                        mappingKey          : itm.mappingKey,
                         mappingValue        : itm.mappingValue,
+                        description         : itm.description,
                         synced              : itm.synced
                         ])
                     </script>
