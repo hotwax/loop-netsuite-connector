@@ -283,8 +283,8 @@ under the License.
         </in-parameters>
         <actions>
             <entity-find entity-name="moqui.service.message.SystemMessageRemote" list="systemMessageRemoteList" cache="true">
-                <field-map field-name="remoteId" from="accountId"/>
-                <field-map field-name="systemMessageTypeId" value="NetsuiteCredentials"/>
+                <econdition field-name="remoteId" operator="equals" from="accountId"/>
+                <econdition field-name="systemMessageTypeId" operator="equals" value="NetsuiteCredentials"/>
             </entity-find>
             <iterate list="systemMessageRemoteList" entry="systemMessageRemote">
                 <entity-find entity-name="co.hotwax.netsuite.party.PartySystemMessageRemote" list="partyNetSystemMessageRemoteList">
