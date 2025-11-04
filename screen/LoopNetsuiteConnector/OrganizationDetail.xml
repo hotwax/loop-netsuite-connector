@@ -341,11 +341,7 @@ along with this software (see the LICENSE.md file). If not, see
                                                 <header-field show-order-by="true"/>
                                                 <default-field><display/></default-field>
                                             </field>
-                                            <field name="integrationTypeId">
-                                                <header-field show-order-by="true"/>
-                                                <default-field><display/></default-field>
-                                            </field>
-                                            <field name="mappingKey">
+                                            <field name="description">
                                                 <header-field show-order-by="true"/>
                                                 <default-field><display/></default-field>
                                             </field>
