@@ -282,21 +282,21 @@ under the License.
             <parameter name="accountId" required="true"/>
         </in-parameters>
         <actions>
-            <entity-find-one entity-name="moqui.service.message.SystemMessageRemote" value-field="systemMessageRemote" cache="true">
-                <field-map field-name="remoteId" from="accountId"/>
-                <field-map field-name="systemMessageTypeId" value="NetsuiteCredentials"/>
-            </entity-find-one>
-            <if condition="systemMessageRemote == null"><return error="true" message="Could not find SystemMessageRemote for Netsuite Account ID ${accountId}"/></if>
-
-            <entity-find entity-name="co.hotwax.netsuite.party.PartySystemMessageRemote" list="partyNetSystemMessageRemoteList">
-                <econdition field-name="systemMessageRemoteId" operator="equals" from="systemMessageRemote.systemMessageRemoteId"/>
-                <econdition field-name="systemMessageTypeId" operator="equals" from="systemMessageRemote.systemMessageTypeId"/>
-                <date-filter/>
+            <entity-find entity-name="moqui.service.message.SystemMessageRemote" list="systemMessageRemoteList" cache="true">
+                <econdition field-name="remoteId" operator="equals" from="accountId"/>
+                <econdition field-name="systemMessageTypeId" operator="equals" value="NetsuiteCredentials"/>
             </entity-find>
-
-            <if condition="partyNetSystemMessageRemoteList">
-                <set field="organizationPartyId" from="partyNetSystemMessageRemoteList[0].partyId" type="String"/>
-            </if>
+            <iterate list="systemMessageRemoteList" entry="systemMessageRemote">
+                <entity-find entity-name="co.hotwax.netsuite.party.PartySystemMessageRemote" list="partyNetSystemMessageRemoteList">
+                    <econdition field-name="systemMessageRemoteId" operator="equals" from="systemMessageRemote.systemMessageRemoteId"/>
+                    <econdition field-name="systemMessageTypeId" operator="equals" from="systemMessageRemote.systemMessageTypeId"/>
+                    <date-filter/>
+                </entity-find>
+                <if condition="partyNetSystemMessageRemoteList">
+                    <set field="organizationPartyId" from="partyNetSystemMessageRemoteList[0].partyId" type="String"/>
+                </if>
+            </iterate>
+            <if condition="organizationPartyId == null"><return error="true" message="Could not find organization party for Netsuite Account ID ${accountId}"/></if>
 
             <entity-find entity-name="co.hotwax.netsuite.party.PartySystemMessageRemote" list="partyLoopSystemMessageRemoteList">
                 <econdition field-name="partyId" operator="equals" from="organizationPartyId"/>
@@ -306,6 +306,8 @@ under the License.
             <if condition="partyLoopSystemMessageRemoteList">
                 <set field="loopSystemMessageRemoteId" from="partyLoopSystemMessageRemoteList[0].systemMessageRemoteId" type="String"/>
             </if>
+            <if condition="loopSystemMessageRemoteId == null"><return error="true" message="Could not find loop system message remote for Netsuite Account ID ${accountId}"/></if>
+
             <set field="endPoint" value="/warehouse/return/${loopReturnId}/process"/>
 
             <service-call name="co.hotwax.loop.common.LoopHelperServices.send#LoopRequest" in-map="[systemMessageRemoteId:loopSystemMessageRemoteId,
