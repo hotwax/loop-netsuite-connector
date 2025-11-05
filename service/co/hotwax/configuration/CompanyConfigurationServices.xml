@@ -382,16 +382,14 @@
     <service verb="delete" noun="NetSuiteReturnIntegrationMapping">
         <in-parameters>
             <parameter name="integrationMappingId" required="true"/>
-            <parameter name="integrationTypeId" required="true"/>
         </in-parameters>
         <actions>
             <service-call name="delete#co.hotwax.netsuite.IntegrationTypeMapping"
                           in-map="[
-                            integrationMappingId:integrationMappingId,
-                            integrationTypeId:integrationTypeId
+                            integrationMappingId:integrationMappingId
                           ]"/>
             <!-- Final Success Message -->
-            <return type="success" message="Your integration type mapping record has been successfully deleted."/>
+            <return type="success" message="Your integration type mapping record has been deleted successfully."/>
         </actions>
     </service>
 </services>
