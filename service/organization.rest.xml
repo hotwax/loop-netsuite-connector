@@ -133,4 +133,9 @@ under the License.
             </method>
         </resource>
     </resource>
+    <resource name="updateIntegrationTypeMapping">
+        <method type="post">
+            <service name="co.hotwax.configuration.CompanyConfigurationServices.update#NetSuiteReturnIntegrationMapping"/>
+        </method>
+    </resource>
 </resource>
