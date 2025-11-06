@@ -82,6 +82,9 @@ along with this software (see the LICENSE.md file). If not, see
         <service-call name="co.hotwax.loop.webhook.LoopWebhookServices.delete#LoopWebhookSubscription" in-map="context"/>
         <default-response url="."/>
     </transition>
+    <transition name="updateIntegrationTypeMappingForm">
+        <default-response url="../UpdateIntegrationTypeMapping"/>
+    </transition>
 
     <actions>
         <entity-find-one entity-name="moqui.security.UserAccount" value-field="userAccount">
@@ -354,6 +357,15 @@ along with this software (see the LICENSE.md file). If not, see
                                                     <link url="syncNetSuiteRMAMapping" text="Sync"/>
                                                 </conditional-field>
                                                 <default-field><label text="Synced" type="strong" style="text-info"/></default-field>
+                                            </field>
+                                            <field name="updateButton">
+                                                <default-field>
+                                                    <dynamic-dialog id="updateIntegrationTypeMappingForm" button-text="Update" title="Update" transition="updateIntegrationTypeMappingForm" width="800">
+                                                        <parameter name="integrationMappingId" from="integrationMappingId"/>
+                                                        <parameter name="organizationPartyId" from="organizationPartyId"/>
+                                                        <parameter name="userId" from="userId"/>
+                                                    </dynamic-dialog>
+                                                </default-field>
                                             </field>
                                             <field name="deleteButton">
                                                 <default-field title="">
