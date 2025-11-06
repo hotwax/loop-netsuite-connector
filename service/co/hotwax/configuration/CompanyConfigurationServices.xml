@@ -413,7 +413,8 @@
             <service-call name="update#co.hotwax.netsuite.IntegrationTypeMapping"
                           in-map="[
                             integrationMappingId:integrationMappingId,
-                            mappingValue:mappingValue
+                            mappingValue:mappingValue,
+                            synced: 'N'
                           ]"/>
             <!-- Final Success Message -->
             <return type="success" message="Your integration type mapping record has been deleted successfully."/>
