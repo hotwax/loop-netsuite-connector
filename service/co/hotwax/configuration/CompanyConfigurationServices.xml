@@ -359,6 +359,17 @@
                 <field-map field-name="enumId" from="enumId"/>
             </entity-find-one>
 
+            <!-- Check existing mapping -->
+            <entity-find entity-name="IntegrationTypeMapping" list="existingMapping">
+                <econdition field-name="integrationTypeId" from="enumId"/>
+                <econdition field-name="systemMessageRemoteId" from="systemMessageRemoteId"/>
+                <econdition field-name="mappingKey" from="enumeration.enumCode"/>
+            </entity-find>
+
+            <if condition="existingMapping?.size() > 0">
+                <return type="success" message="Integration mapping already exists for ${enumeration.description}."/>
+            </if>
+
             <service-call name="create#IntegrationTypeMapping"
                           in-map="[
                                 integrationTypeId:enumId,
@@ -387,6 +398,22 @@
             <service-call name="delete#co.hotwax.netsuite.IntegrationTypeMapping"
                           in-map="[
                             integrationMappingId:integrationMappingId
+                          ]"/>
+            <!-- Final Success Message -->
+            <return type="success" message="Your integration type mapping record has been deleted successfully."/>
+        </actions>
+    </service>
+
+    <service verb="update" noun="NetSuiteReturnIntegrationMapping">
+        <in-parameters>
+            <parameter name="integrationMappingId" required="true"/>
+            <parameter name="mappingValue" required="true"/>
+        </in-parameters>
+        <actions>
+            <service-call name="update#co.hotwax.netsuite.IntegrationTypeMapping"
+                          in-map="[
+                            integrationMappingId:integrationMappingId,
+                            mappingValue:mappingValue
                           ]"/>
             <!-- Final Success Message -->
             <return type="success" message="Your integration type mapping record has been deleted successfully."/>
