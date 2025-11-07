@@ -323,7 +323,7 @@ under the License.
         <description>Get a list of all subscribed webhooks filtered by query parameters.</description>
         <in-parameters>
             <parameter name="systemMessageRemoteId" required="true"/>
-            <parameter name="organizationPartyId" required="true"/>
+            <parameter name="organizationPartyId"/>
         </in-parameters>
         <actions>
             <if condition="!organizationPartyId">
