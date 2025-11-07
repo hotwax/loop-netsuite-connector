@@ -108,6 +108,6 @@
                                           receivePath="${contentRoot}/Netsuite/LoopReturns/${organizationName}-${partyId}/${accountType}/SyncReturn/loopReturnFeed-${loopReturnId}-${dateTime}.json"
                                           sendPath=""
                                           sendServiceName="co.hotwax.netsuite.NetSuiteRestServices.send#SystemMessageFileNetSuite">
-  <parameters parameterName="scriptType" parameterValue="netsuite.restlet.create.return" systemMessageRemoteId=""/>
+  <parameters parameterName="scriptType" parameterValue="netsuite.restlet.create.sync.return" systemMessageRemoteId=""/>
  </moqui.service.message.SystemMessageType>
 </entity-facade-xml>
