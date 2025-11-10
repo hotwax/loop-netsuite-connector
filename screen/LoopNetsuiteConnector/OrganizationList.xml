@@ -10,12 +10,6 @@
     <service-call name="co.hotwax.configuration.CompanyConfigurationServices.register#Organization" in-map="context"/>
     <default-response url="."/>
   </transition>
-  <actions>
-    <service-call name="co.hotwax.configuration.UserProfileServices.get#UserProfileList"
-                  out-map="context"/>
-
-    <set field="organizationDetailList" from="context.organizationDetailList"/>
-  </actions>
 
   <!-- Show form directly on the screen -->
   <widgets>
@@ -71,39 +65,46 @@
       </field>
     </form-single>
     </container-dialog>
-    <form-list name="OrganizationDetailList" list="organizationDetailList" skip-form="true" header-dialog="true">
-      <field name="organizationPartyId">
-        <header-field show-order-by="true">
-          <text-find size="10" hide-options="true"/>
-        </header-field>
-        <default-field>
-          <link text="${organizationPartyId}" url="OrganizationDetail" link-type="anchor" parameter-map="[userId:userId, organizationPartyId:organizationPartyId]"/>
-        </default-field>
-      </field>
-      <field name="organizationName">
-        <header-field show-order-by="true"/>
-        <default-field><display/></default-field>
-      </field>
-      <field name="userId">
-        <header-field title="User ID" show-order-by="true"/>
-        <default-field><display/></default-field>
-      </field>
-      <field name="username">
-        <header-field show-order-by="true"/>
-        <default-field><display/></default-field>
-      </field>
-      <field name="emailAddress">
-        <header-field show-order-by="true"/>
-        <default-field><display/></default-field>
-      </field>
-      <field name="userFullName">
-        <header-field show-order-by="true"/>
-        <default-field><display/></default-field>
-      </field>
-      <field name="personPartyId">
-        <header-field show-order-by="true"/>
-        <default-field><display/></default-field>
-      </field>
+
+    <form-list name="OrganizationDetailList" list="organizationDetailList" list-entry="organizationDetail" skip-form="true" header-dialog="true">
+          <entity-find entity-name="co.hotwax.netsuite.party.PartyRelationshipAndDetail" list="organizationDetailList">
+              <search-form-inputs default-order-by="-fromDate"/>
+          </entity-find>
+          <field name="fromPartyId">
+              <header-field show-order-by="true"><text-find/></header-field>
+              <default-field title="Organization Party Id">
+                  <link text="${fromPartyId}" url="OrganizationDetail" link-type="anchor" parameter-map="[userId:userId, organizationPartyId:fromPartyId]"/>
+              </default-field>
+          </field>
+          <field name="organizationName" from="fromPartyId">
+              <default-field title="Organization Name">
+                  <display-entity entity-name="co.hotwax.netsuite.party.Organization" text="${organizationName ?: ''}"/>
+              </default-field>
+          </field>
+          <field name="userId">
+              <header-field show-order-by="true"><text-find/></header-field>
+              <default-field><display/></default-field>
+          </field>
+          <field name="userFullName">
+              <header-field show-order-by="true"><text-find/></header-field>
+              <default-field><display/></default-field>
+          </field>
+          <field name="emailAddress">
+              <header-field show-order-by="true"><text-find/></header-field>
+              <default-field><display/></default-field>
+          </field>
+          <field name="username">
+              <header-field show-order-by="true"><text-find/></header-field>
+              <default-field><display/></default-field>
+          </field>
+          <field name="toPartyId">
+              <header-field show-order-by="true"><text-find/></header-field>
+              <default-field title="Person Party Id"><display/></default-field>
+          </field>
+          <field name="findButton">
+              <header-field title="Find"><submit/></header-field><default-field>
+              <display text=" "/></default-field>
+          </field>
     </form-list>
   </widgets>
 </screen>

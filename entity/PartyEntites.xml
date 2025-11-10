@@ -300,4 +300,41 @@ along with this software (see the LICENSE.md file). If not, see
     <relationship type="one" related="co.hotwax.netsuite.party.contact.ContactMech"/>
     <index name="AREA_CONTACT_IDX"><index-field name="areaCode"/><index-field name="contactNumber"/></index>
   </entity>
+
+  <view-entity entity-name="PartyRelationshipAndDetail" package="co.hotwax.netsuite.party">
+      <member-entity entity-alias="PTY" entity-name="co.hotwax.netsuite.party.Party"/>
+      <member-entity entity-alias="PER" entity-name="co.hotwax.netsuite.party.Person" join-from-alias="PTY" join-optional="true">
+          <key-map field-name="partyId"/>
+      </member-entity>
+      <member-entity entity-alias="PTYREL" entity-name="co.hotwax.netsuite.party.PartyRelationship" join-from-alias="PTY" join-optional="true">
+          <key-map field-name="partyId" related="toPartyId"/>
+      </member-entity>
+      <member-entity entity-alias="USER" entity-name="moqui.security.UserAccount" join-from-alias="PTY" join-optional="true">
+          <key-map field-name="partyId"/>
+      </member-entity>
+
+      <alias entity-alias="PTY" name="partyId"/>
+      <alias entity-alias="PER" name="firstName"/>
+      <alias entity-alias="PER" name="lastName"/>
+
+      <alias entity-alias="PTYREL" name="fromPartyId"/>
+      <alias entity-alias="PTYREL" name="fromRoleTypeId"/>
+      <alias entity-alias="PTYREL" name="toPartyId"/>
+      <alias entity-alias="PTYREL" name="toRoleTypeId"/>
+      <alias entity-alias="PTYREL" name="relationshipTypeEnumId"/>
+      <alias entity-alias="PTYREL" name="fromDate"/>
+      <alias entity-alias="PTYREL" name="thruDate"/>
+
+      <alias entity-alias="USER" name="username"/>
+      <alias entity-alias="USER" name="userId"/>
+      <alias entity-alias="USER" name="userFullName"/>
+      <alias entity-alias="USER" name="emailAddress"/>
+
+      <entity-condition>
+          <econdition field-name="fromRoleTypeId" operator="equals" value="Organization"/>
+          <econdition field-name="toRoleTypeId" operator="equals" value="Contact"/>
+          <econdition field-name="relationshipTypeEnumId" operator="equals" value="PrtContact"/>
+          <date-filter/>
+      </entity-condition>
+  </view-entity>
 </entities>
