@@ -469,6 +469,9 @@
     <service verb="get" noun="ReturnDetails">
         <in-parameters>
             <parameter name="statusId" type="String"/>
+            <parameter name="systemMessageRemoteId" type="String">
+                <description>NetSuite SystemMessageRemoteId</description>
+            </parameter>
             <parameter name="pageIndex" type="Integer" default-value="0">
                 <description>The current page index to get the shipments.</description>
             </parameter>
@@ -500,6 +503,10 @@
                     } else {
                         conditions.add(ec.entity.conditionFactory.makeCondition("statusId", EntityCondition.EQUALS, statusId));
                     }
+                }
+
+                if (systemMessageRemoteId) {
+                    conditions.add(ec.entity.conditionFactory.makeCondition("systemMessageRemoteId", EntityCondition.EQUALS, systemMessageRemoteId));
                 }
 
                 offset = pageIndex.multiply(pageSize)
@@ -559,6 +566,11 @@
     </service>
 
     <service verb="get" noun="ReturnCount">
+        <in-parameters>
+            <parameter name="systemMessageRemoteId" type="String">
+                <description>NetSuite SystemMessageRemoteId</description>
+            </parameter>
+        </in-parameters>
         <out-parameters>
             <parameter name="returnCountMap" type="Map"/>
         </out-parameters>
@@ -574,16 +586,19 @@
 
                 loopReturnClosedCount = ec.entity.find("co.hotwax.netsuite.LoopReturnHistory")
                     .condition("partyId", organizationPartyId)
+                    .condition("systemMessageRemoteId", systemMessageRemoteId)
                     .condition("statusId", "RT_REFUNDED")
                     .count()
 
                 loopReturnFailedCount = ec.entity.find("co.hotwax.netsuite.LoopReturnHistory")
                     .condition("partyId", organizationPartyId)
+                    .condition("systemMessageRemoteId", systemMessageRemoteId)
                     .condition("statusId", "RT_ERROR")
                     .count()
 
                 loopReturnOpenCount = ec.entity.find("co.hotwax.netsuite.LoopReturnHistory")
                     .condition("partyId", organizationPartyId)
+                    .condition("systemMessageRemoteId", systemMessageRemoteId)
                     .condition("statusId", EntityCondition.NOT_IN, ["RT_REFUNDED", "RT_ERROR"])
                     .count()
 
