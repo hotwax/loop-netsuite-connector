@@ -8,7 +8,7 @@ RUN apt-get update
 RUN apt-get upgrade -y --no-install-recommends
 
 # Install necessary packages and Set noninteractive mode for tzdata
-RUN DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y --no-install-recommends \
     openjdk-11-jdk \
     software-properties-common \
     ca-certificates-java \
