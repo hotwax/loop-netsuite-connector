@@ -1,30 +1,5 @@
-FROM ubuntu:22.04
-LABEL maintainer="HotWax Commerce <sysadmin@hotwaxsystems.com>"
-
-# Update package lists
-RUN apt-get update
-
-# Upgrade installed packages
-RUN apt-get upgrade -y --no-install-recommends
-
-# Install necessary packages and Set noninteractive mode for tzdata
-RUN DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-    openjdk-11-jdk \
-    software-properties-common \
-    ca-certificates-java \
-    git \
-    curl \
-    vim \
-    screen \
-    patch \
-    bash \
-    tzdata
-
-# Fix certificate issues
-RUN update-ca-certificates -f
-
-# Clean up to reduce image size
-RUN apt-get clean && rm -rf /var/lib/apt/lists/*
+FROM public.ecr.aws/j6s7y7u4/hotwax/ubuntu:22.04
+RUN update-java-alternatives -s java-1.11.0-openjdk-amd64 
 
 # Setup JAVA_HOME -- useful for docker commandline
 ENV JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
