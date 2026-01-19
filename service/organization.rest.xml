@@ -138,4 +138,9 @@ under the License.
             <service name="co.hotwax.configuration.CompanyConfigurationServices.update#NetSuiteReturnIntegrationMapping"/>
         </method>
     </resource>
+    <resource name="scheduleJob">
+        <method type="post">
+            <service name="co.hotwax.configuration.CompanyConfigurationServices.schedule#OrganizationAllProducedSystemMessages"/>
+        </method>
+    </resource>
 </resource>

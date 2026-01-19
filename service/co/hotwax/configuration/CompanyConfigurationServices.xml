@@ -420,4 +420,61 @@
             <return type="success" message="Your integration type mapping record has been deleted successfully."/>
         </actions>
     </service>
+
+    <service verb="schedule" noun="OrganizationAllProducedSystemMessages">
+        <in-parameters>
+            <parameter name="organizationPartyId"/>
+            <parameter name="systemMessageRemoteId" required="true"/>
+        </in-parameters>
+        <actions>
+            <if condition="!organizationPartyId">
+                <!-- Get OrganizationPartyId from logged in user -->
+                <service-call name="co.hotwax.configuration.UserProfileServices.get#OrganizationPartyIds" out-map="context"/>
+                <set field="organizationPartyId" from="context.partyId" type="String"/>
+            </if>
+
+            <entity-find-one entity-name="co.hotwax.netsuite.party.Organization" value-field="organization" cache="true">
+                <field-map field-name="partyId" from="organizationPartyId"/>
+            </entity-find-one>
+            <set field="organizationName" from="organization.organizationName"/>
+
+            <set field="serviceContext" from="[:]"/>
+            <set field="jobName" value="send_AllProducedSystemMessages_${organizationPartyId}_${systemMessageRemoteId}"/>
+
+            <set field="serviceContext.jobName" from="jobName"/>
+            <set field="serviceContext.description" value="Service job to send all produced system message for organization ${organizationName} [${organizationPartyId}]"/>
+            <set field="serviceContext.serviceName" value="co.hotwax.loop.common.SystemMessageServices.send#OrganizationAllProducedSystemMessages"/>
+            <set field="serviceContext.paused" value="N"/>
+            <set field="serviceContext.cronExpression" value="0 0/5 * * * ?"/>
+            <set field="serviceContext.transactionTimeout" value="3600"/>
+
+            <service-call name="create#moqui.service.job.ServiceJob" in-map="serviceContext"/>
+
+            <service-call name="create#moqui.service.job.ServiceJobParameter" in-map="[jobName: jobName, parameterName: 'systemMessageRemoteId', parameterValue: systemMessageRemoteId]"/>
+            <service-call name="create#moqui.service.job.ServiceJobParameter" in-map="[jobName: jobName, parameterName: 'organizationPartyId', parameterValue: organizationPartyId]"/>
+            <service-call name="create#moqui.service.job.ServiceJobParameter" in-map="[jobName: jobName, parameterName: 'retryLimit', parameterValue: '5']"/>
+            <service-call name="create#moqui.service.job.ServiceJobParameter" in-map="[jobName: jobName, parameterName: 'retryMinutes', parameterValue: '60']"/>
+
+            <!--Associated the service job with PartySystemMessageRemote -->
+
+            <entity-find entity-name="co.hotwax.netsuite.party.PartySystemMessageRemote" list="partyNetSystemMessageRemoteList">
+                <econdition field-name="partyId" operator="equals" from="organizationPartyId"/>
+                <econdition field-name="systemMessageRemoteId" operator="equals" from="systemMessageRemoteId"/>
+                <econdition field-name="systemMessageTypeId" operator="equals" value="NetsuiteCredentials"/>
+                <date-filter/>
+            </entity-find>
+
+            <iterate list="partyNetSystemMessageRemoteList" entry="partyNetSystemMessageRemote">
+                <service-call name="update#PartySystemMessageRemote"
+                              in-map="[
+                            partyId:partyNetSystemMessageRemote.partyId,
+                            systemMessageRemoteId:partyNetSystemMessageRemote.systemMessageRemoteId,
+                            remoteIdType:partyNetSystemMessageRemote.remoteIdType,
+                            fromDate:partyNetSystemMessageRemote.fromDate,
+                            jobName:jobName,
+                            systemMessageTypeId:partyNetSystemMessageRemote.systemMessageTypeId
+                          ]"/>
+            </iterate>
+        </actions>
+    </service>
 </services>
