@@ -105,10 +105,14 @@ class LoopWebhookFilter implements Filter {
 
         String webhookTrigger = rootNode.path("trigger").asText();
         String provider = rootNode.path("return_method").path("provider").asText();
+        logger.info("Webhook ------------------Trigger: ${webhookTrigger}")
+        logger.info("Return Method Provider--------------: ${provider}")
 
         if ("loop-pos".equals(provider) && "return.closed".equals(webhookTrigger)) {
             webhookTrigger = "pos." + webhookTrigger;
+            logger.info("Testing Webhook Trigger Updated--------------: ${webhookTrigger}")
         } else if ("loop-pos".equals(provider) && "return.created".equals(webhookTrigger)) {
+            logger.info(" Return r-------------- return")
             return
         }
 
