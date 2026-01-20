@@ -20,8 +20,6 @@
 package co.hotwax.loop
 
 import groovy.transform.CompileStatic
-import org.moqui.entity.EntityCondition
-import org.moqui.entity.EntityList
 import org.moqui.entity.EntityValue
 import org.moqui.impl.context.ContextJavaUtil
 import org.moqui.impl.context.ExecutionContextFactoryImpl
@@ -34,6 +32,7 @@ import javax.servlet.*
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 import java.sql.Timestamp
+import com.fasterxml.jackson.databind.JsonNode
 
 @CompileStatic
 class LoopWebhookFilter implements Filter {
@@ -102,9 +101,16 @@ class LoopWebhookFilter implements Filter {
             webhookPartyId = urlParts[urlParts.length - 1];
         }
 
+        JsonNode rootNode = ContextJavaUtil.jacksonMapper.readTree(requestBody);
 
-        Map<String, String> payloadMap = ContextJavaUtil.jacksonMapper.readValue(requestBody, Map.class)
-        String webhookTrigger = payloadMap.get("trigger");
+        String webhookTrigger = rootNode.path("trigger").asText();
+        String provider = rootNode.path("return_method").path("provider").asText();
+
+        if ("loop-pos".equals(provider) && "return.closed".equals(webhookTrigger)) {
+            webhookTrigger = "pos." + webhookTrigger;
+        } else if ("loop-pos".equals(provider) && "return.created".equals(webhookTrigger)) {
+            return
+        }
 
         request.setAttribute("payload", ContextJavaUtil.jacksonMapper.readValue(requestBody, Map.class))
 
