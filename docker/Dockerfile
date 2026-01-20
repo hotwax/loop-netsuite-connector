@@ -9,7 +9,7 @@ RUN git clone --depth 1 -b "v3.5.0" https://github.com/hotwax/moqui-framework.gi
 WORKDIR /moqui-framework
 RUN git clone --depth 1 -b "v3.2.0" https://github.com/hotwax/moqui-runtime.git runtime
 WORKDIR /moqui-framework/runtime/component
-RUN git clone --depth 1 -b "main" https://github.com/hotwax/loop-netsuite-connector.git
+RUN git clone --depth 1 -b "test-feature-branch-for-loop-pos" https://github.com/hotwax/loop-netsuite-connector.git
 
 WORKDIR /moqui-framework
 
