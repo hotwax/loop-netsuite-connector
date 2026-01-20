@@ -104,4 +104,14 @@
                                           sendServiceName="co.hotwax.netsuite.NetSuiteRestServices.send#SystemMessageFileNetSuite">
   <parameters parameterName="scriptType" parameterValue="netsuite.restlet.create.sync.return" systemMessageRemoteId=""/>
  </moqui.service.message.SystemMessageType>
+
+    <!-- SystemMessageType record to send loop pos return.closed webhook payload to Netsuite -->
+    <moqui.service.message.SystemMessageType systemMessageTypeId="pos.return.closed"
+                                             description="Send POS Close Return JSON file to NetSuite"
+                                             parentTypeId="LocalFeedFile"
+                                             receivePath="${contentRoot}/Netsuite/POSLoopReturns/${organizationName}-${partyId}/${accountType}/close/loopCloseReturnFeed-${loopReturnId}-${dateTime}.json"
+                                             sendPath=""
+                                             sendServiceName="co.hotwax.netsuite.NetSuiteRestServices.send#SystemMessageFileNetSuite">
+        <parameters parameterName="scriptType" parameterValue="netsuite.restlet.create.pos.return" systemMessageRemoteId=""/>
+    </moqui.service.message.SystemMessageType>
 </entity-facade-xml>
