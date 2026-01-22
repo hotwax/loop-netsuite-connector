@@ -106,10 +106,8 @@ class LoopWebhookFilter implements Filter {
         String webhookTrigger = rootNode.path("trigger").asText();
         String provider = rootNode.path("return_method").path("provider").asText();
 
-        if ("loop-pos".equals(provider) && "return.closed".equals(webhookTrigger)) {
+        if ("loop-pos".equals(provider)) {
             webhookTrigger = "pos." + webhookTrigger;
-        } else if ("loop-pos".equals(provider) && "return.created".equals(webhookTrigger)) {
-            return
         }
 
         request.setAttribute("payload", ContextJavaUtil.jacksonMapper.readValue(requestBody, Map.class))
