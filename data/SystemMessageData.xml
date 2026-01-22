@@ -114,4 +114,7 @@
                                              sendServiceName="co.hotwax.netsuite.NetSuiteRestServices.send#SystemMessageFileNetSuite">
         <parameters parameterName="scriptType" parameterValue="netsuite.restlet.create.pos.return" systemMessageRemoteId=""/>
     </moqui.service.message.SystemMessageType>
+
+    <moqui.basic.Enumeration description="Loop POS Close Return Webhook" enumId="LoopPOSReturnsClose"
+                             enumTypeId="LoopMessageTypeEnum" enumCode="pos.return.closed"/>
 </entity-facade-xml>

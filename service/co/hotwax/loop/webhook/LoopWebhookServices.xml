@@ -217,11 +217,8 @@ under the License.
             <parameter name="remoteIdType"/>
         </in-parameters>
         <actions>
-            <entity-find entity-name="moqui.basic.Enumeration" list="enums" cache="true">
-                <econdition field-name="enumCode" operator="equals" from="webhookTrigger"/>
-            </entity-find>
-            <if condition="!enums">
-                <return message="Invalid webhook payload for topic [${webhookTrigger}], webhook configuration missing or incomplete."/>
+            <if condition="webhookTrigger == 'pos.return.created'">
+                <return message="We don't need to process webhook payload for topic [${webhookTrigger}]."/>
             </if>
 
             <entity-find-one entity-name="moqui.service.message.SystemMessageType" value-field="systemMessageType">
